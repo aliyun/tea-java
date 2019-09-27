@@ -1,0 +1,21 @@
+
+language: java
+sudo: false # faster builds
+
+jdk:
+  - openjdk8
+  - openjdk9
+  - openjdk11
+  - openjdk12
+
+branches: # build only on these branches
+  only:
+    - master
+
+script:
+  # Test
+  - mvn test -B
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
