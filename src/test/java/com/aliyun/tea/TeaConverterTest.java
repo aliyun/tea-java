@@ -47,9 +47,8 @@ public class TeaConverterTest {
 
     @Test
     public void toObject() throws Exception {
-        HashMap<String, String> map = new HashMap<String, String>() {{
-            put("key", "value");
-        }};
+        HashMap<String, String> map = new HashMap<String, String>();
+        map.put("key", "value");
         MyObject obj = TeaConverter.toObject(map, new TeaObject<MyObject>() {
         });
         Assert.assertEquals("value", obj.key);
@@ -57,9 +56,8 @@ public class TeaConverterTest {
 
     @Test
     public void toGenericObject() throws Exception {
-        HashMap<String, String> map = new HashMap<String, String>() {{
-            put("data", "value");
-        }};
+        HashMap<String, String> map = new HashMap<String, String>();
+        map.put("data", "value");
         MyGenericObject<String> obj = TeaConverter.toObject(map, new TeaObject<MyGenericObject<String>>() {
         });
         Assert.assertEquals("value", obj.data);
@@ -108,14 +106,11 @@ public class TeaConverterTest {
 
     @Test
     public void merge() throws Exception {
-        Map<String, Object> map = TeaConverter.merge(
-                new HashMap<String, Object>() {{
-                    put("key", "value");
-                }},
-                new HashMap<String, Object>() {{
-                    put("key2", "value2");
-                }}
-        );
+        HashMap<String, Object> map1 = new HashMap<String, Object>();
+        map1.put("key", "value");
+        HashMap<String, Object> map2 = new HashMap<String, Object>();
+        map1.put("key2", "value2");
+        Map<String, Object> map = TeaConverter.merge(map1, map2);
         Assert.assertEquals(map.get("key"), "value");
         Assert.assertEquals(map.get("key2"), "value2");
         Assert.assertEquals(2, map.size());
