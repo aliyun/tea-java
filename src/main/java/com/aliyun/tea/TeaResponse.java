@@ -1,9 +1,5 @@
 package com.aliyun.tea;
 
-// import org.apache.http.Header;
-// import org.apache.http.StatusLine;
-// import org.apache.http.client.methods.CloseableHttpResponse;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,21 +11,16 @@ import java.util.Map.Entry;
 
 public class TeaResponse {
 
-    // private CloseableHttpResponse response;
-    private HttpURLConnection conn;
     public int statusCode;
     public String statusMessage;
     public HashMap<String, String> headers = new HashMap<String, String>();
-    public byte[] body;
+    private HttpURLConnection content;
 
     public TeaResponse() {
     }
 
     public TeaResponse(HttpURLConnection conn) throws IOException {
-        this.conn = conn;
-        // this.
-        // byte[] buff = readContent(content);
-        // response.body = buff;
+        this.content = conn;
         statusCode = conn.getResponseCode();
         statusMessage = conn.getResponseMessage();
         Map<String, List<String>> headers = conn.getHeaderFields();
@@ -48,19 +39,13 @@ public class TeaResponse {
         }
     }
 
-    // public TeaResponse(CloseableHttpResponse res) {
-    //     this.response = res;
-    //     StatusLine status = res.getStatusLine();
-    //     this.statusCode = status.getStatusCode();
-    //     this.statusMessage = status.getReasonPhrase();
-    //     // headers
-    //     for (Header header : res.getAllHeaders()) {
-    //         headers.put(header.getName(), header.getValue());
-    //     }
-    // }
-
     public String getResponseBody() throws IOException {
-        InputStream content = conn.getInputStream();
+        InputStream content;
+        try {
+            content = this.content.getInputStream();
+        } catch (IOException e){
+            content = this.content.getErrorStream();
+        }
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] buff = new byte[1024];
 
@@ -75,7 +60,5 @@ public class TeaResponse {
         return new String(os.toByteArray());
     }
 
-    public InputStream getResponse() throws IOException {
-        return conn.getInputStream();
-    }
 }
+
