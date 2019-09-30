@@ -6,46 +6,49 @@ import java.lang.reflect.Field;
 
 public class TeaException extends Exception {
 
-    private Integer errCode;
-    private String errMsg;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+    private String code;
+    private String message;
     private Map<String, Object> data;
 
     public TeaException(Map<String, Object> map) {
-        this.errCode = (Integer)map.get("code");
-        this.errMsg = (String)map.get("message");
+        this.setCode((String) map.get("code"));
+        this.setMessage((String) map.get("message"));
         Object obj = map.get("data");
-        if(obj == null){    
-            return;    
-        }   
-  
-        Map<String, Object> hashMap = new HashMap<String, Object>();    
-  
-        Field[] declaredFields = obj.getClass().getDeclaredFields();    
-        for (Field field : declaredFields) {    
-            field.setAccessible(true);  
+        if (obj == null) {
+            return;
+        }
+
+        Map<String, Object> hashMap = new HashMap<String, Object>();
+        Field[] declaredFields = obj.getClass().getDeclaredFields();
+        for (Field field : declaredFields) {
+            field.setAccessible(true);
             try {
-                hashMap.put(field.getName(), field.get(obj));  
-            } catch(Exception e) {
+                hashMap.put(field.getName(), field.get(obj));
+            } catch (Exception e) {
                 continue;
             }
         }
         this.data = hashMap;
     }
 
-    public Integer getErrCode() {
-        return errCode;
+    public String getMessage() {
+        return message;
     }
 
-    public void setErrCode(Integer errCode) {
-        this.errCode = errCode;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    public String getErrMsg() {
-        return errMsg;
+    public String getCode() {
+        return code;
     }
 
-    public void setErrMsg(String errMsg) {
-        this.errMsg = errMsg;
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public Map<String, Object> getData() {
