@@ -77,12 +77,9 @@ public class TeaResponse {
                 os.write(buff, 0, read);
             }
             return new String(os.toByteArray());
-        } catch (IOException e){
-            throw e;
-        }finally {
+        } finally {
             conn.disconnect();
         }
-
     }
 
     public InputStream getResponse() throws IOException {

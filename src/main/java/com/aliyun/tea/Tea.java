@@ -95,12 +95,11 @@ public class Tea {
         return sslContext.getSocketFactory();
     }
 
-    public static boolean allowRetry(Object o, int retryTimes) {
+    public static boolean allowRetry(Map<String, Object> map, int retryTimes) {
         int retry;
-        if (o == null) {
+        if (map == null) {
             return false;
         } else {
-            Map<String, Object> map = (Map<String, Object>) o;
             retry = map.get("maxAttempts") == null ? 0 : (int) map.get("maxAttempts");
         }
         if (retry < retryTimes) {
