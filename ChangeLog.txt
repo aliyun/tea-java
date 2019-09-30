@@ -1,4 +1,5 @@
-2019-09-27 Version: 0.0.1
-1, Create Project
+2019-09-27 Version:0.0.1
+1. Create Project
+
 2019-09-30 Version: 0.0.2
-2, Modify the pom file
+1. Modify the pom file
