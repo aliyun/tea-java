@@ -26,26 +26,29 @@ public class Tea {
 
     private static String composeUrl(TeaRequest request) throws UnsupportedEncodingException {
         Map<String, String> queries = request.query;
-        String endpoint = request.headers.get("host");
+        String host = request.headers.get("host");
         String protocol = request.protocol;
-        StringBuilder urlBuilder = new StringBuilder("");
+        StringBuilder urlBuilder = new StringBuilder();
         urlBuilder.append(protocol);
-        urlBuilder.append("://").append(endpoint);
+        urlBuilder.append("://").append(host);
         urlBuilder.append(request.pathname);
-        StringBuilder builder = new StringBuilder("");
-        for (Map.Entry<String, String> entry : queries.entrySet()) {
-            String key = entry.getKey();
-            String val = entry.getValue();
-            if (val == null) {
-                continue;
+        if (queries.size() > 0) {
+            urlBuilder.append("?");
+            for (Map.Entry<String, String> entry : queries.entrySet()) {
+                String key = entry.getKey();
+                String val = entry.getValue();
+                if (val == null) {
+                    continue;
+                }
+                urlBuilder.append(URLEncoder.encode(key, "UTF-8"));
+                urlBuilder.append("=");
+                urlBuilder.append(URLEncoder.encode(val, "UTF-8"));
+                urlBuilder.append("&");
             }
-            builder.append(URLEncoder.encode(key, "UTF-8"));
-            builder.append("=").append(URLEncoder.encode(val, "UTF-8"));
-            builder.append("&");int strIndex = builder.length();
-            builder.deleteCharAt(strIndex - 1);
+            int strIndex = urlBuilder.length();
+            urlBuilder.deleteCharAt(strIndex - 1);
         }
-        String query = builder.toString();
-        return urlBuilder.append(query).toString();
+        return urlBuilder.toString();
     }
 
     public static TeaResponse doAction(TeaRequest request) throws URISyntaxException, ClientProtocolException,
