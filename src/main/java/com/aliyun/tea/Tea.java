@@ -1,6 +1,7 @@
 package com.aliyun.tea;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
@@ -30,7 +31,7 @@ public class Tea {
         StringBuilder urlBuilder = new StringBuilder("");
         urlBuilder.append(protocol);
         urlBuilder.append("://").append(endpoint);
-        urlBuilder.append("/?");
+        urlBuilder.append(request.pathname);
         StringBuilder builder = new StringBuilder("");
         for (Map.Entry<String, String> entry : queries.entrySet()) {
             String key = entry.getKey();
@@ -40,11 +41,9 @@ public class Tea {
             }
             builder.append(URLEncoder.encode(key, "UTF-8"));
             builder.append("=").append(URLEncoder.encode(val, "UTF-8"));
-            builder.append("&");
+            builder.append("&");int strIndex = builder.length();
+            builder.deleteCharAt(strIndex - 1);
         }
-
-        int strIndex = builder.length();
-        builder.deleteCharAt(strIndex - 1);
         String query = builder.toString();
         return urlBuilder.append(query).toString();
     }
@@ -53,7 +52,8 @@ public class Tea {
             IOException, KeyManagementException, NoSuchAlgorithmException {
         String strUrl = composeUrl(request);
         URL url = new URL(strUrl);
-
+        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+        System.setProperty("sun.net.http.retryPost", "false");
         HttpURLConnection httpConn;
         if ("https".equalsIgnoreCase(url.getProtocol())) {
             SSLSocketFactory sslSocketFactory = createSSLSocketFactory();
@@ -69,12 +69,23 @@ public class Tea {
         httpConn.setDoOutput(true);
         httpConn.setDoInput(true);
         httpConn.setUseCaches(false);
-        // httpConn.setConnectTimeout(runtime.get("connectTimeout") == null ? 5000 :
-        // (int) runtime.get("connectTimeout"));
-        // httpConn.setReadTimeout(runtime.get("readTimeout") == null ? 15000 : (int)
-        // runtime.get("readTimeout"));
+        Map<String, String> headerMap = request.headers;
+        if (null != headerMap && headerMap.size() > 0) {
+            for (String headerName : request.headers.keySet()) {
+                httpConn.setRequestProperty(toUpperFirstChar(headerName), request.headers.get(headerName));
+            }
+        }
         httpConn.connect();
+        if (request.body != null && "POST".equals(request.method)) {
+            OutputStream out = httpConn.getOutputStream();
+            out.write(request.body.getBytes("UTF-8"));
+            out.flush();
+        }
         return new TeaResponse(httpConn);
+    }
+
+    public static String toUpperFirstChar(String name) {
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
     private static SSLSocketFactory createSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {

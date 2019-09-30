@@ -60,19 +60,29 @@ public class TeaResponse {
     // }
 
     public String getResponseBody() throws IOException {
-        InputStream content = conn.getInputStream();
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        byte[] buff = new byte[1024];
-
-        while (true) {
-            final int read = content.read(buff);
-            if (read == -1) {
-                break;
+        InputStream content;
+        try {
+            content = this.conn.getInputStream();
+        } catch (IOException e){
+            content = this.conn.getErrorStream();
+        }
+        try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            byte[] buff = new byte[1024];
+            while (true) {
+                final int read = content.read(buff);
+                if (read == -1) {
+                    break;
+                }
+                os.write(buff, 0, read);
             }
-            os.write(buff, 0, read);
+            return new String(os.toByteArray());
+        } catch (IOException e){
+            throw e;
+        }finally {
+            conn.disconnect();
         }
 
-        return new String(os.toByteArray());
     }
 
     public InputStream getResponse() throws IOException {
