@@ -84,6 +84,7 @@
 
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.6.1</version>
         <configuration>
           <source>${java.version}</source>
           <target>${java.version}</target>
@@ -93,6 +94,7 @@
 
       <plugin>
         <artifactId>maven-source-plugin</artifactId>
+        <version>2.2.1</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -146,10 +148,6 @@
         </executions>
       </plugin>
       <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.1</version>
-      </plugin>
-      <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.4</version>
       </plugin>
@@ -160,10 +158,6 @@
       <plugin>
         <artifactId>maven-eclipse-plugin</artifactId>
         <version>2.9</version>
-      </plugin>
-      <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.2.1</version>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
