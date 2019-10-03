@@ -1,12 +1,12 @@
 package com.aliyun.tea;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.google.gson.Gson;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TeaModelTest {
 
@@ -20,11 +20,13 @@ public class TeaModelTest {
     }
 
     @Test
-    public void toModel() throws IllegalArgumentException, IllegalAccessException, InstantiationException {
+    public void toModel() throws IllegalArgumentException, IllegalAccessException, InstantiationException,
+            InvocationTargetException, NoSuchMethodException, SecurityException {
         SubModel submodel = TeaModel.toModel(new HashMap<String, Object>(), new SubModel());
         Assert.assertEquals(null, submodel.accessKeyId);
-        SubModel submodel2 = TeaModel.toModel(new HashMap<String, Object>(){
+        SubModel submodel2 = TeaModel.toModel(new HashMap<String, Object>() {
             private static final long serialVersionUID = 1L;
+
             {
                 put("accessToken", "the access token");
                 put("access_key_id", "the access key id");
@@ -49,7 +51,7 @@ public class TeaModelTest {
         Assert.assertEquals("the access key id", map.get("access_key_id"));
         Assert.assertEquals("the access token", map.get("accessToken"));
         Assert.assertTrue(map.get("list") instanceof String[]);
-        String[] list = (String[])map.get("list");
+        String[] list = (String[]) map.get("list");
         Assert.assertArrayEquals(new String[]{"string0", "string1"}, list);
     }
 
@@ -100,11 +102,46 @@ public class TeaModelTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void toMapWithList() throws IllegalArgumentException, IllegalAccessException, InstantiationException {
-        Gson gson = new Gson();
-        Map<String, Object> map = gson.fromJson("{\"items\":[],\"next_marker\":\"\"}", Map.class);
+    public void toMapWithList() throws IllegalArgumentException, IllegalAccessException, InstantiationException,
+            InvocationTargetException, NoSuchMethodException, SecurityException {
+        Map<String, Object> map = new HashMap<String, Object>();
+        ArrayList<BaseDriveResponse> items = new ArrayList<>();
+        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
+        baseDriveResponse.status = "test";
+        baseDriveResponse.domainId = "test";
+        items.add(baseDriveResponse);
+        map.put("items", items);
+        map.put("next_marker", "");
         ListDriveResponse response = TeaModel.toModel(map, new ListDriveResponse());
-        Assert.assertArrayEquals(new BaseDriveResponse[]{}, response.items);
+        Assert.assertTrue(response.items[0] instanceof BaseDriveResponse);
+    }
+
+    public static class HelloResponse extends TeaModel {
+        @NameInMap("data")
+        public Hello data;
+
+    }
+
+    public static class Hello extends TeaModel {
+        @NameInMap("message")
+        public String message;
+    }
+
+    @Test
+    public void toMapWithGeneric() throws IllegalArgumentException, IllegalAccessException, InstantiationException,
+            InvocationTargetException, NoSuchMethodException, SecurityException {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("data", new HashMap<String, Object>() {
+            private static final long serialVersionUID = 1L;
+
+            {
+                put("message", "Hello jacksontian");
+            }
+        });
+
+        HelloResponse response = TeaModel.toModel(map, new HelloResponse());
+        Assert.assertNotNull(response);
+        Assert.assertNotNull(response.data);
+        Assert.assertEquals("Hello jacksontian", response.data.message);
     }
 }
