@@ -144,4 +144,5 @@ public class TeaModelTest {
         Assert.assertNotNull(response.data);
         Assert.assertEquals("Hello jacksontian", response.data.message);
     }
+
 }
