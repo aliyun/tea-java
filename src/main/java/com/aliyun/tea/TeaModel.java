@@ -2,6 +2,7 @@ package com.aliyun.tea;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +29,10 @@ public class TeaModel {
         return map;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T extends TeaModel> T toModel(Map<String, Object> map, T model)
-            throws IllegalArgumentException, IllegalAccessException, InstantiationException {
+            throws IllegalArgumentException, IllegalAccessException, InstantiationException, InvocationTargetException,
+            NoSuchMethodException, SecurityException {
         for (Field field : model.getClass().getFields()) {
             NameInMap anno = field.getAnnotation(NameInMap.class);
             String key;
@@ -43,16 +46,22 @@ public class TeaModel {
                 continue;
             }
 
-            if (value instanceof ArrayList) {
-                Class<?> t = field.getType().getComponentType();
-                ArrayList<?> valueList = (ArrayList<?>)value;
-                Object[] target = (Object[]) Array.newInstance(t, valueList.size());
+            if (field.getType().isArray() && value instanceof ArrayList) {
+                Class<?> itemType = field.getType().getComponentType();
+                ArrayList<?> valueList = (ArrayList<?>) value;
+                Object[] target = (Object[]) Array.newInstance(itemType, valueList.size());
                 for (int i = 0; i < valueList.size(); i++) {
-                    Array.set(target, 0, valueList.get(i));
+                    Array.set(target, i, valueList.get(i));
                 }
                 field.set(model, target);
             } else {
-                field.set(model, value);
+                Class<?> clazz = field.getType();
+                if (TeaModel.class.isAssignableFrom(clazz)) {
+                    Object data = clazz.getDeclaredConstructor().newInstance();
+                    field.set(model, TeaModel.toModel((Map<String, Object>)value, (TeaModel)data));
+                } else {
+                    field.set(model, value);
+                }
             }
         }
 
