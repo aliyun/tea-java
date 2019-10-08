@@ -1,12 +1,11 @@
 package com.aliyun.tea;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.google.gson.Gson;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TeaModelTest {
 
@@ -20,10 +19,10 @@ public class TeaModelTest {
     }
 
     @Test
-    public void toModel() throws IllegalArgumentException, IllegalAccessException, InstantiationException {
+    public void toModel() throws Exception {
         SubModel submodel = TeaModel.toModel(new HashMap<String, Object>(), new SubModel());
         Assert.assertEquals(null, submodel.accessKeyId);
-        SubModel submodel2 = TeaModel.toModel(new HashMap<String, Object>(){
+        SubModel submodel2 = TeaModel.toModel(new HashMap<String, Object>() {
             private static final long serialVersionUID = 1L;
             {
                 put("accessToken", "the access token");
@@ -49,7 +48,7 @@ public class TeaModelTest {
         Assert.assertEquals("the access key id", map.get("access_key_id"));
         Assert.assertEquals("the access token", map.get("accessToken"));
         Assert.assertTrue(map.get("list") instanceof String[]);
-        String[] list = (String[])map.get("list");
+        String[] list = (String[]) map.get("list");
         Assert.assertArrayEquals(new String[]{"string0", "string1"}, list);
     }
 
@@ -101,10 +100,11 @@ public class TeaModelTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void toMapWithList() throws IllegalArgumentException, IllegalAccessException, InstantiationException {
+    public void toMapWithList() throws Exception {
         Gson gson = new Gson();
-        Map<String, Object> map = gson.fromJson("{\"items\":[],\"next_marker\":\"\"}", Map.class);
+        Map<String, Object> map = gson.fromJson(
+                "{\"items\":[{\"status\":\"status\", \"domain_id\":\"test\"}],\"next_marker\":\"\"}", Map.class);
         ListDriveResponse response = TeaModel.toModel(map, new ListDriveResponse());
-        Assert.assertArrayEquals(new BaseDriveResponse[]{}, response.items);
+        Assert.assertTrue(response.items[0] instanceof BaseDriveResponse);
     }
 }

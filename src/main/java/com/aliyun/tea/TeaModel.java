@@ -2,6 +2,7 @@ package com.aliyun.tea;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,8 +29,8 @@ public class TeaModel {
         return map;
     }
 
-    public static <T extends TeaModel> T toModel(Map<String, Object> map, T model)
-            throws IllegalArgumentException, IllegalAccessException, InstantiationException {
+    public static <T> T toModel(Map<String, Object> map, T model)
+            throws IllegalArgumentException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
         for (Field field : model.getClass().getFields()) {
             NameInMap anno = field.getAnnotation(NameInMap.class);
             String key;
@@ -45,10 +46,11 @@ public class TeaModel {
 
             if (value instanceof ArrayList) {
                 Class<?> t = field.getType().getComponentType();
-                ArrayList<?> valueList = (ArrayList<?>)value;
+                ArrayList<?> valueList = (ArrayList<?>) value;
                 Object[] target = (Object[]) Array.newInstance(t, valueList.size());
                 for (int i = 0; i < valueList.size(); i++) {
-                    Array.set(target, 0, valueList.get(i));
+                    Array.set(target, 0, toModel((Map<String, Object>) valueList.get(i),
+                            t.getDeclaredConstructor().newInstance()));
                 }
                 field.set(model, target);
             } else {
@@ -58,4 +60,5 @@ public class TeaModel {
 
         return model;
     }
+
 }

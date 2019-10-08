@@ -1,5 +1,9 @@
 package com.aliyun.tea;
 
+import com.aliyun.tea.utils.TrueHostnameVerifier;
+import com.aliyun.tea.utils.X509TrustManagerImp;
+import org.apache.http.client.ClientProtocolException;
+import javax.net.ssl.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -9,20 +13,18 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import com.aliyun.tea.utils.TrueHostnameVerifier;
-import com.aliyun.tea.utils.X509TrustManagerImp;
-
-import org.apache.http.client.ClientProtocolException;
-
 public class Tea {
+
+    private static final List<String> HAVE_BODY_METHOD_LSIT = new ArrayList<>();
+
+    {
+        HAVE_BODY_METHOD_LSIT.add("POST");
+        HAVE_BODY_METHOD_LSIT.add("PUT");
+    }
 
     private static String composeUrl(TeaRequest request) throws UnsupportedEncodingException {
         Map<String, String> queries = request.query;
@@ -79,7 +81,7 @@ public class Tea {
             }
         }
         httpConn.connect();
-        if (request.body != null && "POST".equals(request.method)) {
+        if (request.body != null && HAVE_BODY_METHOD_LSIT.contains(request.method.toUpperCase())) {
             OutputStream out = httpConn.getOutputStream();
             out.write(request.body.getBytes("UTF-8"));
             out.flush();
@@ -94,7 +96,7 @@ public class Tea {
     private static SSLSocketFactory createSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
         X509TrustManager compositeX509TrustManager = new X509TrustManagerImp();
         SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[] { compositeX509TrustManager }, new java.security.SecureRandom());
+        sslContext.init(null, new TrustManager[]{compositeX509TrustManager}, new java.security.SecureRandom());
         return sslContext.getSocketFactory();
     }
 
