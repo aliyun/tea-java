@@ -8,6 +8,8 @@ jdk:
   - openjdk11
   - openjdk12
 
+install: /bin/true
+
 branches: # build only on these branches
   only:
     - master
