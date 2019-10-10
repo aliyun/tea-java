@@ -21,7 +21,7 @@ import java.util.Map;
 public class Tea {
     private static final List<String> HAVE_BODY_METHOD_LSIT = new ArrayList<>();
 
-    {
+    static {
         HAVE_BODY_METHOD_LSIT.add("POST");
         HAVE_BODY_METHOD_LSIT.add("PUT");
     }
