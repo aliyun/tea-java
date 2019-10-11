@@ -1,5 +1,6 @@
 package com.aliyun.tea;
 
+import com.aliyun.tea.utils.StringUtils;
 import com.aliyun.tea.utils.TrueHostnameVerifier;
 import com.aliyun.tea.utils.X509TrustManagerImp;
 import org.apache.http.client.ClientProtocolException;
@@ -53,8 +54,9 @@ public class Tea {
         return urlBuilder.toString();
     }
 
-    public static TeaResponse doAction(TeaRequest request) throws URISyntaxException, ClientProtocolException,
-            IOException, KeyManagementException, NoSuchAlgorithmException {
+    public static TeaResponse doAction(TeaRequest request, TeaModel runtimeOptions) throws URISyntaxException, ClientProtocolException,
+            IOException, KeyManagementException, NoSuchAlgorithmException, IllegalAccessException {
+        Map<String, Object> runTimes = runtimeOptions.toMap();
         String strUrl = composeUrl(request);
         URL url = new URL(strUrl);
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
@@ -74,6 +76,12 @@ public class Tea {
         httpConn.setDoOutput(true);
         httpConn.setDoInput(true);
         httpConn.setUseCaches(false);
+        if (!StringUtils.isEmpty(runTimes.get("readTimeout"))) {
+            httpConn.setReadTimeout((int) runTimes.get("readTimeout"));
+        }
+        if (!StringUtils.isEmpty(runTimes.get("connectTimeout"))) {
+            httpConn.setConnectTimeout((int) runTimes.get("connectTimeout"));
+        }
         Map<String, String> headerMap = request.headers;
         if (null != headerMap && headerMap.size() > 0) {
             for (String headerName : request.headers.keySet()) {
