@@ -26,7 +26,7 @@ public class Tea {
         HAVE_BODY_METHOD_LSIT.add("PUT");
     }
 
-    private static String composeUrl(TeaRequest request) throws UnsupportedEncodingException {
+    public static String composeUrl(TeaRequest request) throws UnsupportedEncodingException {
         Map<String, String> queries = request.query;
         String host = request.headers.get("host");
         String protocol = request.protocol;

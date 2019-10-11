@@ -31,6 +31,9 @@ public class TeaRequest {
     public static TeaRequest create() {
         return new TeaRequest();
     }
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
 
     @Override
     public String toString() {
