@@ -18,34 +18,34 @@ public class TeaTest {
     public void init() {
         new Tea();
     }
+
     @Test
-    public void composeUrlTest() throws UnsupportedEncodingException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Tea tea = new Tea();
-        Class teaClass = tea.getClass();
-        Method composeUrl = teaClass.getDeclaredMethod("composeUrl", TeaRequest.class);
+    public void composeUrlTest() throws UnsupportedEncodingException, NoSuchMethodException, InvocationTargetException,
+            IllegalAccessException {
+        Method composeUrl = Tea.class.getDeclaredMethod("composeUrl", TeaRequest.class);
         composeUrl.setAccessible(true);
 
         TeaRequest request = new TeaRequest();
         request.protocol = "HTTP";
-        String str = (String) composeUrl.invoke(tea,request);
-        Assert.assertEquals("HTTP://nullnull",str);
+        String str = (String) composeUrl.invoke(Tea.class, request);
+        Assert.assertEquals("HTTP://nullnull", str);
     }
 
     @Test
-    public void toUpperFirstCharTest(){
-        Tea tea = new Tea();
-        String name = tea.toUpperFirstChar("Dasdqwqrfsfdsg");
-        Assert.assertEquals("Dasdqwqrfsfdsg",name);
+    public void toUpperFirstCharTest() {
+        String name = Tea.toUpperFirstChar("word");
+        Assert.assertEquals("Word", name);
     }
+
     @Test
     public void createSSLSocketFactoryTest() throws Exception {
         X509Certificate x509Certificates = mock(X509Certificate.class);
         Tea tea = new Tea();
         X509TrustManagerImp x509 = new X509TrustManagerImp();
         x509.getAcceptedIssuers();
-        x509.checkServerTrusted(new X509Certificate[]{x509Certificates},"test");
-        x509.checkClientTrusted(new X509Certificate[]{ x509Certificates},"test1");
-        SSLSocketFactory sslSocketFactory = Whitebox.invokeMethod(tea,"createSSLSocketFactory");
+        x509.checkServerTrusted(new X509Certificate[] { x509Certificates }, "test");
+        x509.checkClientTrusted(new X509Certificate[] { x509Certificates }, "test1");
+        SSLSocketFactory sslSocketFactory = Whitebox.invokeMethod(tea, "createSSLSocketFactory");
         Assert.assertNotNull(sslSocketFactory);
     }
 
