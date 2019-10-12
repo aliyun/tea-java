@@ -54,9 +54,9 @@ public class Tea {
         return urlBuilder.toString();
     }
 
-    public static TeaResponse doAction(TeaRequest request, TeaModel runtimeOptions) throws URISyntaxException, ClientProtocolException,
-            IOException, KeyManagementException, NoSuchAlgorithmException, IllegalAccessException {
-        Map<String, Object> runTimes = runtimeOptions.toMap();
+    public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions)
+            throws URISyntaxException, ClientProtocolException, IOException, KeyManagementException,
+            NoSuchAlgorithmException, IllegalAccessException {
         String strUrl = composeUrl(request);
         URL url = new URL(strUrl);
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
@@ -76,18 +76,21 @@ public class Tea {
         httpConn.setDoOutput(true);
         httpConn.setDoInput(true);
         httpConn.setUseCaches(false);
-        if (!StringUtils.isEmpty(runTimes.get("readTimeout"))) {
-            httpConn.setReadTimeout((int) runTimes.get("readTimeout"));
+        if (!StringUtils.isEmpty(runtimeOptions.get("readTimeout"))) {
+            httpConn.setReadTimeout((int) runtimeOptions.get("readTimeout"));
         }
-        if (!StringUtils.isEmpty(runTimes.get("connectTimeout"))) {
-            httpConn.setConnectTimeout((int) runTimes.get("connectTimeout"));
+
+        if (!StringUtils.isEmpty(runtimeOptions.get("connectTimeout"))) {
+            httpConn.setConnectTimeout((int) runtimeOptions.get("connectTimeout"));
         }
+
         Map<String, String> headerMap = request.headers;
         if (null != headerMap && headerMap.size() > 0) {
             for (String headerName : request.headers.keySet()) {
                 httpConn.setRequestProperty(toUpperFirstChar(headerName), request.headers.get(headerName));
             }
         }
+
         httpConn.connect();
         if (request.body != null && HAVE_BODY_METHOD_LSIT.contains(request.method.toUpperCase())) {
             OutputStream out = httpConn.getOutputStream();
@@ -104,7 +107,7 @@ public class Tea {
     private static SSLSocketFactory createSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
         X509TrustManager compositeX509TrustManager = new X509TrustManagerImp();
         SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[]{compositeX509TrustManager}, new java.security.SecureRandom());
+        sslContext.init(null, new TrustManager[] { compositeX509TrustManager }, new java.security.SecureRandom());
         return sslContext.getSocketFactory();
     }
 
