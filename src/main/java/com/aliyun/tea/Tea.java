@@ -111,7 +111,7 @@ public class Tea {
         return sslContext.getSocketFactory();
     }
 
-    public static boolean allowRetry(Map<String, Object> map, int retryTimes) {
+    public static boolean allowRetry(Map<String, Object> map, int retryTimes, long now) {
         int retry;
         if (map == null) {
             return false;
@@ -134,5 +134,9 @@ public class Tea {
 
     public static void sleep(int time) throws InterruptedException {
         Thread.sleep(time);
+    }
+
+    public static boolean isRetryable(Exception e) {
+        return e instanceof TeaRetryableException;
     }
 }
