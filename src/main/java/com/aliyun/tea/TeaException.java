@@ -1,8 +1,8 @@
 package com.aliyun.tea;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import java.lang.reflect.Field;
 
 public class TeaException extends Exception {
 
@@ -35,6 +35,7 @@ public class TeaException extends Exception {
         this.data = hashMap;
     }
 
+    @Override
     public String getMessage() {
         return message;
     }

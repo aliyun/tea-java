@@ -1,9 +1,5 @@
 package com.aliyun.tea;
 
-// import org.apache.http.Header;
-// import org.apache.http.StatusLine;
-// import org.apache.http.client.methods.CloseableHttpResponse;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,16 +16,12 @@ public class TeaResponse {
     public int statusCode;
     public String statusMessage;
     public HashMap<String, String> headers = new HashMap<String, String>();
-    public byte[] body;
 
     public TeaResponse() {
     }
 
     public TeaResponse(HttpURLConnection conn) throws IOException {
         this.conn = conn;
-        // this.
-        // byte[] buff = readContent(content);
-        // response.body = buff;
         statusCode = conn.getResponseCode();
         statusMessage = conn.getResponseMessage();
         Map<String, List<String>> headers = conn.getHeaderFields();
@@ -44,29 +36,21 @@ public class TeaResponse {
                 builder.append(",");
                 builder.append(values.get(i));
             }
-            this.headers.put(key, builder.toString());
+            this.headers.put(key.toLowerCase(), builder.toString());
         }
     }
-
-    // public TeaResponse(CloseableHttpResponse res) {
-    //     this.response = res;
-    //     StatusLine status = res.getStatusLine();
-    //     this.statusCode = status.getStatusCode();
-    //     this.statusMessage = status.getReasonPhrase();
-    //     // headers
-    //     for (Header header : res.getAllHeaders()) {
-    //         headers.put(header.getName(), header.getValue());
-    //     }
-    // }
 
     public String getResponseBody() throws IOException {
         InputStream content;
         try {
             content = this.conn.getInputStream();
-        } catch (IOException e){
+        } catch (IOException e) {
             content = this.conn.getErrorStream();
         }
         try {
+            if (null == content) {
+                return String.format("{\"message\":\"%s\"}", statusMessage);
+            }
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             byte[] buff = new byte[1024];
             while (true) {

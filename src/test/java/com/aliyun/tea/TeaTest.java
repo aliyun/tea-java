@@ -7,9 +7,13 @@ import org.powermock.reflect.Whitebox;
 
 import javax.net.ssl.SSLSocketFactory;
 import java.io.UnsupportedEncodingException;
-import java.security.cert.X509Certificate;
 
 import static org.apache.http.HttpVersion.HTTP;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.cert.X509Certificate;
+
 import static org.mockito.Mockito.mock;
 
 public class TeaTest {
