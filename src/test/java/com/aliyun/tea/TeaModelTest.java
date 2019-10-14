@@ -105,11 +105,11 @@ public class TeaModelTest {
     public void toMapWithList() throws IllegalArgumentException, IllegalAccessException, InstantiationException,
             InvocationTargetException, NoSuchMethodException, SecurityException {
         Map<String, Object> map = new HashMap<String, Object>();
-        ArrayList<BaseDriveResponse> items = new ArrayList<>();
-        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
-        baseDriveResponse.status = "test";
-        baseDriveResponse.domainId = "test";
-        items.add(baseDriveResponse);
+        ArrayList<Map<String, Object>> items = new ArrayList<>();
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("domainId", "test");
+        responseMap.put("status", "test");
+        items.add(responseMap);
         map.put("items", items);
         map.put("next_marker", "");
         ListDriveResponse response = TeaModel.toModel(map, new ListDriveResponse());
