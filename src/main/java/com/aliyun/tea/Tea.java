@@ -118,15 +118,17 @@ public class Tea {
         } else {
             retry = map.get("maxAttempts") == null ? 0 : (int) map.get("maxAttempts");
         }
-        if (retry < retryTimes) {
-            return true;
-        }
-        return false;
+        return retry >= retryTimes;
     }
 
     public static int getBackoffTime(Object o, int retryTimes) {
         int backOffTime = 0;
-        if (o == null || (backOffTime = Integer.valueOf(String.valueOf(o))) <= 0) {
+        Map<String, Object> map = (Map<String, Object>) o;
+        if (StringUtils.isEmpty(map.get("policy")) && "no".equals(map.get("policy"))) {
+            return backOffTime;
+        }
+        if (!StringUtils.isEmpty(map.get("period")) &&
+                (backOffTime = Integer.valueOf(String.valueOf(map.get("period")))) <= 0) {
             return retryTimes;
         }
         return backOffTime;
