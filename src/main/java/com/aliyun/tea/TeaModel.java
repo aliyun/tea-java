@@ -45,7 +45,7 @@ public class TeaModel {
             if (value == null) {
                 continue;
             }
-
+            value = parseToInt(value);
             if (field.getType().isArray() && value instanceof ArrayList) {
                 Class<?> itemType = field.getType().getComponentType();
                 ArrayList<?> valueList = (ArrayList<?>) value;
@@ -67,5 +67,25 @@ public class TeaModel {
         }
 
         return model;
+    }
+
+    private static Object parseToInt(Object value) {
+        int result;
+        if (value == null) {
+            return value;
+        }
+        if (value instanceof Double) {
+            double doubleValue = (Double) value;
+            if ((result = (int) doubleValue) == doubleValue) {
+                return result;
+            }
+        }
+        if (value instanceof Long) {
+            long longValue = (Long) value;
+            if ((result = (int) longValue) == longValue) {
+                return result;
+            }
+        }
+        return value;
     }
 }

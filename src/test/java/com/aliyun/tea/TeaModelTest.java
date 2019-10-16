@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,8 @@ public class TeaModelTest {
         public String accessKeyId;
 
         public String[] list;
+
+        public long size;
     }
 
     @Test
@@ -47,7 +50,7 @@ public class TeaModelTest {
         submodel.list = new String[]{"string0", "string1"};
 
         Map<String, Object> map = submodel.toMap();
-        Assert.assertEquals(3, map.size());
+        Assert.assertEquals(4, map.size());
         Assert.assertEquals("the access key id", map.get("access_key_id"));
         Assert.assertEquals("the access token", map.get("accessToken"));
         Assert.assertTrue(map.get("list") instanceof String[]);
@@ -143,5 +146,39 @@ public class TeaModelTest {
         Assert.assertNotNull(response);
         Assert.assertNotNull(response.data);
         Assert.assertEquals("Hello jacksontian", response.data.message);
+    }
+
+    @Test
+    public void parseToIntTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Class teaModel = TeaModel.class;
+        Method parseToInt = teaModel.getDeclaredMethod("parseToInt", Object.class);
+        parseToInt.setAccessible(true);
+        Object arg = null;
+        Object result = parseToInt.invoke(teaModel, arg);
+        Assert.assertNull(result);
+
+        arg = 2D;
+        result = parseToInt.invoke(teaModel, arg);
+        Assert.assertEquals(2, result);
+
+        arg = 2.32D;
+        result = parseToInt.invoke(teaModel, arg);
+        Assert.assertEquals(2.32D, result);
+
+        arg = 2L;
+        result = parseToInt.invoke(teaModel, arg);
+        Assert.assertEquals(2, result);
+
+        arg = Integer.MAX_VALUE + 1L;
+        result = parseToInt.invoke(teaModel, arg);
+        Assert.assertEquals(Integer.MAX_VALUE + 1L, result);
+    }
+
+    @Test
+    public void transformFieldTest() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("size", Double.valueOf("6"));
+        SubModel submodel = TeaModel.toModel(map, new SubModel());
+        Assert.assertEquals(6L, submodel.size);
     }
 }
