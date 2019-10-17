@@ -1,3 +1,6 @@
+2019-10-17 Version: 0.0.6
+1.add parseToInt method
+
 2019-10-08 Version: 0.0.5
 1.improve Tea
 2.improve TeaModel
