@@ -21,7 +21,10 @@ public class TeaException extends Exception {
         if (obj == null) {
             return;
         }
-
+        if (obj instanceof Map) {
+            data = (Map<String, Object>) obj;
+            return;
+        }
         Map<String, Object> hashMap = new HashMap<String, Object>();
         Field[] declaredFields = obj.getClass().getDeclaredFields();
         for (Field field : declaredFields) {
