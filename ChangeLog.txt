@@ -1,3 +1,7 @@
+2019-10-21 Version: 0.0.7
+1.improve TeaException
+2.modify the retreat logic
+
 2019-10-17 Version: 0.0.6
 1.add parseToInt method
 
