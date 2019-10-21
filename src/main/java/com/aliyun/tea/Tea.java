@@ -124,7 +124,7 @@ public class Tea {
     public static int getBackoffTime(Object o, int retryTimes) {
         int backOffTime = 0;
         Map<String, Object> map = (Map<String, Object>) o;
-        if (StringUtils.isEmpty(map.get("policy")) && "no".equals(map.get("policy"))) {
+        if (StringUtils.isEmpty(map.get("policy")) || "no".equals(map.get("policy"))) {
             return backOffTime;
         }
         if (!StringUtils.isEmpty(map.get("period")) &&

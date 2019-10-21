@@ -10,6 +10,8 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 
@@ -49,4 +51,25 @@ public class TeaTest {
         Assert.assertNotNull(sslSocketFactory);
     }
 
+    @Test
+    public void getBackoffTimeTest() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("policy", "");
+        int number = Tea.getBackoffTime(map, 88);
+        Assert.assertEquals(0, number);
+
+        map.put("policy", "no");
+        number = Tea.getBackoffTime(map, 88);
+        Assert.assertEquals(0, number);
+
+        map.put("policy", "one");
+        map.put("period", 0);
+        number = Tea.getBackoffTime(map, 88);
+        Assert.assertEquals(88, number);
+
+        map.put("policy", "one");
+        map.put("period", 66);
+        number = Tea.getBackoffTime(map, 88);
+        Assert.assertEquals(66, number);
+    }
 }

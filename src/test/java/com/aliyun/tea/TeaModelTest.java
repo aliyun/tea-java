@@ -165,6 +165,10 @@ public class TeaModelTest {
         result = parseToInt.invoke(teaModel, arg);
         Assert.assertEquals(2.32D, result);
 
+        arg = Integer.MAX_VALUE + 1D;
+        result = parseToInt.invoke(teaModel, arg);
+        Assert.assertEquals(Integer.MAX_VALUE + 1L, result);
+
         arg = 2L;
         result = parseToInt.invoke(teaModel, arg);
         Assert.assertEquals(2, result);
@@ -180,5 +184,9 @@ public class TeaModelTest {
         map.put("size", Double.valueOf("6"));
         SubModel submodel = TeaModel.toModel(map, new SubModel());
         Assert.assertEquals(6L, submodel.size);
+
+        map.put("size", Double.valueOf(Integer.MAX_VALUE + 1L));
+        submodel = TeaModel.toModel(map, new SubModel());
+        Assert.assertEquals(Integer.MAX_VALUE + 1L, submodel.size);
     }
 }

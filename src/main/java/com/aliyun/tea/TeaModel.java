@@ -70,20 +70,22 @@ public class TeaModel {
     }
 
     private static Object parseToInt(Object value) {
-        int result;
         if (value == null) {
             return value;
         }
         if (value instanceof Double) {
             double doubleValue = (Double) value;
-            if ((result = (int) doubleValue) == doubleValue) {
-                return result;
+            if ((int) doubleValue == doubleValue) {
+                return (int) doubleValue;
+            }
+            if ((long) doubleValue == doubleValue) {
+                return (long) doubleValue;
             }
         }
         if (value instanceof Long) {
             long longValue = (Long) value;
-            if ((result = (int) longValue) == longValue) {
-                return result;
+            if ((int) longValue == longValue) {
+                return (int) longValue;
             }
         }
         return value;
