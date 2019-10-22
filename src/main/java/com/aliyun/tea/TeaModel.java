@@ -3,6 +3,7 @@ package com.aliyun.tea;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +46,6 @@ public class TeaModel {
             if (value == null) {
                 continue;
             }
-            value = parseToInt(value);
             if (field.getType().isArray() && value instanceof ArrayList) {
                 Class<?> itemType = field.getType().getComponentType();
                 ArrayList<?> valueList = (ArrayList<?>) value;
@@ -57,6 +57,7 @@ public class TeaModel {
                 field.set(model, target);
             } else {
                 Class<?> clazz = field.getType();
+                value = parseNumber(value, clazz);
                 if (TeaModel.class.isAssignableFrom(clazz)) {
                     Object data = clazz.getDeclaredConstructor().newInstance();
                     field.set(model, TeaModel.toModel((Map<String, Object>)value, (TeaModel)data));
@@ -69,24 +70,15 @@ public class TeaModel {
         return model;
     }
 
-    private static Object parseToInt(Object value) {
-        if (value == null) {
-            return value;
+    private static Object parseNumber(Object value, Class clazz) {
+        BigDecimal bigDecimal;
+        if (value instanceof Double && clazz == Long.class){
+            bigDecimal = new BigDecimal(value.toString());
+            return bigDecimal.longValue();
         }
-        if (value instanceof Double) {
-            double doubleValue = (Double) value;
-            if ((int) doubleValue == doubleValue) {
-                return (int) doubleValue;
-            }
-            if ((long) doubleValue == doubleValue) {
-                return (long) doubleValue;
-            }
-        }
-        if (value instanceof Long) {
-            long longValue = (Long) value;
-            if ((int) longValue == longValue) {
-                return (int) longValue;
-            }
+        if (value instanceof Double && clazz == Integer.class){
+            bigDecimal = new BigDecimal(value.toString());
+            return bigDecimal.intValue();
         }
         return value;
     }

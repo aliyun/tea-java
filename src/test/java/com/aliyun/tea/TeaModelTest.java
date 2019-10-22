@@ -19,7 +19,9 @@ public class TeaModelTest {
 
         public String[] list;
 
-        public long size;
+        public Long size;
+
+        public Integer limit;
     }
 
     @Test
@@ -50,7 +52,7 @@ public class TeaModelTest {
         submodel.list = new String[]{"string0", "string1"};
 
         Map<String, Object> map = submodel.toMap();
-        Assert.assertEquals(4, map.size());
+        Assert.assertEquals(5, map.size());
         Assert.assertEquals("the access key id", map.get("access_key_id"));
         Assert.assertEquals("the access token", map.get("accessToken"));
         Assert.assertTrue(map.get("list") instanceof String[]);
@@ -149,33 +151,23 @@ public class TeaModelTest {
     }
 
     @Test
-    public void parseToIntTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void parseNumberTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Class teaModel = TeaModel.class;
-        Method parseToInt = teaModel.getDeclaredMethod("parseToInt", Object.class);
-        parseToInt.setAccessible(true);
+        Method parseNumber = teaModel.getDeclaredMethod("parseNumber", Object.class, Class.class);
+        parseNumber.setAccessible(true);
         Object arg = null;
-        Object result = parseToInt.invoke(teaModel, arg);
-        Assert.assertNull(result);
 
         arg = 2D;
-        result = parseToInt.invoke(teaModel, arg);
+        Object result = parseNumber.invoke(teaModel, arg, Integer.class);
         Assert.assertEquals(2, result);
-
-        arg = 2.32D;
-        result = parseToInt.invoke(teaModel, arg);
-        Assert.assertEquals(2.32D, result);
 
         arg = Integer.MAX_VALUE + 1D;
-        result = parseToInt.invoke(teaModel, arg);
+        result = parseNumber.invoke(teaModel, arg, Long.class);
         Assert.assertEquals(Integer.MAX_VALUE + 1L, result);
 
-        arg = 2L;
-        result = parseToInt.invoke(teaModel, arg);
+        arg = 2;
+        result = parseNumber.invoke(teaModel, arg, Long.class);
         Assert.assertEquals(2, result);
-
-        arg = Integer.MAX_VALUE + 1L;
-        result = parseToInt.invoke(teaModel, arg);
-        Assert.assertEquals(Integer.MAX_VALUE + 1L, result);
     }
 
     @Test
@@ -183,10 +175,10 @@ public class TeaModelTest {
         Map<String, Object> map = new HashMap<String, Object>();
         map.put("size", Double.valueOf("6"));
         SubModel submodel = TeaModel.toModel(map, new SubModel());
-        Assert.assertEquals(6L, submodel.size);
+        Assert.assertTrue(submodel.size instanceof Long);
 
-        map.put("size", Double.valueOf(Integer.MAX_VALUE + 1L));
+        map.put("limit", Double.valueOf("6"));
         submodel = TeaModel.toModel(map, new SubModel());
-        Assert.assertEquals(Integer.MAX_VALUE + 1L, submodel.size);
+        Assert.assertTrue(submodel.limit instanceof Integer);
     }
 }
