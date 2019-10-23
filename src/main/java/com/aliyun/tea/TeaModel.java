@@ -51,14 +51,14 @@ public class TeaModel {
                 Class<?> itemType = field.getType().getComponentType();
                 ArrayList<?> valueList = (ArrayList<?>) value;
                 Object[] target = (Object[]) Array.newInstance(itemType, valueList.size());
-                if (itemType == String.class) {
-                    for (int i = 0; i < valueList.size(); i++) {
-                        Array.set(target, i, valueList.get(i));
-                    }
-                } else {
+                if (Map.class.isAssignableFrom(itemType) || TeaModel.class.isAssignableFrom(itemType)) {
                     for (int i = 0; i < valueList.size(); i++) {
                         Array.set(target, i, TeaModel.toModel((Map<String, Object>) valueList.get(i),
                                 (TeaModel) itemType.getDeclaredConstructor().newInstance()));
+                    }
+                } else {
+                    for (int i = 0; i < valueList.size(); i++) {
+                        Array.set(target, i, valueList.get(i));
                     }
                 }
                 field.set(model, target);
