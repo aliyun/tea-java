@@ -46,21 +46,27 @@ public class TeaModel {
             if (value == null) {
                 continue;
             }
+            value = parseNumber(value, field.getType());
             if (field.getType().isArray() && value instanceof ArrayList) {
                 Class<?> itemType = field.getType().getComponentType();
                 ArrayList<?> valueList = (ArrayList<?>) value;
                 Object[] target = (Object[]) Array.newInstance(itemType, valueList.size());
-                for (int i = 0; i < valueList.size(); i++) {
-                    Array.set(target, i, TeaModel.toModel((Map<String, Object>) valueList.get(i),
-                            (TeaModel) itemType.getDeclaredConstructor().newInstance()));
+                if (itemType == String.class) {
+                    for (int i = 0; i < valueList.size(); i++) {
+                        Array.set(target, i, valueList.get(i));
+                    }
+                } else {
+                    for (int i = 0; i < valueList.size(); i++) {
+                        Array.set(target, i, TeaModel.toModel((Map<String, Object>) valueList.get(i),
+                                (TeaModel) itemType.getDeclaredConstructor().newInstance()));
+                    }
                 }
                 field.set(model, target);
             } else {
                 Class<?> clazz = field.getType();
-                value = parseNumber(value, clazz);
                 if (TeaModel.class.isAssignableFrom(clazz)) {
                     Object data = clazz.getDeclaredConstructor().newInstance();
-                    field.set(model, TeaModel.toModel((Map<String, Object>)value, (TeaModel)data));
+                    field.set(model, TeaModel.toModel((Map<String, Object>) value, (TeaModel) data));
                 } else {
                     field.set(model, value);
                 }
@@ -72,11 +78,11 @@ public class TeaModel {
 
     private static Object parseNumber(Object value, Class clazz) {
         BigDecimal bigDecimal;
-        if (value instanceof Double && clazz == Long.class){
+        if (value instanceof Double && (clazz == Long.class || clazz == long.class)) {
             bigDecimal = new BigDecimal(value.toString());
             return bigDecimal.longValue();
         }
-        if (value instanceof Double && clazz == Integer.class){
+        if (value instanceof Double && (clazz == Integer.class || clazz == int.class)) {
             bigDecimal = new BigDecimal(value.toString());
             return bigDecimal.intValue();
         }

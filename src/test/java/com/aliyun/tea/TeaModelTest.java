@@ -7,20 +7,25 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TeaModelTest {
 
     public static class SubModel extends TeaModel {
+        @NameInMap("accessToken")
         public String accessToken;
 
         @NameInMap("access_key_id")
         public String accessKeyId;
 
+        @NameInMap("list")
         public String[] list;
 
+        @NameInMap("size")
         public Long size;
 
+        @NameInMap("limit")
         public Integer limit;
     }
 
@@ -180,5 +185,11 @@ public class TeaModelTest {
         map.put("limit", Double.valueOf("6"));
         submodel = TeaModel.toModel(map, new SubModel());
         Assert.assertTrue(submodel.limit instanceof Integer);
+
+        List list = new ArrayList();
+        list.add("test");
+        map.put("list", list);
+        submodel = TeaModel.toModel(map, new SubModel());
+        Assert.assertEquals("test", submodel.list[0]);
     }
 }
