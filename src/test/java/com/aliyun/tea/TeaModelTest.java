@@ -13,7 +13,6 @@ import java.util.Map;
 public class TeaModelTest {
 
     public static class SubModel extends TeaModel {
-        @NameInMap("accessToken")
         public String accessToken;
 
         @NameInMap("access_key_id")
@@ -32,21 +31,28 @@ public class TeaModelTest {
     @Test
     public void toModel() throws IllegalArgumentException, IllegalAccessException, InstantiationException,
             InvocationTargetException, NoSuchMethodException, SecurityException {
-        SubModel submodel = TeaModel.toModel(new HashMap<String, Object>(), new SubModel());
-        Assert.assertEquals(null, submodel.accessKeyId);
-        SubModel submodel2 = TeaModel.toModel(new HashMap<String, Object>() {
-            private static final long serialVersionUID = 1L;
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("list", new String[]{"test"});
+        SubModel submodel = TeaModel.toModel(map, new SubModel());
+        Assert.assertNull(submodel.accessKeyId);
+        Assert.assertNull(submodel.limit);
+        Assert.assertNull(submodel.size);
+        Assert.assertNull(submodel.accessToken);
+        Assert.assertEquals("test", submodel.list[0]);
 
-            {
-                put("accessToken", "the access token");
-                put("access_key_id", "the access key id");
-                put("list", new String[]{"string0", "string1"});
-            }
-        }, new SubModel());
-
-        Assert.assertEquals("the access key id", submodel2.accessKeyId);
-        Assert.assertEquals("the access token", submodel2.accessToken);
-        Assert.assertArrayEquals(new String[]{"string0", "string1"}, submodel2.list);
+        map.put("accessToken", null);
+        map.put("limit", 1);
+        map.put("size", 1L);
+        map.put("access_key_id", "test");
+        List list = new ArrayList();
+        list.add("test");
+        map.put("list", list);
+        submodel = TeaModel.toModel(map, new SubModel());
+        Assert.assertEquals("test", submodel.accessKeyId);
+        Assert.assertEquals(1, (int) submodel.limit);
+        Assert.assertEquals(1L, (long) submodel.size);
+        Assert.assertNull(submodel.accessToken);
+        Assert.assertEquals("test", submodel.list[0]);
     }
 
     @Test
@@ -166,8 +172,24 @@ public class TeaModelTest {
         Object result = parseNumber.invoke(teaModel, arg, Integer.class);
         Assert.assertEquals(2, result);
 
+        arg = 2D;
+        result = parseNumber.invoke(teaModel, arg, int.class);
+        Assert.assertEquals(2, result);
+
+        arg = 2L;
+        result = parseNumber.invoke(teaModel, arg, Integer.class);
+        Assert.assertEquals(2L, result);
+
+        arg = 2D;
+        result = parseNumber.invoke(teaModel, arg, double.class);
+        Assert.assertEquals(2D, result);
+
         arg = Integer.MAX_VALUE + 1D;
         result = parseNumber.invoke(teaModel, arg, Long.class);
+        Assert.assertEquals(Integer.MAX_VALUE + 1L, result);
+
+        arg = Integer.MAX_VALUE + 1D;
+        result = parseNumber.invoke(teaModel, arg, long.class);
         Assert.assertEquals(Integer.MAX_VALUE + 1L, result);
 
         arg = 2;

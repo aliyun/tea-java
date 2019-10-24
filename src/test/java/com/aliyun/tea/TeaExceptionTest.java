@@ -7,18 +7,36 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TeaExceptionTest {
-    private class Testclass{
-        private int test = 1;
+    private class TestClass {
+        private String test;
     }
+
     @Test
     public void toTeaExceptionTest() {
-            TeaException exception = new TeaException(new HashMap<String, Object>());
-            exception.getMessage();
-            exception.getData();
-            exception.getCode();
-            Map<String, Object> map = new HashMap<>(1 << 4);
-            map.put("data", new Testclass());
-            exception = new TeaException(map);
-            Assert.assertEquals(1, exception.getData().get("test"));
-        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("code", "test");
+        map.put("message", "test");
+        TeaException exception = new TeaException(map);
+        Assert.assertEquals("test", exception.getCode());
+        Assert.assertEquals("test", exception.getMessage());
+
+        exception.setData(map);
+        Assert.assertEquals(map, exception.getData());
+
+        map.put("data", new HashMap<>());
+        exception = new TeaException(map);
+        Assert.assertEquals("test", exception.getCode());
+        Assert.assertEquals("test", exception.getMessage());
+        Assert.assertNotEquals(map, exception.getData());
+
+        TestClass testClass = new TestClass();
+        testClass.test = "test";
+        map.put("data", testClass);
+        exception = new TeaException(map);
+        Assert.assertEquals("test", exception.getCode());
+        Assert.assertEquals("test", exception.getMessage());
+        Assert.assertEquals("test", exception.getData().get("test"));
+    }
+
+
 }

@@ -34,7 +34,9 @@ public class Tea {
         StringBuilder urlBuilder = new StringBuilder();
         urlBuilder.append(protocol);
         urlBuilder.append("://").append(host);
-        urlBuilder.append(request.pathname);
+        if (null != request.pathname) {
+            urlBuilder.append(request.pathname);
+        }
         if (queries.size() > 0) {
             urlBuilder.append("?");
             for (Map.Entry<String, String> entry : queries.entrySet()) {
@@ -77,18 +79,15 @@ public class Tea {
         httpConn.setDoInput(true);
         httpConn.setUseCaches(false);
         if (!StringUtils.isEmpty(runtimeOptions.get("readTimeout"))) {
-            httpConn.setReadTimeout((int) runtimeOptions.get("readTimeout"));
+            httpConn.setReadTimeout(Integer.valueOf((String) runtimeOptions.get("readTimeout")));
         }
 
         if (!StringUtils.isEmpty(runtimeOptions.get("connectTimeout"))) {
-            httpConn.setConnectTimeout((int) runtimeOptions.get("connectTimeout"));
+            httpConn.setConnectTimeout(Integer.valueOf((String) runtimeOptions.get("connectTimeout")));
         }
 
-        Map<String, String> headerMap = request.headers;
-        if (null != headerMap && headerMap.size() > 0) {
-            for (String headerName : request.headers.keySet()) {
-                httpConn.setRequestProperty(toUpperFirstChar(headerName), request.headers.get(headerName));
-            }
+        for (String headerName : request.headers.keySet()) {
+            httpConn.setRequestProperty(toUpperFirstChar(headerName), request.headers.get(headerName));
         }
 
         httpConn.connect();
@@ -107,7 +106,7 @@ public class Tea {
     private static SSLSocketFactory createSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
         X509TrustManager compositeX509TrustManager = new X509TrustManagerImp();
         SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[] { compositeX509TrustManager }, new java.security.SecureRandom());
+        sslContext.init(null, new TrustManager[]{compositeX509TrustManager}, new java.security.SecureRandom());
         return sslContext.getSocketFactory();
     }
 
