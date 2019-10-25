@@ -66,9 +66,9 @@ public class TeaModelTest {
         Assert.assertEquals(5, map.size());
         Assert.assertEquals("the access key id", map.get("access_key_id"));
         Assert.assertEquals("the access token", map.get("accessToken"));
-        Assert.assertTrue(map.get("list") instanceof String[]);
-        String[] list = (String[]) map.get("list");
-        Assert.assertArrayEquals(new String[]{"string0", "string1"}, list);
+        ArrayList list = (ArrayList) map.get("list");
+        Assert.assertEquals("string0", list.get(0));
+        Assert.assertEquals("string1", list.get(1));
     }
 
     public static class BaseDriveResponse extends TeaModel {
@@ -213,5 +213,19 @@ public class TeaModelTest {
         map.put("list", list);
         submodel = TeaModel.toModel(map, new SubModel());
         Assert.assertEquals("test", submodel.list[0]);
+    }
+
+
+    @Test
+    public void toMapTransformTest() throws IllegalAccessException {
+        ListDriveResponse response = new ListDriveResponse();
+        response.nextMarker = "test";
+        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
+        baseDriveResponse.driveId = "1";
+        response.items = new BaseDriveResponse[]{baseDriveResponse};
+        System.out.println(response.toMap());
+        Assert.assertEquals("{next_marker=test, items=[{domain_id=null, drive_type=null, owner=null, " +
+                "store_id=null, creator=null, drive_id=1, total_size=null, description=null, used_size=null, " +
+                "drive_name=null, relative_path=null, status=null}]}", response.toMap().toString());
     }
 }

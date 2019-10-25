@@ -23,8 +23,23 @@ public class TeaModel {
             } else {
                 key = anno.value();
             }
+            if (field.getType().isArray()) {
+                Object[] arrayField = (Object[]) field.get(this);
+                Map<String, Object> fields;
+                ArrayList<Object> fieldList = new ArrayList<>();
+                for (int i = 0; i < arrayField.length; i++) {
+                    if (TeaModel.class.isAssignableFrom(field.getType().getComponentType())) {
+                        fields = ((TeaModel) Array.get(arrayField, i)).toMap();
+                        fieldList.add(fields);
+                    } else {
+                        fieldList.add(Array.get(arrayField, i));
+                    }
+                }
+                map.put(key, fieldList);
+            } else {
+                map.put(key, field.get(this));
+            }
 
-            map.put(key, field.get(this));
         }
 
         return map;
