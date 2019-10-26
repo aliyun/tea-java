@@ -1,3 +1,6 @@
+2019-10-26 Version: 0.0.9
+1.improve toMap Method
+
 2019-10-21 Version: 0.0.8
 1.improve TeaModel
 2.improve getBackoffTime Method
