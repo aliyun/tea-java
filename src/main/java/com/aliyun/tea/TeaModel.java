@@ -23,7 +23,7 @@ public class TeaModel {
             } else {
                 key = anno.value();
             }
-            if (field.getType().isArray()) {
+            if (field.getType().isArray() && null != field.get(this)) {
                 Object[] arrayField = (Object[]) field.get(this);
                 Map<String, Object> fields;
                 ArrayList<Object> fieldList = new ArrayList<>();
