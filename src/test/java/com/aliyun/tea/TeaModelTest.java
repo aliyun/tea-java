@@ -140,6 +140,7 @@ public class TeaModelTest {
 
     public static class Hello extends TeaModel {
         @NameInMap("message")
+        @Validation(pattern = "test")
         public String message;
     }
 
@@ -229,5 +230,103 @@ public class TeaModelTest {
         Assert.assertEquals("{next_marker=test, items=[{domain_id=null, drive_type=null, owner=null, " +
                 "store_id=null, creator=null, drive_id=1, total_size=null, description=null, used_size=null, " +
                 "drive_name=null, relative_path=null, status=null}]}", response.toMap().toString());
+    }
+
+    public static class ValidateParamModel extends TeaModel {
+        public String nullValidation;
+        @Validation
+        public String nullObject;
+        @Validation
+        public String notNullObject = "test";
+        @Validation(pattern = "[1-9]")
+        public Map<String,Hello[]> hasPattern = new HashMap<>();
+        @Validation(pattern = "[1-9]")
+        public Map<String,String> hasStringPattern = new HashMap<>();
+    }
+
+    @Test
+    public void validateMapTest() throws NoSuchMethodException {
+        Method validateMap = TeaModel.class.getDeclaredMethod("validateMap", String.class, int.class, Map.class);
+        Map<String, Object> map = new HashMap<>();
+        map.put("1", null);
+        map.put("2", "test");
+        validateMap.setAccessible(true);
+        try {
+            validateMap.invoke(new ValidateParamModel(),"test", 4, map);
+            validateMap.invoke(new ValidateParamModel(),"[1-9]", 0, map);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void determineTypeTest() throws NoSuchMethodException {
+        Method determineType = TeaModel.class.getDeclaredMethod("determineType",
+                Class.class, Object.class, String.class, int.class);
+        determineType.setAccessible(true);
+        ValidateParamModel validateParamModel = new ValidateParamModel();
+        Map<String, Object> map = new HashMap<>();
+        map.put("test", "test");
+
+        try {
+            determineType.invoke(validateParamModel,map.getClass(),map, "test", 1);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+        }
+
+        try {
+            determineType.invoke(validateParamModel,map.getClass(),map, "[1-9]", 0);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+        }
+
+        try {
+            determineType.invoke(new ValidateParamModel(),validateParamModel.getClass(),validateParamModel, "test", 4);
+            validateParamModel.hasStringPattern.put("test", "test");
+            determineType.invoke(new ValidateParamModel(),validateParamModel.getClass(),validateParamModel, "[1-9]", 0);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+        }
+
+        List<String> list = new ArrayList<>();
+        list.add("test");
+        try {
+            determineType.invoke(new ValidateParamModel(),list.getClass(),list, "test", 0);
+            determineType.invoke(new ValidateParamModel(),list.getClass(),list, "[1-9]", 0);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+        }
+        String[] strs = new String[]{"test"};
+        try {
+            determineType.invoke(new ValidateParamModel(),strs.getClass(),strs, "test", 0);
+            determineType.invoke(new ValidateParamModel(),strs.getClass(),strs, "[1-9]", 0);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void validateParamTest() throws NoSuchMethodException {
+        Method validate = TeaModel.class.getDeclaredMethod("validate");
+        validate.setAccessible(true);
+        ValidateParamModel validateParamModel = new ValidateParamModel();
+        try {
+            Hello[] hellos = new Hello[]{new Hello()};
+            hellos[0].message = "test";
+            validateParamModel.hasPattern.put("test", hellos);
+            validateParamModel.validate();
+            hellos[0].message = "0";
+            validateParamModel.hasPattern.put("test", hellos);
+            validateParamModel.validate();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("param don't matched", e.getMessage());
+        }
     }
 }

@@ -6,7 +6,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class TeaModel {
     public TeaModel() {
@@ -102,5 +104,62 @@ public class TeaModel {
             return bigDecimal.intValue();
         }
         return value;
+    }
+
+    public void validate() throws IllegalAccessException, ValidateException {
+        Field[] fields = this.getClass().getFields();
+        Object object;
+        Validation validation;
+        String pattern;
+        int maxLength;
+        for (int i = 0; i < fields.length; i++) {
+            object = fields[i].get(this);
+            validation = fields[i].getAnnotation(Validation.class);
+            if (null != validation && null != object) {
+                pattern = validation.pattern();
+                maxLength = validation.maxLength();
+                if (!"".equals(pattern)) {
+                    determineType(fields[i].getType(), object, pattern, maxLength);
+                }
+            }
+        }
+    }
+
+    private void determineType(Class clazz, Object object, String pattern, int maxLength) throws IllegalAccessException, ValidateException {
+        boolean notException = true;
+        if (Map.class.isAssignableFrom(clazz)) {
+            validateMap(pattern, maxLength, (Map<String, Object>) object);
+        } else if (TeaModel.class.isAssignableFrom(clazz)) {
+            ((TeaModel) object).validate();
+        } else if (List.class.isAssignableFrom(clazz)) {
+            List<?> list = (List<?>) object;
+            for (int j = 0; j < list.size(); j++) {
+                determineType(list.get(j).getClass(), list.get(j), pattern, maxLength);
+            }
+        } else if (clazz.isArray()) {
+            Object[] objects = (Object[]) object;
+            for (int j = 0; j < objects.length; j++) {
+                determineType(clazz.getComponentType(), objects[j], pattern, maxLength);
+            }
+        } else {
+            String value = String.valueOf(object);
+            if (maxLength > 0) {
+                notException = value.length() == maxLength;
+            }
+            if (notException) {
+                notException = Pattern.matches(pattern, value);
+            }
+            if (!notException) {
+                throw new ValidateException("param don't matched");
+            }
+        }
+    }
+
+    private void validateMap(String pattern, int maxLength, Map<String, Object> map) throws IllegalAccessException, ValidateException {
+        for (Map.Entry entry : map.entrySet()) {
+            if (entry.getValue() != null) {
+                determineType(entry.getValue().getClass(), entry.getValue(), pattern, maxLength);
+            }
+        }
     }
 }
