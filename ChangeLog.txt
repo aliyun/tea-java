@@ -1,3 +1,6 @@
+2019-10-30 Version: 0.0.10
+1.support validate
+
 2019-10-26 Version: 0.0.9
 1.improve toMap Method
 
