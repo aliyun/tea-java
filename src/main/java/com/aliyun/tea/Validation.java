@@ -9,4 +9,6 @@ public @interface Validation {
     String pattern() default "";
 
     int maxLength() default 0;
+
+    boolean required() default false;
 }
