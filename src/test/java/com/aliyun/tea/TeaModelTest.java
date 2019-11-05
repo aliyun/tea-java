@@ -242,6 +242,8 @@ public class TeaModelTest {
         public Map<String,Hello[]> hasPattern = new HashMap<>();
         @Validation(pattern = "[1-9]")
         public Map<String,String> hasStringPattern = new HashMap<>();
+        @Validation(required = true)
+        public String requiredTrue = "test";
     }
 
     @Test
@@ -312,11 +314,20 @@ public class TeaModelTest {
     }
 
     @Test
-    public void validateParamTest() throws NoSuchMethodException {
+    public void validateTest() throws NoSuchMethodException {
         Method validate = TeaModel.class.getDeclaredMethod("validate");
         validate.setAccessible(true);
         ValidateParamModel validateParamModel = new ValidateParamModel();
         try {
+            validateParamModel.requiredTrue = null;
+            validateParamModel.validate();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("Field requiredTrue is required", e.getMessage());
+        }
+
+        try {
+            validateParamModel.requiredTrue = "test";
             Hello[] hellos = new Hello[]{new Hello()};
             hellos[0].message = "test";
             validateParamModel.hasPattern.put("test", hellos);

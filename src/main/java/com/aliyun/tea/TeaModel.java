@@ -112,9 +112,18 @@ public class TeaModel {
         Validation validation;
         String pattern;
         int maxLength;
+        boolean required;
         for (int i = 0; i < fields.length; i++) {
             object = fields[i].get(this);
             validation = fields[i].getAnnotation(Validation.class);
+            if (null != validation) {
+                required = validation.required();
+            } else {
+                required = false;
+            }
+            if (required && null == object) {
+                throw new ValidateException("Field " + fields[i].getName() + " is required");
+            }
             if (null != validation && null != object) {
                 pattern = validation.pattern();
                 maxLength = validation.maxLength();
