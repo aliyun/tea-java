@@ -1,26 +1,26 @@
 2019-11-05 Version: 0.0.11
-1.improve validate
+1. Improve validate
 
 2019-10-30 Version: 0.0.10
-1.support validate
+1. Support validate
 
 2019-10-26 Version: 0.0.9
-1.improve toMap Method
+1. Improve toMap Method
 
 2019-10-21 Version: 0.0.8
-1.improve TeaModel
-2.improve getBackoffTime Method
+1. Improve TeaModel
+2. Improve getBackoffTime Method
 
 2019-10-21 Version: 0.0.7
-1.improve TeaException
-2.modify the retreat logic
+1. Improve TeaException
+2. Modify the retreat logic
 
 2019-10-17 Version: 0.0.6
-1.add parseToInt method
+1. Add parseToInt method
 
 2019-10-08 Version: 0.0.5
-1.improve Tea
-2.improve TeaModel
+1. Imrove Tea
+2. Improve TeaModel
 
 2019-10-08 Version: 0.0.4
 1. Improve README
