@@ -6,9 +6,7 @@ import com.aliyun.tea.utils.X509TrustManagerImp;
 import org.apache.http.client.ClientProtocolException;
 
 import javax.net.ssl.*;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -93,7 +91,11 @@ public class Tea {
         httpConn.connect();
         if (request.body != null && HAVE_BODY_METHOD_LSIT.contains(request.method.toUpperCase())) {
             OutputStream out = httpConn.getOutputStream();
-            out.write(request.body.getBytes("UTF-8"));
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = request.body.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
             out.flush();
         }
         return new TeaResponse(httpConn);
@@ -139,5 +141,13 @@ public class Tea {
 
     public static boolean isRetryable(Exception e) {
         return e instanceof TeaRetryableException;
+    }
+
+    public static InputStream toReadable(String string) throws UnsupportedEncodingException {
+        return toReadable(string.getBytes("UTF-8"));
+    }
+
+    public static InputStream toReadable(byte[] byteArray) {
+        return new ByteArrayInputStream(byteArray);
     }
 }
