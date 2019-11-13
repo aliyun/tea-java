@@ -1,5 +1,6 @@
 package com.aliyun.tea;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -19,7 +20,7 @@ public class TeaRequest {
 
     public Map<String, String> headers;
 
-    public String body;
+    public InputStream body;
 
     public TeaRequest() {
         protocol = "http";
