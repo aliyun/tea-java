@@ -1,3 +1,6 @@
+2019-11-05 Version: 0.0.12
+1. Support readable
+
 2019-11-05 Version: 0.0.11
 1. Improve validate
 
@@ -19,7 +22,7 @@
 1. Add parseToInt method
 
 2019-10-08 Version: 0.0.5
-1. Imrove Tea
+1. Improve Tea
 2. Improve TeaModel
 
 2019-10-08 Version: 0.0.4
