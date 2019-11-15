@@ -6,8 +6,7 @@ import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
 import javax.net.ssl.SSLSocketFactory;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
@@ -26,7 +25,7 @@ public class TeaTest {
     }
 
     @Test
-    public void composeUrlTest() throws UnsupportedEncodingException, NoSuchMethodException, InvocationTargetException,
+    public void composeUrlTest() throws NoSuchMethodException, InvocationTargetException,
             IllegalAccessException {
         Method composeUrl = Tea.class.getDeclaredMethod("composeUrl", TeaRequest.class);
         composeUrl.setAccessible(true);
@@ -60,13 +59,13 @@ public class TeaTest {
         Assert.assertNotNull(response.getResponse());
 
         request.protocol = "https";
-        request.body = "{}";
+        request.body = new ByteArrayInputStream("{}".getBytes("UTF-8"));
         runtimeOptions.put("readTimeout", "50000");
         runtimeOptions.put("connectTimeout", "50000");
         response = Tea.doAction(request, runtimeOptions);
         Assert.assertNotNull(response.getResponse());
 
-        request.body = "{}";
+        request.body = new ByteArrayInputStream("{}".getBytes("UTF-8"));
         request.method = "get";
         response = Tea.doAction(request, runtimeOptions);
         Assert.assertNotNull(response.getResponse());
@@ -141,5 +140,15 @@ public class TeaTest {
 
         map.put("maxAttempts", 8);
         Assert.assertTrue(Tea.allowRetry(map, 6, 6L));
+    }
+
+    @Test
+    public void toReadableTest() throws IOException {
+        String str = "readable test";
+        InputStream inputStream = Tea.toReadable(str);
+        byte[] bytes = new byte[1024];
+        int index = inputStream.read(bytes);
+        String result = new String(bytes, 0, index);
+        Assert.assertTrue(str.equals(result));
     }
 }
