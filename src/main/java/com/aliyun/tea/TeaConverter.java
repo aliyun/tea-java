@@ -18,13 +18,13 @@ public class TeaConverter {
     }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> merge(Map<String, Object>... maps) {
-        Map<String, Object> out = new HashMap<String, Object>();
+    public static <T> Map<String, T> merge(Class<T> t, Map<String, ?>... maps) {
+        Map<String, T> out = new HashMap<>();
         for (int i = 0; i < maps.length; i++) {
-            Map<String, Object> map = maps[i];
-            Set<Entry<String, Object>> entries = map.entrySet();
-            for (Entry<String, Object> entry : entries) {
-                out.put(entry.getKey(), entry.getValue());
+            Map<String, ?> map = maps[i];
+            Set<? extends Entry<String, ?>> entries = map.entrySet();
+            for (Entry<String, ?> entry : entries) {
+                out.put(entry.getKey(), (T) entry.getValue());
             }
         }
         return out;

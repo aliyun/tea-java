@@ -3,12 +3,10 @@ package com.aliyun.tea;
 import com.aliyun.tea.utils.StringUtils;
 import com.aliyun.tea.utils.TrueHostnameVerifier;
 import com.aliyun.tea.utils.X509TrustManagerImp;
-import org.apache.http.client.ClientProtocolException;
 
 import javax.net.ssl.*;
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.KeyManagementException;
@@ -55,8 +53,7 @@ public class Tea {
     }
 
     public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions)
-            throws URISyntaxException, ClientProtocolException, IOException, KeyManagementException,
-            NoSuchAlgorithmException, IllegalAccessException {
+            throws IOException, KeyManagementException, NoSuchAlgorithmException {
         String strUrl = composeUrl(request);
         URL url = new URL(strUrl);
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
@@ -77,11 +74,11 @@ public class Tea {
         httpConn.setDoInput(true);
         httpConn.setUseCaches(false);
         if (!StringUtils.isEmpty(runtimeOptions.get("readTimeout"))) {
-            httpConn.setReadTimeout(Integer.valueOf((String) runtimeOptions.get("readTimeout")));
+            httpConn.setReadTimeout(Integer.valueOf(String.valueOf(runtimeOptions.get("readTimeout"))));
         }
 
         if (!StringUtils.isEmpty(runtimeOptions.get("connectTimeout"))) {
-            httpConn.setConnectTimeout(Integer.valueOf((String) runtimeOptions.get("connectTimeout")));
+            httpConn.setConnectTimeout(Integer.valueOf(String.valueOf(runtimeOptions.get("connectTimeout"))));
         }
 
         for (String headerName : request.headers.keySet()) {
@@ -117,7 +114,7 @@ public class Tea {
         if (map == null) {
             return false;
         } else {
-            retry = map.get("maxAttempts") == null ? 0 : (int) map.get("maxAttempts");
+            retry = map.get("maxAttempts") == null ? 0 : Integer.parseInt(String.valueOf(map.get("maxAttempts")));
         }
         return retry >= retryTimes;
     }
