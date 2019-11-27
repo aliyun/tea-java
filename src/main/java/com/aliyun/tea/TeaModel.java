@@ -171,4 +171,12 @@ public class TeaModel {
             }
         }
     }
+
+    public static Map<String, Object> buildMap(TeaModel teaModel) throws IllegalAccessException {
+        if (null == teaModel) {
+            return new HashMap<>();
+        } else {
+            return teaModel.toMap();
+        }
+    }
 }
