@@ -1,3 +1,6 @@
+2019-11-26 Version: 0.0.14
+1. Add buildMap method
+
 2019-11-26 Version: 0.0.13
 1. Improve converter
 
