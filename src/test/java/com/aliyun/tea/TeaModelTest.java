@@ -340,4 +340,13 @@ public class TeaModelTest {
             Assert.assertEquals("param don't matched", e.getMessage());
         }
     }
+
+    @Test
+    public void buildMapTest() throws IllegalAccessException {
+        TeaModel teaModel = null;
+        Assert.assertNotNull(TeaModel.buildMap(teaModel));
+
+        teaModel = new ValidateParamModel();
+        Assert.assertEquals(6, TeaModel.buildMap(teaModel).size());
+    }
 }
