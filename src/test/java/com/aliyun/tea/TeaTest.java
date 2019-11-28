@@ -44,6 +44,12 @@ public class TeaTest {
         request.pathname = null;
         str = (String) composeUrl.invoke(Tea.class, request);
         Assert.assertEquals("HTTP://test", str);
+
+        request.query = new HashMap<>();
+        request.query.put("test", "and");
+        request.pathname = "?test";
+        str = (String) composeUrl.invoke(Tea.class, request);
+        Assert.assertEquals("HTTP://test?test&test=and", str);
     }
 
     @Test
