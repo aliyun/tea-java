@@ -34,7 +34,11 @@ public class Tea {
             urlBuilder.append(request.pathname);
         }
         if (queries.size() > 0) {
-            urlBuilder.append("?");
+            if (urlBuilder.indexOf("?") >= 1) {
+                urlBuilder.append("&");
+            } else {
+                urlBuilder.append("?");
+            }
             for (Map.Entry<String, String> entry : queries.entrySet()) {
                 String key = entry.getKey();
                 String val = entry.getValue();
