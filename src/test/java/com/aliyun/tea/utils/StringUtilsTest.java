@@ -6,7 +6,7 @@ import org.junit.Test;
 public class StringUtilsTest {
     @Test
     public void init() {
-        new StringUtils();
+        Assert.assertNotNull(new StringUtils());
     }
 
     @Test
@@ -19,4 +19,5 @@ public class StringUtilsTest {
         Assert.assertFalse("other should be false",StringUtils.isEmpty(21321));
     }
 }
+
 
