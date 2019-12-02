@@ -7,7 +7,7 @@ import javax.net.ssl.SSLSession;
 
 public class TrueHostnameVerifierTest {
     @Test
-    public void TrueHostnameVerifierTest(){
+    public void trueHostnameVerifierTest(){
         TrueHostnameVerifier trueHostnameVerifier = new TrueHostnameVerifier();
         SSLSession sslSession = null;
         trueHostnameVerifier.verify("authType",sslSession);

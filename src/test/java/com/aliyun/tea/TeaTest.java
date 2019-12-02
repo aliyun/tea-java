@@ -21,7 +21,7 @@ import static org.mockito.Mockito.mock;
 public class TeaTest {
     @Test
     public void init() {
-        new Tea();
+        Assert.assertNotNull(new Tea());
     }
 
     @Test
