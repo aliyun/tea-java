@@ -11,9 +11,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class TeaModel {
-    public TeaModel() {
-
-    }
 
     public Map<String, Object> toMap() throws IllegalArgumentException, IllegalAccessException {
         HashMap<String, Object> map = new HashMap<String, Object>();

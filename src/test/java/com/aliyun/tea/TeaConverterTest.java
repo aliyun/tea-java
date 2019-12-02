@@ -19,7 +19,7 @@ public class TeaConverterTest {
 
     @Test
     public void newInstance() {
-        new TeaConverter();
+        Assert.assertNotNull(new TeaConverter());
     }
 
 
