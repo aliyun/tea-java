@@ -15,8 +15,8 @@ public class TeaException extends Exception {
     private Map<String, Object> data;
 
     public TeaException(Map<String, Object> map) {
-        this.setCode((String) map.get("code"));
-        this.setMessage((String) map.get("message"));
+        this.setCode(String.valueOf(map.get("code")));
+        this.setMessage(String.valueOf(map.get("message")));
         Object obj = map.get("data");
         if (obj == null) {
             return;
