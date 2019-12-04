@@ -22,9 +22,14 @@ public class TeaConverter {
         Map<String, T> out = new HashMap<>();
         for (int i = 0; i < maps.length; i++) {
             Map<String, ?> map = maps[i];
+            if (null == map) {
+                continue;
+            }
             Set<? extends Entry<String, ?>> entries = map.entrySet();
             for (Entry<String, ?> entry : entries) {
-                out.put(entry.getKey(), (T) entry.getValue());
+                if (null != entry.getValue()) {
+                    out.put(entry.getKey(), (T) entry.getValue());
+                }
             }
         }
         return out;

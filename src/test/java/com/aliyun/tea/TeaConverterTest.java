@@ -52,7 +52,9 @@ public class TeaConverterTest {
         map1.put("key", "value");
         HashMap<String, Object> map2 = new HashMap<String, Object>();
         map1.put("key2", "value2");
-        Map<String, Object> map = TeaConverter.merge(Object.class, map1, map2);
+        map1.put("key3", null);
+        HashMap<String, Object> map3 = null;
+        Map<String, Object> map = TeaConverter.merge(Object.class, map1, map2, map3);
         Assert.assertEquals(map.get("key"), "value");
         Assert.assertEquals(map.get("key2"), "value2");
         Assert.assertEquals(2, map.size());
