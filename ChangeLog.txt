@@ -1,3 +1,6 @@
+2019-12-04 Version: 0.0.16
+1. Increased null validation in merge method
+
 2019-11-26 Version: 0.0.15
 1. Improve composeUrl method
 
