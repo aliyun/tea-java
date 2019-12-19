@@ -43,6 +43,12 @@ public class TeaResponseTest {
         Assert.assertEquals(200, response.statusCode);
         Assert.assertEquals("test", response.statusMessage);
         Assert.assertEquals(in, response.getResponse());
+
+        when(conn.getInputStream()).thenThrow(new IOException());
+        when(conn.getErrorStream()).thenReturn(in);
+        response = new TeaResponse(conn);
+        Assert.assertEquals("test", response.statusMessage);
+        Assert.assertEquals(in, response.getResponse());
     }
 
     @Test
@@ -67,4 +73,6 @@ public class TeaResponseTest {
         content = (String) getResponseBody.invoke(response);
         Assert.assertEquals("{\"message\":\"test\"}", content);
     }
+
+
 }

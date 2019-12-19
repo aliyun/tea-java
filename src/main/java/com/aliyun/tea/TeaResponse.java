@@ -66,7 +66,17 @@ public class TeaResponse {
         }
     }
 
+    public InputStream getBody() throws IOException {
+        InputStream content;
+        try {
+            content = this.conn.getInputStream();
+        } catch (IOException e) {
+            content = this.conn.getErrorStream();
+        }
+        return content;
+    }
+
     public InputStream getResponse() throws IOException {
-        return conn.getInputStream();
+        return getBody();
     }
 }
