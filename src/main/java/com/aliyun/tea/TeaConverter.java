@@ -35,4 +35,27 @@ public class TeaConverter {
         return out;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> Map<String, T> merge(Class<T> t, Object... maps) throws IllegalAccessException {
+        Map<String, T> out = new HashMap<>();
+        Map<String, ?> map = null;
+        for (int i = 0; i < maps.length; i++) {
+            if (null == maps[i]) {
+                continue;
+            }
+            if (TeaModel.class.isAssignableFrom(maps[i].getClass())) {
+                map = TeaModel.buildMap((TeaModel) maps[i]);
+            } else {
+                map = (Map<String, T>) maps[i];
+            }
+            Set<? extends Entry<String, ?>> entries = map.entrySet();
+            for (Entry<String, ?> entry : entries) {
+                if (null != entry.getValue()) {
+                    out.put(entry.getKey(), (T) entry.getValue());
+                }
+            }
+        }
+        return out;
+    }
+
 }

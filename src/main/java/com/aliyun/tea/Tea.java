@@ -113,7 +113,7 @@ public class Tea {
         return sslContext.getSocketFactory();
     }
 
-    public static boolean allowRetry(Map<String, Object> map, int retryTimes, long now) {
+    public static boolean allowRetry(Map<String, ?> map, int retryTimes, long now) {
         int retry;
         if (map == null) {
             return false;
