@@ -45,7 +45,7 @@ public class TeaModel {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends TeaModel> T toModel(Map<String, Object> map, T model)
+    public static <T extends TeaModel> T toModel(Map<String, ?> map, T model)
             throws IllegalArgumentException, IllegalAccessException, InstantiationException, InvocationTargetException,
             NoSuchMethodException, SecurityException {
         for (Field field : model.getClass().getFields()) {
@@ -175,5 +175,12 @@ public class TeaModel {
         } else {
             return teaModel.toMap();
         }
+    }
+
+    public static void validateParams(TeaModel teaModel, String paramName) throws ValidateException, IllegalAccessException {
+        if (null == teaModel) {
+            throw new ValidateException("parameter " + paramName + " is not allowed as null");
+        }
+        teaModel.validate();
     }
 }

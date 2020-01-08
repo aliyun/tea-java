@@ -58,5 +58,11 @@ public class TeaConverterTest {
         Assert.assertEquals(map.get("key"), "value");
         Assert.assertEquals(map.get("key2"), "value2");
         Assert.assertEquals(2, map.size());
+
+        TeaModel teaModel = new TeaModel();
+        map = TeaConverter.merge(Object.class, map1, map2, map3, teaModel);
+        Assert.assertEquals(map.get("key"), "value");
+        Assert.assertEquals(map.get("key2"), "value2");
+        Assert.assertEquals(2, map.size());
     }
 }

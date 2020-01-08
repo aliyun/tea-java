@@ -349,4 +349,17 @@ public class TeaModelTest {
         teaModel = new ValidateParamModel();
         Assert.assertEquals(6, TeaModel.buildMap(teaModel).size());
     }
+
+    @Test
+    public void validateParamsTest() throws IllegalAccessException, ValidateException {
+        TeaModel teaModel = new ValidateParamModel();
+        try {
+            TeaModel.validateParams(teaModel, "test");
+            teaModel = null;
+            TeaModel.validateParams(teaModel, "test");
+            Assert.fail();
+        } catch (ValidateException e) {
+            Assert.assertEquals("parameter test is not allowed as null", e.getMessage());
+        }
+    }
 }
