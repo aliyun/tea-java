@@ -71,6 +71,77 @@ public class TeaModelTest {
         Assert.assertEquals("string1", list.get(1));
     }
 
+    @Test
+    public void buildTest() throws IllegalArgumentException, IllegalAccessException, InstantiationException,
+            InvocationTargetException, NoSuchMethodException, SecurityException {
+        Map<String, Object> map = new HashMap<String, Object>();
+        ListDriveResponse response = new ListDriveResponse();
+        ArrayList<BaseDriveResponse> list = new ArrayList<>();
+        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
+        list.add(baseDriveResponse);
+        map.put("nextMarker", "test");
+        map.put("items", list);
+        ListDriveResponse result = TeaModel.build(map, response);
+        Assert.assertEquals("test", result.nextMarker);
+        Assert.assertNotNull(result.items);
+
+        map.clear();
+        Map<String, Object> modelMap = new HashMap<>();
+        modelMap.put("creator", "test");
+        ArrayList<Map<String, Object>> mapList = new ArrayList<>();
+        mapList.add(modelMap);
+        baseDriveResponse.driveId = "driveId";
+        map.put("item", baseDriveResponse);
+        map.put("items", mapList);
+        result = TeaModel.build(map, response);
+        Assert.assertEquals("test", result.items[0].creator);
+        Assert.assertEquals("driveId", result.item.driveId);
+
+        SubModel subModel = new SubModel();
+        map.clear();
+        ArrayList<String> stringList = new ArrayList<>();
+        stringList.add("test");
+        map.put("list", stringList);
+        SubModel subModelResult = TeaModel.build(map, subModel);
+        Assert.assertEquals("test", subModelResult.list[0]);
+
+        map.clear();
+        map.put("list", new String[]{"test"});
+        subModelResult = TeaModel.build(map, subModel);
+        Assert.assertEquals("test", subModelResult.list[0]);
+    }
+
+    @Test
+    public void toMapTest() throws IllegalArgumentException, IllegalAccessException {
+        SubModel submodel = new SubModel();
+        submodel.accessToken = "the access token";
+        submodel.accessKeyId = "the access key id";
+        submodel.list = new String[]{"string0", "string1"};
+        Assert.assertEquals(0, TeaModel.toMap(null).size());
+        Assert.assertEquals(0, TeaModel.toMap("test").size());
+
+        Map<String, Object> map = TeaModel.toMap(submodel);
+        Assert.assertEquals(5, map.size());
+        Assert.assertEquals("the access key id", map.get("accessKeyId"));
+        Assert.assertEquals("the access token", map.get("accessToken"));
+        ArrayList list = (ArrayList) map.get("list");
+        Assert.assertEquals("string0", list.get(0));
+        Assert.assertEquals("string1", list.get(1));
+
+        ListDriveResponse response = new ListDriveResponse();
+        map = TeaModel.toMap(response);
+        Assert.assertNull(map.get("nextMarker"));
+        Assert.assertNull(map.get("items"));
+
+        BaseDriveResponse[] baseDriveResponses = new BaseDriveResponse[1];
+        baseDriveResponses[0] = new BaseDriveResponse();
+        response.items = baseDriveResponses;
+        response.nextMarker = "test";
+        map = TeaModel.toMap(response);
+        Assert.assertNotNull(map.get("items"));
+        Assert.assertEquals("test", map.get("nextMarker"));
+    }
+
     public static class BaseDriveResponse extends TeaModel {
         @NameInMap("creator")
         public String creator;
@@ -115,6 +186,9 @@ public class TeaModelTest {
 
         @NameInMap("next_marker")
         public String nextMarker;
+
+        @NameInMap("item")
+        public BaseDriveResponse item;
     }
 
     @Test
@@ -221,13 +295,13 @@ public class TeaModelTest {
     public void toMapTransformTest() throws IllegalAccessException {
         ListDriveResponse response = new ListDriveResponse();
         response.nextMarker = "test";
-        Assert.assertEquals("{next_marker=test, items=null}", response.toMap().toString());
+        Assert.assertEquals("{next_marker=test, item=null, items=null}", response.toMap().toString());
 
         response.nextMarker = "test";
         BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
         baseDriveResponse.driveId = "1";
         response.items = new BaseDriveResponse[]{baseDriveResponse};
-        Assert.assertEquals("{next_marker=test, items=[{domain_id=null, drive_type=null, owner=null, " +
+        Assert.assertEquals("{next_marker=test, item=null, items=[{domain_id=null, drive_type=null, owner=null, " +
                 "store_id=null, creator=null, drive_id=1, total_size=null, description=null, used_size=null, " +
                 "drive_name=null, relative_path=null, status=null}]}", response.toMap().toString());
     }
