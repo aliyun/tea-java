@@ -1,3 +1,6 @@
+2020-01-09 Version: 0.0.18
+1. Add build method in teaModel
+
 2020-01-09 Version: 0.0.17
 1. Change Map<String, Object> to Map<String, ?>
 2. Overload merge
