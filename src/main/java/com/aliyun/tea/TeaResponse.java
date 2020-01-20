@@ -16,6 +16,7 @@ public class TeaResponse {
     public int statusCode;
     public String statusMessage;
     public HashMap<String, String> headers = new HashMap<String, String>();
+    public InputStream body;
 
     public TeaResponse() {
     }
@@ -24,6 +25,7 @@ public class TeaResponse {
         this.conn = conn;
         statusCode = conn.getResponseCode();
         statusMessage = conn.getResponseMessage();
+        body = getResponse();
         Map<String, List<String>> headers = conn.getHeaderFields();
         for (Entry<String, List<String>> entry : headers.entrySet()) {
             String key = entry.getKey();
@@ -41,20 +43,15 @@ public class TeaResponse {
     }
 
     public String getResponseBody() throws IOException {
-        InputStream content;
+
         try {
-            content = this.conn.getInputStream();
-        } catch (IOException e) {
-            content = this.conn.getErrorStream();
-        }
-        try {
-            if (null == content) {
+            if (null == body) {
                 return String.format("{\"message\":\"%s\"}", statusMessage);
             }
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             byte[] buff = new byte[1024];
             while (true) {
-                final int read = content.read(buff);
+                final int read = body.read(buff);
                 if (read == -1) {
                     break;
                 }
@@ -67,6 +64,12 @@ public class TeaResponse {
     }
 
     public InputStream getResponse() throws IOException {
-        return conn.getInputStream();
+        InputStream content;
+        try {
+            content = this.conn.getInputStream();
+        } catch (IOException e) {
+            content = this.conn.getErrorStream();
+        }
+        return content;
     }
 }
