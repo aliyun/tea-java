@@ -1,3 +1,6 @@
+2020-01-09 Version: 0.0.19
+1. Add body field in response
+
 2020-01-09 Version: 0.0.18
 1. Add build method in teaModel
 
