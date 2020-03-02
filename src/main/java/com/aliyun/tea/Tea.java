@@ -26,7 +26,7 @@ public class Tea {
     private static String composeUrl(TeaRequest request) throws UnsupportedEncodingException {
         Map<String, String> queries = request.query;
         String host = request.headers.get("host");
-        String protocol = request.protocol;
+        String protocol = null == request.protocol ? "http" : request.protocol;
         StringBuilder urlBuilder = new StringBuilder();
         urlBuilder.append(protocol);
         urlBuilder.append("://").append(host);

@@ -1,3 +1,6 @@
+2020-03-01 Version: 0.0.20
+1. Add default protocol
+
 2020-01-09 Version: 0.0.19
 1. Add body field in response
 
