@@ -34,20 +34,21 @@ public class TeaTest {
         map.put("test", null);
         map.put("host", "test");
         request.headers = map;
-        request.protocol = "HTTP";
         request.pathname = "/test";
+        request.protocol = null;
         request.query = map;
         String str = (String) composeUrl.invoke(Tea.class, request);
-        Assert.assertEquals("HTTP://test/test?host=test", str);
+        Assert.assertEquals("http://test/test?host=test", str);
 
         request.query = new HashMap<>();
         request.pathname = null;
         str = (String) composeUrl.invoke(Tea.class, request);
-        Assert.assertEquals("HTTP://test", str);
+        Assert.assertEquals("http://test", str);
 
         request.query = new HashMap<>();
         request.query.put("test", "and");
         request.pathname = "?test";
+        request.protocol = "HTTP";
         str = (String) composeUrl.invoke(Tea.class, request);
         Assert.assertEquals("HTTP://test?test&test=and", str);
     }
