@@ -81,6 +81,14 @@ public class TeaModel {
                 if (TeaModel.class.isAssignableFrom(clazz)) {
                     Object data = clazz.getDeclaredConstructor().newInstance();
                     field.set(model, TeaModel.toModel((Map<String, Object>) value, (TeaModel) data));
+                } else if (Integer.class.isAssignableFrom(clazz)) {
+                    field.set(model, Integer.parseInt(String.valueOf(value)));
+                } else if (Double.class.isAssignableFrom(clazz)) {
+                    field.set(model, Double.parseDouble(String.valueOf(value)));
+                } else if (Long.class.isAssignableFrom(clazz)) {
+                    field.set(model, Long.parseLong(String.valueOf(value)));
+                } else if (Boolean.class.isAssignableFrom(clazz)) {
+                    field.set(model, Boolean.parseBoolean(String.valueOf(value)));
                 } else {
                     field.set(model, value);
                 }
@@ -226,7 +234,7 @@ public class TeaModel {
                 Class<?> itemType = field.getType().getComponentType();
                 ArrayList<?> valueList = (ArrayList<?>) value;
                 Object[] target = (Object[]) Array.newInstance(itemType, valueList.size());
-                if (TeaModel.class.isAssignableFrom(itemType)){
+                if (TeaModel.class.isAssignableFrom(itemType)) {
                     for (int i = 0; i < valueList.size(); i++) {
                         if (Map.class.isAssignableFrom(valueList.get(i).getClass())) {
                             Array.set(target, i, TeaModel.build((Map<String, Object>) valueList.get(i),
@@ -247,6 +255,14 @@ public class TeaModel {
                 if (TeaModel.class.isAssignableFrom(clazz)) {
                     Object data = clazz.getDeclaredConstructor().newInstance();
                     field.set(model, TeaModel.build(TeaModel.toMap(value), (TeaModel) data));
+                } else if (Integer.class.isAssignableFrom(clazz)) {
+                    field.set(model, Integer.parseInt(String.valueOf(value)));
+                } else if (Double.class.isAssignableFrom(clazz)) {
+                    field.set(model, Double.parseDouble(String.valueOf(value)));
+                } else if (Long.class.isAssignableFrom(clazz)) {
+                    field.set(model, Long.parseLong(String.valueOf(value)));
+                } else if (Boolean.class.isAssignableFrom(clazz)) {
+                    field.set(model, Boolean.parseBoolean(String.valueOf(value)));
                 } else {
                     field.set(model, value);
                 }

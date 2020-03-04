@@ -26,6 +26,12 @@ public class TeaModelTest {
 
         @NameInMap("limit")
         public Integer limit;
+
+        @NameInMap("doubleTest")
+        public Double doubleTest;
+
+        @NameInMap("boolTest")
+        public Boolean boolTest;
     }
 
     @Test
@@ -42,17 +48,21 @@ public class TeaModelTest {
 
         map.put("accessToken", null);
         map.put("limit", 1);
-        map.put("size", 1L);
+        map.put("size", 1);
         map.put("access_key_id", "test");
         List list = new ArrayList();
         list.add("test");
         map.put("list", list);
+        map.put("boolTest", true);
+        map.put("doubleTest", 0.1f);
         submodel = TeaModel.toModel(map, new SubModel());
         Assert.assertEquals("test", submodel.accessKeyId);
         Assert.assertEquals(1, (int) submodel.limit);
         Assert.assertEquals(1L, (long) submodel.size);
         Assert.assertNull(submodel.accessToken);
         Assert.assertEquals("test", submodel.list[0]);
+        Assert.assertEquals(0.1D, submodel.doubleTest, 0.0);
+        Assert.assertTrue(submodel.boolTest);
     }
 
     @Test
@@ -63,7 +73,7 @@ public class TeaModelTest {
         submodel.list = new String[]{"string0", "string1"};
 
         Map<String, Object> map = submodel.toMap();
-        Assert.assertEquals(5, map.size());
+        Assert.assertEquals(7, map.size());
         Assert.assertEquals("the access key id", map.get("access_key_id"));
         Assert.assertEquals("the access token", map.get("accessToken"));
         ArrayList list = (ArrayList) map.get("list");
@@ -102,8 +112,16 @@ public class TeaModelTest {
         ArrayList<String> stringList = new ArrayList<>();
         stringList.add("test");
         map.put("list", stringList);
+        map.put("boolTest", true);
+        map.put("doubleTest", 0.1f);
+        map.put("size", 1);
+        map.put("limit", 1);
         SubModel subModelResult = TeaModel.build(map, subModel);
         Assert.assertEquals("test", subModelResult.list[0]);
+        Assert.assertEquals(0.1D, subModelResult.doubleTest, 0.0);
+        Assert.assertEquals(1, (int) subModelResult.limit);
+        Assert.assertEquals(1L, (long) subModelResult.size);
+        Assert.assertTrue(subModelResult.boolTest);
 
         map.clear();
         map.put("list", new String[]{"test"});
@@ -121,7 +139,7 @@ public class TeaModelTest {
         Assert.assertEquals(0, TeaModel.toMap("test").size());
 
         Map<String, Object> map = TeaModel.toMap(submodel);
-        Assert.assertEquals(5, map.size());
+        Assert.assertEquals(7, map.size());
         Assert.assertEquals("the access key id", map.get("accessKeyId"));
         Assert.assertEquals("the access token", map.get("accessToken"));
         ArrayList list = (ArrayList) map.get("list");
