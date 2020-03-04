@@ -1,8 +1,6 @@
 package com.aliyun.tea;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,23 +59,27 @@ public class TeaModel {
                 continue;
             }
             value = parseNumber(value, field.getType());
-            if (field.getType().isArray() && value instanceof ArrayList) {
-                Class<?> itemType = field.getType().getComponentType();
+            Class<?> clazz = field.getType();
+            if (List.class.isAssignableFrom(clazz)) {
                 ArrayList<?> valueList = (ArrayList<?>) value;
-                Object[] target = (Object[]) Array.newInstance(itemType, valueList.size());
+                ParameterizedType listGenericType = (ParameterizedType) field.getGenericType();
+                Type[] listActualTypeArguments = listGenericType.getActualTypeArguments();
+                Class<?> itemType = (Class<?>) listActualTypeArguments[0];
+                ArrayList result = new ArrayList();
                 if (Map.class.isAssignableFrom(itemType) || TeaModel.class.isAssignableFrom(itemType)) {
                     for (int i = 0; i < valueList.size(); i++) {
-                        Array.set(target, i, TeaModel.toModel((Map<String, Object>) valueList.get(i),
-                                (TeaModel) itemType.getDeclaredConstructor().newInstance()));
+                        Object teaModel = TeaModel.toModel((Map<String, Object>) valueList.get(i),
+                                (TeaModel) itemType.getDeclaredConstructor().newInstance());
+                        result.add(teaModel);
                     }
                 } else {
                     for (int i = 0; i < valueList.size(); i++) {
-                        Array.set(target, i, valueList.get(i));
+                        Object teaModel = valueList.get(i);
+                        result.add(teaModel);
                     }
                 }
-                field.set(model, target);
+                field.set(model, result);
             } else {
-                Class<?> clazz = field.getType();
                 if (TeaModel.class.isAssignableFrom(clazz)) {
                     Object data = clazz.getDeclaredConstructor().newInstance();
                     field.set(model, TeaModel.toModel((Map<String, Object>) value, (TeaModel) data));
@@ -231,25 +233,24 @@ public class TeaModel {
             }
             value = parseNumber(value, field.getType());
             if (field.getType().isArray() && value instanceof ArrayList) {
-                Class<?> itemType = field.getType().getComponentType();
                 ArrayList<?> valueList = (ArrayList<?>) value;
-                Object[] target = (Object[]) Array.newInstance(itemType, valueList.size());
-                if (TeaModel.class.isAssignableFrom(itemType)) {
+                ParameterizedType listGenericType = (ParameterizedType) field.getGenericType();
+                Type[] listActualTypeArguments = listGenericType.getActualTypeArguments();
+                Class<?> itemType = (Class<?>) listActualTypeArguments[0];
+                ArrayList result = new ArrayList();
+                if (Map.class.isAssignableFrom(itemType) || TeaModel.class.isAssignableFrom(itemType)) {
                     for (int i = 0; i < valueList.size(); i++) {
-                        if (Map.class.isAssignableFrom(valueList.get(i).getClass())) {
-                            Array.set(target, i, TeaModel.build((Map<String, Object>) valueList.get(i),
-                                    (TeaModel) itemType.getDeclaredConstructor().newInstance()));
-                        } else {
-                            Array.set(target, i, TeaModel.build(TeaModel.toMap(valueList.get(i)),
-                                    (TeaModel) itemType.getDeclaredConstructor().newInstance()));
-                        }
+                        Object teaModel = TeaModel.toModel((Map<String, Object>) valueList.get(i),
+                                (TeaModel) itemType.getDeclaredConstructor().newInstance());
+                        result.add(teaModel);
                     }
                 } else {
                     for (int i = 0; i < valueList.size(); i++) {
-                        Array.set(target, i, valueList.get(i));
+                        Object teaModel = valueList.get(i);
+                        result.add(teaModel);
                     }
                 }
-                field.set(model, target);
+                field.set(model, result);
             } else {
                 Class<?> clazz = field.getType();
                 if (TeaModel.class.isAssignableFrom(clazz)) {

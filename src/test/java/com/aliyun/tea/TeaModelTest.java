@@ -19,7 +19,7 @@ public class TeaModelTest {
         public String accessKeyId;
 
         @NameInMap("list")
-        public String[] list;
+        public List<String> list;
 
         @NameInMap("size")
         public Long size;
@@ -38,13 +38,15 @@ public class TeaModelTest {
     public void toModel() throws IllegalArgumentException, IllegalAccessException, InstantiationException,
             InvocationTargetException, NoSuchMethodException, SecurityException {
         Map<String, Object> map = new HashMap<String, Object>();
-        map.put("list", new String[]{"test"});
+        ArrayList testList = new ArrayList();
+        testList.add("test");
+        map.put("list", testList);
         SubModel submodel = TeaModel.toModel(map, new SubModel());
         Assert.assertNull(submodel.accessKeyId);
         Assert.assertNull(submodel.limit);
         Assert.assertNull(submodel.size);
         Assert.assertNull(submodel.accessToken);
-        Assert.assertEquals("test", submodel.list[0]);
+        Assert.assertEquals("test", submodel.list.get(0));
 
         map.put("accessToken", null);
         map.put("limit", 1);
@@ -60,7 +62,7 @@ public class TeaModelTest {
         Assert.assertEquals(1, (int) submodel.limit);
         Assert.assertEquals(1L, (long) submodel.size);
         Assert.assertNull(submodel.accessToken);
-        Assert.assertEquals("test", submodel.list[0]);
+        Assert.assertEquals("test", submodel.list.get(0));
         Assert.assertEquals(0.1D, submodel.doubleTest, 0.0);
         Assert.assertTrue(submodel.boolTest);
     }
@@ -70,7 +72,10 @@ public class TeaModelTest {
         SubModel submodel = new SubModel();
         submodel.accessToken = "the access token";
         submodel.accessKeyId = "the access key id";
-        submodel.list = new String[]{"string0", "string1"};
+        ArrayList paramList = new ArrayList();
+        paramList.add("string0");
+        paramList.add("string1");
+        submodel.list = paramList;
 
         Map<String, Object> map = submodel.toMap();
         Assert.assertEquals(7, map.size());
@@ -96,15 +101,15 @@ public class TeaModelTest {
         Assert.assertNotNull(result.items);
 
         map.clear();
-        Map<String, Object> modelMap = new HashMap<>();
-        modelMap.put("creator", "test");
-        ArrayList<Map<String, Object>> mapList = new ArrayList<>();
-        mapList.add(modelMap);
+        baseDriveResponse = new BaseDriveResponse();
+        baseDriveResponse.creator = "test";
+        ArrayList<BaseDriveResponse> mapList = new ArrayList<>();
+        mapList.add(baseDriveResponse);
         baseDriveResponse.driveId = "driveId";
         map.put("item", baseDriveResponse);
         map.put("items", mapList);
         result = TeaModel.build(map, response);
-        Assert.assertEquals("test", result.items[0].creator);
+        Assert.assertEquals("test", result.items.get(0).creator);
         Assert.assertEquals("driveId", result.item.driveId);
 
         SubModel subModel = new SubModel();
@@ -117,16 +122,18 @@ public class TeaModelTest {
         map.put("size", 1);
         map.put("limit", 1);
         SubModel subModelResult = TeaModel.build(map, subModel);
-        Assert.assertEquals("test", subModelResult.list[0]);
+        Assert.assertEquals("test", subModelResult.list.get(0));
         Assert.assertEquals(0.1D, subModelResult.doubleTest, 0.0);
         Assert.assertEquals(1, (int) subModelResult.limit);
         Assert.assertEquals(1L, (long) subModelResult.size);
         Assert.assertTrue(subModelResult.boolTest);
 
         map.clear();
-        map.put("list", new String[]{"test"});
+        ArrayList<String> strings = new ArrayList<>();
+        strings.add("test");
+        map.put("list", strings);
         subModelResult = TeaModel.build(map, subModel);
-        Assert.assertEquals("test", subModelResult.list[0]);
+        Assert.assertEquals("test", subModelResult.list.get(0));
     }
 
     @Test
@@ -134,7 +141,10 @@ public class TeaModelTest {
         SubModel submodel = new SubModel();
         submodel.accessToken = "the access token";
         submodel.accessKeyId = "the access key id";
-        submodel.list = new String[]{"string0", "string1"};
+        ArrayList paramList = new ArrayList();
+        paramList.add("string0");
+        paramList.add("string1");
+        submodel.list = paramList;
         Assert.assertEquals(0, TeaModel.toMap(null).size());
         Assert.assertEquals(0, TeaModel.toMap("test").size());
 
@@ -151,8 +161,8 @@ public class TeaModelTest {
         Assert.assertNull(map.get("nextMarker"));
         Assert.assertNull(map.get("items"));
 
-        BaseDriveResponse[] baseDriveResponses = new BaseDriveResponse[1];
-        baseDriveResponses[0] = new BaseDriveResponse();
+        ArrayList<BaseDriveResponse> baseDriveResponses = new ArrayList<>();
+        baseDriveResponses.add(new BaseDriveResponse());
         response.items = baseDriveResponses;
         response.nextMarker = "test";
         map = TeaModel.toMap(response);
@@ -200,7 +210,7 @@ public class TeaModelTest {
 
     public static class ListDriveResponse extends TeaModel {
         @NameInMap("items")
-        public BaseDriveResponse[] items;
+        public List<BaseDriveResponse> items;
 
         @NameInMap("next_marker")
         public String nextMarker;
@@ -221,7 +231,7 @@ public class TeaModelTest {
         map.put("items", items);
         map.put("next_marker", "");
         ListDriveResponse response = TeaModel.toModel(map, new ListDriveResponse());
-        Assert.assertTrue(response.items[0] instanceof BaseDriveResponse);
+        Assert.assertTrue(response.items.get(0) instanceof BaseDriveResponse);
     }
 
     public static class HelloResponse extends TeaModel {
@@ -305,7 +315,7 @@ public class TeaModelTest {
         list.add("test");
         map.put("list", list);
         submodel = TeaModel.toModel(map, new SubModel());
-        Assert.assertEquals("test", submodel.list[0]);
+        Assert.assertEquals("test", submodel.list.get(0));
     }
 
 
@@ -318,10 +328,12 @@ public class TeaModelTest {
         response.nextMarker = "test";
         BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
         baseDriveResponse.driveId = "1";
-        response.items = new BaseDriveResponse[]{baseDriveResponse};
-        Assert.assertEquals("{next_marker=test, item=null, items=[{domain_id=null, drive_type=null, owner=null, " +
+        ArrayList<BaseDriveResponse> baseDriveResponses =  new ArrayList<>();
+        baseDriveResponses.add(baseDriveResponse);
+        response.items = baseDriveResponses;
+        Assert.assertEquals("{domain_id=null, drive_type=null, owner=null, " +
                 "store_id=null, creator=null, drive_id=1, total_size=null, description=null, used_size=null, " +
-                "drive_name=null, relative_path=null, status=null}]}", response.toMap().toString());
+                "drive_name=null, relative_path=null, status=null}", response.items.get(0).toMap().toString());
     }
 
     public static class ValidateParamModel extends TeaModel {
