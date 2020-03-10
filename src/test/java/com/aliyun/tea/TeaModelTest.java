@@ -18,7 +18,7 @@ public class TeaModelTest {
         @NameInMap("access_key_id")
         public String accessKeyId;
 
-        @NameInMap("list")
+        @NameInMap("listTest")
         public List<String> list;
 
         @NameInMap("size")
@@ -32,15 +32,17 @@ public class TeaModelTest {
 
         @NameInMap("boolTest")
         public Boolean boolTest;
+
+        @NameInMap("teaModel")
+        public BaseDriveResponse baseDriveResponse;
     }
 
     @Test
-    public void toModel() throws IllegalArgumentException, IllegalAccessException, InstantiationException,
-            InvocationTargetException, NoSuchMethodException, SecurityException {
-        Map<String, Object> map = new HashMap<String, Object>();
+    public void toModelTest() throws Exception {
+        Map<String, Object> map = new HashMap<>();
         ArrayList testList = new ArrayList();
         testList.add("test");
-        map.put("list", testList);
+        map.put("listTest", testList);
         SubModel submodel = TeaModel.toModel(map, new SubModel());
         Assert.assertNull(submodel.accessKeyId);
         Assert.assertNull(submodel.limit);
@@ -57,6 +59,9 @@ public class TeaModelTest {
         map.put("list", list);
         map.put("boolTest", true);
         map.put("doubleTest", 0.1f);
+        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
+        baseDriveResponse.driveId = "1";
+        map.put("teaModel", baseDriveResponse);
         submodel = TeaModel.toModel(map, new SubModel());
         Assert.assertEquals("test", submodel.accessKeyId);
         Assert.assertEquals(1, (int) submodel.limit);
@@ -65,6 +70,27 @@ public class TeaModelTest {
         Assert.assertEquals("test", submodel.list.get(0));
         Assert.assertEquals(0.1D, submodel.doubleTest, 0.0);
         Assert.assertTrue(submodel.boolTest);
+        Assert.assertEquals("1", submodel.baseDriveResponse.driveId);
+
+        Map<String, Object> teaModelMap = new HashMap<>();
+        teaModelMap.put("drive_id", "2");
+        map.put("teaModel", teaModelMap);
+        submodel = TeaModel.toModel(map, new SubModel());
+        Assert.assertEquals("2", submodel.baseDriveResponse.driveId);
+
+        map.clear();
+        List<BaseDriveResponse> baseDriveResponseList = new ArrayList<>();
+        baseDriveResponseList.add(baseDriveResponse);
+        map.put("itemsTest", baseDriveResponseList);
+        ListDriveResponse listDriveResponse = new ListDriveResponse();
+        listDriveResponse = TeaModel.toModel(map, listDriveResponse);
+        Assert.assertEquals("1", listDriveResponse.items.get(0).driveId);
+
+        List<Map> mapList = new ArrayList<>();
+        mapList.add(teaModelMap);
+        map.put("itemsTest", mapList);
+        listDriveResponse = TeaModel.toModel(map, listDriveResponse);
+        Assert.assertEquals("2", listDriveResponse.items.get(0).driveId);
     }
 
     @Test
@@ -78,10 +104,10 @@ public class TeaModelTest {
         submodel.list = paramList;
 
         Map<String, Object> map = submodel.toMap();
-        Assert.assertEquals(7, map.size());
+        Assert.assertEquals(8, map.size());
         Assert.assertEquals("the access key id", map.get("access_key_id"));
         Assert.assertEquals("the access token", map.get("accessToken"));
-        ArrayList list = (ArrayList) map.get("list");
+        ArrayList list = (ArrayList) map.get("listTest");
         Assert.assertEquals("string0", list.get(0));
         Assert.assertEquals("string1", list.get(1));
     }
@@ -134,40 +160,14 @@ public class TeaModelTest {
         map.put("list", strings);
         subModelResult = TeaModel.build(map, subModel);
         Assert.assertEquals("test", subModelResult.list.get(0));
-    }
 
-    @Test
-    public void toMapTest() throws IllegalArgumentException, IllegalAccessException {
-        SubModel submodel = new SubModel();
-        submodel.accessToken = "the access token";
-        submodel.accessKeyId = "the access key id";
-        ArrayList paramList = new ArrayList();
-        paramList.add("string0");
-        paramList.add("string1");
-        submodel.list = paramList;
-        Assert.assertEquals(0, TeaModel.toMap(null).size());
-        Assert.assertEquals(0, TeaModel.toMap("test").size());
-
-        Map<String, Object> map = TeaModel.toMap(submodel);
-        Assert.assertEquals(7, map.size());
-        Assert.assertEquals("the access key id", map.get("accessKeyId"));
-        Assert.assertEquals("the access token", map.get("accessToken"));
-        ArrayList list = (ArrayList) map.get("list");
-        Assert.assertEquals("string0", list.get(0));
-        Assert.assertEquals("string1", list.get(1));
-
-        ListDriveResponse response = new ListDriveResponse();
-        map = TeaModel.toMap(response);
-        Assert.assertNull(map.get("nextMarker"));
-        Assert.assertNull(map.get("items"));
-
-        ArrayList<BaseDriveResponse> baseDriveResponses = new ArrayList<>();
-        baseDriveResponses.add(new BaseDriveResponse());
-        response.items = baseDriveResponses;
-        response.nextMarker = "test";
-        map = TeaModel.toMap(response);
-        Assert.assertNotNull(map.get("items"));
-        Assert.assertEquals("test", map.get("nextMarker"));
+        List<Map> modelList = new ArrayList<>();
+        Map<String, Object> teaModelMap = new HashMap<>();
+        teaModelMap.put("driveId", "2");
+        modelList.add(teaModelMap);
+        map.put("items", modelList);
+        result = TeaModel.build(map, new ListDriveResponse());
+        Assert.assertEquals("2", result.items.get(0).driveId);
     }
 
     public static class BaseDriveResponse extends TeaModel {
@@ -209,29 +209,14 @@ public class TeaModelTest {
     }
 
     public static class ListDriveResponse extends TeaModel {
-        @NameInMap("items")
+        @NameInMap("itemsTest")
         public List<BaseDriveResponse> items;
 
         @NameInMap("next_marker")
         public String nextMarker;
 
-        @NameInMap("item")
+        @NameInMap("baseItem")
         public BaseDriveResponse item;
-    }
-
-    @Test
-    public void toMapWithList() throws IllegalArgumentException, IllegalAccessException, InstantiationException,
-            InvocationTargetException, NoSuchMethodException, SecurityException {
-        Map<String, Object> map = new HashMap<String, Object>();
-        ArrayList<Map<String, Object>> items = new ArrayList<>();
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("domainId", "test");
-        responseMap.put("status", "test");
-        items.add(responseMap);
-        map.put("items", items);
-        map.put("next_marker", "");
-        ListDriveResponse response = TeaModel.toModel(map, new ListDriveResponse());
-        Assert.assertTrue(response.items.get(0) instanceof BaseDriveResponse);
     }
 
     public static class HelloResponse extends TeaModel {
@@ -244,24 +229,6 @@ public class TeaModelTest {
         @NameInMap("message")
         @Validation(pattern = "test")
         public String message;
-    }
-
-    @Test
-    public void toMapWithGeneric() throws IllegalArgumentException, IllegalAccessException, InstantiationException,
-            InvocationTargetException, NoSuchMethodException, SecurityException {
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("data", new HashMap<String, Object>() {
-            private static final long serialVersionUID = 1L;
-
-            {
-                put("message", "Hello jacksontian");
-            }
-        });
-
-        HelloResponse response = TeaModel.toModel(map, new HelloResponse());
-        Assert.assertNotNull(response);
-        Assert.assertNotNull(response.data);
-        Assert.assertEquals("Hello jacksontian", response.data.message);
     }
 
     @Test
@@ -301,39 +268,44 @@ public class TeaModelTest {
     }
 
     @Test
-    public void transformFieldTest() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("size", Double.valueOf("6"));
-        SubModel submodel = TeaModel.toModel(map, new SubModel());
-        Assert.assertTrue(submodel.size instanceof Long);
-
-        map.put("limit", Double.valueOf("6"));
-        submodel = TeaModel.toModel(map, new SubModel());
-        Assert.assertTrue(submodel.limit instanceof Integer);
-
-        List list = new ArrayList();
-        list.add("test");
-        map.put("list", list);
-        submodel = TeaModel.toModel(map, new SubModel());
-        Assert.assertEquals("test", submodel.list.get(0));
-    }
-
-
-    @Test
-    public void toMapTransformTest() throws IllegalAccessException {
+    public void toMapNoParamTest() throws IllegalAccessException {
         ListDriveResponse response = new ListDriveResponse();
-        response.nextMarker = "test";
-        Assert.assertEquals("{next_marker=test, item=null, items=null}", response.toMap().toString());
-
-        response.nextMarker = "test";
         BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
         baseDriveResponse.driveId = "1";
-        ArrayList<BaseDriveResponse> baseDriveResponses =  new ArrayList<>();
+        ArrayList<BaseDriveResponse> baseDriveResponses = new ArrayList<>();
         baseDriveResponses.add(baseDriveResponse);
         response.items = baseDriveResponses;
-        Assert.assertEquals("{domain_id=null, drive_type=null, owner=null, " +
-                "store_id=null, creator=null, drive_id=1, total_size=null, description=null, used_size=null, " +
-                "drive_name=null, relative_path=null, status=null}", response.items.get(0).toMap().toString());
+        response.item = baseDriveResponse;
+        response.nextMarker = "test";
+        Map<String, Object> map = response.toMap();
+        Assert.assertEquals(response.nextMarker, map.get("next_marker"));
+        Assert.assertEquals(baseDriveResponse.driveId, ((Map) map.get("baseItem")).get("drive_id"));
+        Assert.assertEquals(baseDriveResponse.driveId, ((Map) ((List) map.get("itemsTest")).get(0)).get("drive_id"));
+    }
+
+    @Test
+    public void toMapOneParamTest() throws IllegalAccessException {
+        Assert.assertEquals(0, TeaModel.toMap(null).size());
+        Assert.assertEquals(0, TeaModel.toMap("test").size());
+        ListDriveResponse response = new ListDriveResponse();
+        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
+        baseDriveResponse.driveId = "1";
+        ArrayList<BaseDriveResponse> baseDriveResponses = new ArrayList<>();
+        baseDriveResponses.add(baseDriveResponse);
+        response.items = baseDriveResponses;
+        response.item = baseDriveResponse;
+        response.nextMarker = "test";
+        Map<String, Object> map = TeaModel.toMap(response);
+        Assert.assertEquals(response.nextMarker, map.get("nextMarker"));
+        Assert.assertEquals(baseDriveResponse.driveId, ((Map) map.get("item")).get("driveId"));
+        Assert.assertEquals(baseDriveResponse.driveId, ((Map) ((List) map.get("items")).get(0)).get("driveId"));
+
+        SubModel submodel = new SubModel();
+        ArrayList<String> list = new ArrayList<>();
+        list.add("test");
+        submodel.list = list;
+        map = TeaModel.toMap(submodel);
+        Assert.assertEquals("test", ((List) map.get("list")).get(0));
     }
 
     public static class ValidateParamModel extends TeaModel {
@@ -343,9 +315,9 @@ public class TeaModelTest {
         @Validation
         public String notNullObject = "test";
         @Validation(pattern = "[1-9]")
-        public Map<String,Hello[]> hasPattern = new HashMap<>();
+        public Map<String, Hello[]> hasPattern = new HashMap<>();
         @Validation(pattern = "[1-9]")
-        public Map<String,String> hasStringPattern = new HashMap<>();
+        public Map<String, String> hasStringPattern = new HashMap<>();
         @Validation(required = true)
         public String requiredTrue = "test";
     }
@@ -358,8 +330,8 @@ public class TeaModelTest {
         map.put("2", "test");
         validateMap.setAccessible(true);
         try {
-            validateMap.invoke(new ValidateParamModel(),"test", 4, map);
-            validateMap.invoke(new ValidateParamModel(),"[1-9]", 0, map);
+            validateMap.invoke(new ValidateParamModel(), "test", 4, map);
+            validateMap.invoke(new ValidateParamModel(), "[1-9]", 0, map);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("param don't matched", e.getCause().getMessage());
@@ -376,23 +348,23 @@ public class TeaModelTest {
         map.put("test", "test");
 
         try {
-            determineType.invoke(validateParamModel,map.getClass(),map, "test", 1);
+            determineType.invoke(validateParamModel, map.getClass(), map, "test", 1);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("param don't matched", e.getCause().getMessage());
         }
 
         try {
-            determineType.invoke(validateParamModel,map.getClass(),map, "[1-9]", 0);
+            determineType.invoke(validateParamModel, map.getClass(), map, "[1-9]", 0);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("param don't matched", e.getCause().getMessage());
         }
 
         try {
-            determineType.invoke(new ValidateParamModel(),validateParamModel.getClass(),validateParamModel, "test", 4);
+            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "test", 4);
             validateParamModel.hasStringPattern.put("test", "test");
-            determineType.invoke(new ValidateParamModel(),validateParamModel.getClass(),validateParamModel, "[1-9]", 0);
+            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "[1-9]", 0);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("param don't matched", e.getCause().getMessage());
@@ -401,16 +373,16 @@ public class TeaModelTest {
         List<String> list = new ArrayList<>();
         list.add("test");
         try {
-            determineType.invoke(new ValidateParamModel(),list.getClass(),list, "test", 0);
-            determineType.invoke(new ValidateParamModel(),list.getClass(),list, "[1-9]", 0);
+            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "test", 0);
+            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "[1-9]", 0);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("param don't matched", e.getCause().getMessage());
         }
         String[] strs = new String[]{"test"};
         try {
-            determineType.invoke(new ValidateParamModel(),strs.getClass(),strs, "test", 0);
-            determineType.invoke(new ValidateParamModel(),strs.getClass(),strs, "[1-9]", 0);
+            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "test", 0);
+            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "[1-9]", 0);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("param don't matched", e.getCause().getMessage());
