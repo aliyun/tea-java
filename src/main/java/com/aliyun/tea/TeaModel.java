@@ -208,6 +208,9 @@ public class TeaModel {
 
     public static Map<String, Object> toMap(Object object) throws IllegalArgumentException, IllegalAccessException {
         HashMap<String, Object> map = new HashMap<String, Object>();
+        if (null != object && object instanceof Map) {
+            return (Map<String, Object>) object;
+        }
         if (null == object || !TeaModel.class.isAssignableFrom(object.getClass())) {
             return map;
         }
