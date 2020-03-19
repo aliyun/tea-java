@@ -13,6 +13,7 @@ import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,7 +55,7 @@ public class TeaTest {
     }
 
     @Test
-    public void doActionTest() throws NoSuchAlgorithmException, IOException, KeyManagementException, IllegalAccessException, URISyntaxException {
+    public void doActionTest() throws Exception {
         TeaRequest request = new TeaRequest();
         Map<String, String> map = new HashMap<>();
         map.put("host", "www.baidu.com");
@@ -76,6 +77,11 @@ public class TeaTest {
         request.method = "get";
         response = Tea.doAction(request, runtimeOptions);
         Assert.assertNotNull(response.getResponse());
+
+        response = Tea.doAction(request, runtimeOptions, "test");
+        Assert.assertEquals(200, response.statusCode);
+        response = Tea.doAction(request, runtimeOptions, "test");
+        Assert.assertEquals(200, response.statusCode);
     }
 
     @Test

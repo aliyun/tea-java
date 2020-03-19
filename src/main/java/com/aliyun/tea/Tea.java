@@ -1,8 +1,13 @@
 package com.aliyun.tea;
 
+import com.aliyun.tea.okhttp.OkHttpClientBuilder;
+import com.aliyun.tea.okhttp.OkRequestBuilder;
 import com.aliyun.tea.utils.StringUtils;
 import com.aliyun.tea.utils.TrueHostnameVerifier;
 import com.aliyun.tea.utils.X509TrustManagerImp;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import javax.net.ssl.*;
 import java.io.*;
@@ -14,16 +19,19 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Tea {
     private static final List<String> HAVE_BODY_METHOD_LSIT = new ArrayList<>();
+    public static final ConcurrentHashMap<Object, OkHttpClient> clients = new ConcurrentHashMap<>();
 
     static {
         HAVE_BODY_METHOD_LSIT.add("POST");
         HAVE_BODY_METHOD_LSIT.add("PUT");
+        HAVE_BODY_METHOD_LSIT.add("PATCH");
     }
 
-    private static String composeUrl(TeaRequest request) throws UnsupportedEncodingException {
+    public static String composeUrl(TeaRequest request) throws UnsupportedEncodingException {
         Map<String, String> queries = request.query;
         String host = request.headers.get("host");
         String protocol = null == request.protocol ? "http" : request.protocol;
@@ -54,6 +62,28 @@ public class Tea {
             urlBuilder.deleteCharAt(strIndex - 1);
         }
         return urlBuilder.toString();
+    }
+
+    public static OkHttpClient creatOkHttp(Map<String, Object> map) throws Exception {
+        OkHttpClientBuilder builder = new OkHttpClientBuilder();
+        builder = builder.connectTimeout(map).readTimeout(map).connectionPool(map).certificate(map).proxy(map);
+        return builder.buildOkHttpClient();
+    }
+
+    public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions, Object client) throws Exception {
+        OkHttpClient okHttpClient = Tea.clients.get(client);
+        if (null == okHttpClient) {
+            okHttpClient = creatOkHttp(runtimeOptions);
+            Tea.clients.put(client, okHttpClient);
+        }
+       return doAction(request, okHttpClient);
+    }
+
+    public static TeaResponse doAction(TeaRequest request, OkHttpClient okHttpClient) throws Exception {
+        Request.Builder requestBuilder = new Request.Builder();
+        OkRequestBuilder okRequestBuilder = new OkRequestBuilder(requestBuilder).url(request).header(request).httpMethod(request);
+        Response response = okHttpClient.newCall(okRequestBuilder.buildRequest()).execute();
+        return new TeaResponse(response);
     }
 
     public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions)
