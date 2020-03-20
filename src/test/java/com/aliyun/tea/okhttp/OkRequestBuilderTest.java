@@ -5,19 +5,35 @@ import okhttp3.Request;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.net.URL;
+
 public class OkRequestBuilderTest {
     @Test
-    public void httpMethodTest() {
+    public void httpMethodTest() throws Exception{
         OkRequestBuilder builder = Mockito.spy(new OkRequestBuilder(new Request.Builder()));
         TeaRequest request = new TeaRequest();
+        builder.url(new URL("http://ecs.aliyuncs.com"));
         request.method = "DELETE";
-        builder.httpMethod(request);
+        builder.buildRequest(request);
+        Mockito.verify(builder, Mockito.times(1)).buildRequest(request);
+
+        builder = Mockito.spy(new OkRequestBuilder(new Request.Builder()));
+        builder.url(new URL("http://ecs.aliyuncs.com"));
         request.method = "POST";
-        builder.httpMethod(request);
+        builder.buildRequest(request);
+        Mockito.verify(builder, Mockito.times(1)).buildRequest(request);
+
+        builder = Mockito.spy(new OkRequestBuilder(new Request.Builder()));
+        builder.url(new URL("http://ecs.aliyuncs.com"));
         request.method = "PATCH";
-        builder.httpMethod(request);
+        builder.buildRequest(request);
+        Mockito.verify(builder, Mockito.times(1)).buildRequest(request);
+
+        builder = Mockito.spy(new OkRequestBuilder(new Request.Builder()));
+        builder.url(new URL("http://ecs.aliyuncs.com"));
         request.method = "PUT";
-        builder.httpMethod(request);
-        Mockito.verify(builder, Mockito.times(4)).httpMethod(request);
+        builder.buildRequest(request);
+        Mockito.verify(builder, Mockito.times(1)).buildRequest(request);
+
     }
 }

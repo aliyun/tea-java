@@ -45,7 +45,7 @@ public class OkHttpClientBuilderTest {
         OkHttpClientBuilder clientBuilder = Mockito.spy(new OkHttpClientBuilder());
         clientBuilder.certificate(map);
         map.clear();
-        map.put("protocol", "https");
+        map.put("ignoreSSL", true);
         clientBuilder.certificate(map);
         Mockito.verify(clientBuilder, Mockito.times(2)).certificate(map);
     }
