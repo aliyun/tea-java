@@ -285,6 +285,9 @@ public class TeaModelTest {
 
     @Test
     public void toMapOneParamTest() throws IllegalAccessException {
+        Map<String, Object> nullMap = new HashMap<>();
+        Assert.assertEquals(0, TeaModel.toMap(nullMap).size());
+
         Assert.assertEquals(0, TeaModel.toMap(null).size());
         Assert.assertEquals(0, TeaModel.toMap("test").size());
         ListDriveResponse response = new ListDriveResponse();

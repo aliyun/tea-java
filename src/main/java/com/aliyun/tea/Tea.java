@@ -1,37 +1,29 @@
 package com.aliyun.tea;
 
-import com.aliyun.tea.okhttp.OkHttpClientBuilder;
+import com.aliyun.tea.okhttp.ClientHelper;
 import com.aliyun.tea.okhttp.OkRequestBuilder;
 import com.aliyun.tea.utils.StringUtils;
-import com.aliyun.tea.utils.TrueHostnameVerifier;
 import com.aliyun.tea.utils.X509TrustManagerImp;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import javax.net.ssl.*;
-import java.io.*;
-import java.net.HttpURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Tea {
-    private static final List<String> HAVE_BODY_METHOD_LSIT = new ArrayList<>();
-    public static final ConcurrentHashMap<Object, OkHttpClient> clients = new ConcurrentHashMap<>();
 
-    static {
-        HAVE_BODY_METHOD_LSIT.add("POST");
-        HAVE_BODY_METHOD_LSIT.add("PUT");
-        HAVE_BODY_METHOD_LSIT.add("PATCH");
-    }
-
-    public static String composeUrl(TeaRequest request) throws UnsupportedEncodingException {
+    private static String composeUrl(TeaRequest request) throws UnsupportedEncodingException {
         Map<String, String> queries = request.query;
         String host = request.headers.get("host");
         String protocol = null == request.protocol ? "http" : request.protocol;
@@ -64,72 +56,15 @@ public class Tea {
         return urlBuilder.toString();
     }
 
-    public static OkHttpClient creatOkHttp(Map<String, Object> map) throws Exception {
-        OkHttpClientBuilder builder = new OkHttpClientBuilder();
-        builder = builder.connectTimeout(map).readTimeout(map).connectionPool(map).certificate(map).proxy(map);
-        return builder.buildOkHttpClient();
-    }
 
-    public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions, Object client) throws Exception {
-        OkHttpClient okHttpClient = Tea.clients.get(client);
-        if (null == okHttpClient) {
-            okHttpClient = creatOkHttp(runtimeOptions);
-            Tea.clients.put(client, okHttpClient);
-        }
-       return doAction(request, okHttpClient);
-    }
-
-    public static TeaResponse doAction(TeaRequest request, OkHttpClient okHttpClient) throws Exception {
+    public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions) throws Exception {
+        String urlString = Tea.composeUrl(request);
+        URL url = new URL(urlString);
+        OkHttpClient okHttpClient = ClientHelper.getOkHttpClient(url.getHost(), url.getPort(), runtimeOptions);
         Request.Builder requestBuilder = new Request.Builder();
-        OkRequestBuilder okRequestBuilder = new OkRequestBuilder(requestBuilder).url(request).header(request).httpMethod(request);
-        Response response = okHttpClient.newCall(okRequestBuilder.buildRequest()).execute();
+        OkRequestBuilder okRequestBuilder = new OkRequestBuilder(requestBuilder).url(url).header(request.headers);
+        Response response = okHttpClient.newCall(okRequestBuilder.buildRequest(request)).execute();
         return new TeaResponse(response);
-    }
-
-    public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions)
-            throws IOException, KeyManagementException, NoSuchAlgorithmException {
-        String strUrl = composeUrl(request);
-        URL url = new URL(strUrl);
-        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-        System.setProperty("sun.net.http.retryPost", "false");
-        HttpURLConnection httpConn;
-        if ("https".equalsIgnoreCase(url.getProtocol())) {
-            SSLSocketFactory sslSocketFactory = createSSLSocketFactory();
-            HttpsURLConnection httpsConn = (HttpsURLConnection) url.openConnection();
-            httpsConn.setSSLSocketFactory(sslSocketFactory);
-            httpsConn.setHostnameVerifier(new TrueHostnameVerifier());
-            httpConn = httpsConn;
-        } else {
-            httpConn = (HttpURLConnection) url.openConnection();
-        }
-        httpConn.setRequestMethod(request.method.toUpperCase());
-        httpConn.setInstanceFollowRedirects(false);
-        httpConn.setDoOutput(true);
-        httpConn.setDoInput(true);
-        httpConn.setUseCaches(false);
-        if (!StringUtils.isEmpty(runtimeOptions.get("readTimeout"))) {
-            httpConn.setReadTimeout(Integer.valueOf(String.valueOf(runtimeOptions.get("readTimeout"))));
-        }
-
-        if (!StringUtils.isEmpty(runtimeOptions.get("connectTimeout"))) {
-            httpConn.setConnectTimeout(Integer.valueOf(String.valueOf(runtimeOptions.get("connectTimeout"))));
-        }
-
-        for (String headerName : request.headers.keySet()) {
-            httpConn.setRequestProperty(toUpperFirstChar(headerName), request.headers.get(headerName));
-        }
-
-        httpConn.connect();
-        if (request.body != null && HAVE_BODY_METHOD_LSIT.contains(request.method.toUpperCase())) {
-            OutputStream out = httpConn.getOutputStream();
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = request.body.read(buffer)) != -1) {
-                out.write(buffer, 0, bytesRead);
-            }
-            out.flush();
-        }
-        return new TeaResponse(httpConn);
     }
 
     public static String toUpperFirstChar(String name) {

@@ -33,7 +33,7 @@ public class OkHttpClientBuilder {
         } catch (Exception e) {
             return this;
         }
-        this.builder = this.builder.connectTimeout(timeout, TimeUnit.MILLISECONDS);
+        this.builder.connectTimeout(timeout, TimeUnit.MILLISECONDS);
         return this;
     }
 
@@ -45,7 +45,7 @@ public class OkHttpClientBuilder {
         } catch (Exception e) {
             return this;
         }
-        this.builder = this.builder.readTimeout(timeout, TimeUnit.MILLISECONDS);
+        this.builder.readTimeout(timeout, TimeUnit.MILLISECONDS);
         return this;
     }
 
@@ -57,17 +57,17 @@ public class OkHttpClientBuilder {
         } catch (Exception e) {
             maxIdleConnections = 5;
         }
-        ConnectionPool connectionPool = new ConnectionPool(maxIdleConnections, 1000L, TimeUnit.MILLISECONDS);
-        this.builder = this.builder.connectionPool(connectionPool);
+        ConnectionPool connectionPool = new ConnectionPool(maxIdleConnections, 10000L, TimeUnit.MILLISECONDS);
+        this.builder.connectionPool(connectionPool);
         return this;
     }
 
     public OkHttpClientBuilder certificate(Map<String, Object> map) throws KeyManagementException, NoSuchAlgorithmException {
-        if ("https".equals(map.get("protocol"))) {
+        if (Boolean.parseBoolean(String.valueOf(map.get("ignoreSSL")))) {
             X509TrustManager compositeX509TrustManager = new X509TrustManagerImp();
             SSLContext sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, new TrustManager[]{compositeX509TrustManager}, new java.security.SecureRandom());
-            this.builder = this.builder.sslSocketFactory(sslContext.getSocketFactory(), compositeX509TrustManager).
+            this.builder.sslSocketFactory(sslContext.getSocketFactory(), compositeX509TrustManager).
                     hostnameVerifier(new TrueHostnameVerifier());
         }
         return this;
@@ -77,7 +77,7 @@ public class OkHttpClientBuilder {
         if (null != map.get("httpProxy") || null != map.get("httpsProxy")) {
             Object urlString = null == map.get("httpProxy") ? map.get("httpsProxy") : map.get("httpProxy");
             URL url = new URL(String.valueOf(urlString));
-            this.builder = this.builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(url.getHost(), url.getPort())));
+            this.builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(url.getHost(), url.getPort())));
         }
         return this;
     }

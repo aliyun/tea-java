@@ -1,12 +1,10 @@
 package com.aliyun.tea.okhttp;
 
-import com.aliyun.tea.Tea;
 import com.aliyun.tea.TeaRequest;
 import okhttp3.Request;
 
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
 import static com.aliyun.tea.Tea.toUpperFirstChar;
 
@@ -17,48 +15,41 @@ public class OkRequestBuilder {
         this.builder = builder;
     }
 
-    public OkRequestBuilder url(TeaRequest request) throws UnsupportedEncodingException, MalformedURLException {
-        String urlString = Tea.composeUrl(request);
-        URL url = new URL(urlString);
-        this.builder = this.builder.url(url);
+    public OkRequestBuilder url(URL url) {
+        this.builder.url(url);
         return this;
     }
 
-    public OkRequestBuilder header(TeaRequest request) {
-        for (String headerName : request.headers.keySet()) {
-            this.builder = this.builder.header(toUpperFirstChar(headerName), request.headers.get(headerName));
+    public OkRequestBuilder header(Map<String, String> headers) {
+        for (String headerName : headers.keySet()) {
+            this.builder.header(toUpperFirstChar(headerName), headers.get(headerName));
         }
         return this;
     }
 
-    public OkRequestBuilder httpMethod(TeaRequest request) {
+    public Request buildRequest(TeaRequest request) {
         String method = request.method.toUpperCase();
         OkRequestBody requestBody;
         switch (method) {
             case "DELETE":
-                this.builder = this.builder.delete();
+                this.builder.delete();
                 break;
             case "POST":
                 requestBody = new OkRequestBody(request);
-                this.builder = this.builder.post(requestBody);
+                this.builder.post(requestBody);
                 break;
             case "PUT":
                 requestBody = new OkRequestBody(request);
-                this.builder = this.builder.put(requestBody);
+                this.builder.put(requestBody);
                 break;
             case "PATCH":
                 requestBody = new OkRequestBody(request);
-                this.builder = this.builder.patch(requestBody);
+                this.builder.patch(requestBody);
                 break;
             default:
-                this.builder = this.builder.get();
+                this.builder.get();
                 break;
         }
-        return this;
-    }
-
-
-    public Request buildRequest() {
         return this.builder.build();
     }
 }

@@ -3,7 +3,6 @@ package com.aliyun.tea.okhttp;
 import com.aliyun.tea.TeaRequest;
 import okhttp3.MediaType;
 import okio.BufferedSink;
-import okio.RealBufferedSink;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;

@@ -6,14 +6,12 @@ import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
 import javax.net.ssl.SSLSocketFactory;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,29 +56,14 @@ public class TeaTest {
     public void doActionTest() throws Exception {
         TeaRequest request = new TeaRequest();
         Map<String, String> map = new HashMap<>();
-        map.put("host", "www.baidu.com");
+        map.put("host", "www.google.com.hk");
         request.protocol = "http";
         request.headers = map;
-        request.method = "post";
+        request.method = "GET";
         Map<String, Object> runtimeOptions = new HashMap<>();
-        TeaResponse response = Tea.doAction(request, runtimeOptions);
-        Assert.assertNotNull(response.getResponse());
-
-        request.protocol = "https";
-        request.body = new ByteArrayInputStream("{}".getBytes("UTF-8"));
         runtimeOptions.put("readTimeout", "50000");
         runtimeOptions.put("connectTimeout", "50000");
-        response = Tea.doAction(request, runtimeOptions);
-        Assert.assertNotNull(response.getResponse());
-
-        request.body = new ByteArrayInputStream("{}".getBytes("UTF-8"));
-        request.method = "get";
-        response = Tea.doAction(request, runtimeOptions);
-        Assert.assertNotNull(response.getResponse());
-
-        response = Tea.doAction(request, runtimeOptions, "test");
-        Assert.assertEquals(200, response.statusCode);
-        response = Tea.doAction(request, runtimeOptions, "test");
+        TeaResponse response = Tea.doAction(request, runtimeOptions);
         Assert.assertEquals(200, response.statusCode);
     }
 
