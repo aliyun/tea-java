@@ -1,3 +1,6 @@
+2020-04-11 Version: 0.1.1
+1. Add type determination to TeaModel
+
 2020-04-01 Version: 0.1.0
 1. Change client to OkClient
 
