@@ -42,7 +42,7 @@ public class Tea {
             for (Map.Entry<String, String> entry : queries.entrySet()) {
                 String key = entry.getKey();
                 String val = entry.getValue();
-                if (val == null) {
+                if (val == null || "null".equals(val)) {
                     continue;
                 }
                 urlBuilder.append(URLEncoder.encode(key, "UTF-8"));
