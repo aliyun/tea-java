@@ -15,4 +15,14 @@ public class TeaResponseTest {
         InputStream inputStream = response.getResponse();
         Assert.assertTrue(inputStream instanceof  ByteArrayInputStream );
     }
+
+    @Test
+    public void getResponseBodyTest() throws Exception{
+        TeaResponse response = new TeaResponse();
+        response.statusMessage = "test";
+        Assert.assertEquals("{\"message\":\"test\"}", response.getResponseBody());
+
+        response.body = new ByteArrayInputStream("test".getBytes("UTF-8"));
+        Assert.assertEquals("test", response.getResponseBody());
+    }
 }
