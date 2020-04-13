@@ -3,6 +3,7 @@ package com.aliyun.tea;
 import kotlin.Pair;
 import okhttp3.Response;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -37,4 +38,22 @@ public class TeaResponse {
     public InputStream getResponse() throws IOException {
         return this.body;
     }
+
+    public String getResponseBody() throws IOException {
+        if (null == body) {
+            return String.format("{\"message\":\"%s\"}", statusMessage);
+        }
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        byte[] buff = new byte[4096];
+        while (true) {
+            final int read = body.read(buff);
+            if (read == -1) {
+                break;
+            }
+            os.write(buff, 0, read);
+        }
+        return new String(os.toByteArray());
+    }
+
+
 }
