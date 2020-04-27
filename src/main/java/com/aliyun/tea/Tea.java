@@ -4,6 +4,7 @@ import com.aliyun.tea.okhttp.ClientHelper;
 import com.aliyun.tea.okhttp.OkRequestBuilder;
 import com.aliyun.tea.utils.StringUtils;
 import com.aliyun.tea.utils.X509TrustManagerImp;
+import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -15,6 +16,7 @@ import javax.net.ssl.X509TrustManager;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.KeyManagementException;
@@ -62,9 +64,23 @@ public class Tea {
         URL url = new URL(urlString);
         OkHttpClient okHttpClient = ClientHelper.getOkHttpClient(url.getHost(), url.getPort(), runtimeOptions);
         Request.Builder requestBuilder = new Request.Builder();
-        OkRequestBuilder okRequestBuilder = new OkRequestBuilder(requestBuilder).url(url).header(request.headers);
+        Map<String, String> header = setProxyAuthorization(request.headers, runtimeOptions.get("httpsProxy"));
+        OkRequestBuilder okRequestBuilder = new OkRequestBuilder(requestBuilder).url(url).header(header);
         Response response = okHttpClient.newCall(okRequestBuilder.buildRequest(request)).execute();
         return new TeaResponse(response);
+    }
+
+    private static Map<String, String> setProxyAuthorization(Map<String, String> header, Object httpsProxy) throws MalformedURLException {
+        if (!StringUtils.isEmpty(httpsProxy)) {
+            URL proxyUrl = new URL(String.valueOf(httpsProxy));
+            String userInfo = proxyUrl.getUserInfo();
+            if (null != userInfo) {
+                String[] userMessage = userInfo.split(":");
+                String credential = Credentials.basic(userMessage[0], userMessage[1]);
+                header.put("Proxy-Authorization", credential);
+            }
+        }
+        return header;
     }
 
     public static String toUpperFirstChar(String name) {
