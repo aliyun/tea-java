@@ -147,4 +147,21 @@ public class TeaTest {
         String result = new String(bytes, 0, index);
         Assert.assertTrue(str.equals(result));
     }
+
+    @Test
+    public void setProxyAuthorizationTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method setProxyAuthorization = Tea.class.getDeclaredMethod("setProxyAuthorization", Map.class, Object.class);
+        setProxyAuthorization.setAccessible(true);
+        Object httpsProxy = "http://user:password@127.0.0.1:8080";
+        Map<String, String> result = (Map<String, String>) setProxyAuthorization.invoke(new Tea(), new HashMap<String, String>(), httpsProxy);
+        assert "Basic dXNlcjpwYXNzd29yZA==".equals(result.get("Proxy-Authorization"));
+
+        httpsProxy = "http://127.0.0.1:8080";
+        result = (Map<String, String>) setProxyAuthorization.invoke(new Tea(), new HashMap<String, String>(), httpsProxy);
+        assert null == result.get("Proxy-Authorization");
+
+        httpsProxy = null;
+        result = (Map<String, String>) setProxyAuthorization.invoke(new Tea(), new HashMap<String, String>(), httpsProxy);
+        assert null == result.get("Proxy-Authorization");
+    }
 }
