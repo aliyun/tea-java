@@ -204,7 +204,7 @@ public class TeaModel {
 
     public static Map<String, Object> buildMap(TeaModel teaModel) throws IllegalAccessException {
         if (null == teaModel) {
-            return new HashMap<>();
+            return null;
         } else {
             return teaModel.toMap();
         }

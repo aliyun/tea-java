@@ -423,7 +423,7 @@ public class TeaModelTest {
     @Test
     public void buildMapTest() throws IllegalAccessException {
         TeaModel teaModel = null;
-        Assert.assertNotNull(TeaModel.buildMap(teaModel));
+        Assert.assertNull(TeaModel.buildMap(teaModel));
 
         teaModel = new ValidateParamModel();
         Assert.assertEquals(6, TeaModel.buildMap(teaModel).size());
