@@ -1,3 +1,7 @@
+2020-04-28 Version: 0.1.4
+1. Update buildMap
+2. Support for HTTPS proxy
+
 2020-04-13 Version: 0.1.3
 1. Add getResponseBody
 
