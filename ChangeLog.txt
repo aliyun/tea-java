@@ -1,3 +1,6 @@
+2020-05-19 Version: 0.1.5
+1. Add content length
+
 2020-04-28 Version: 0.1.4
 1. Update buildMap
 2. Support for HTTPS proxy
