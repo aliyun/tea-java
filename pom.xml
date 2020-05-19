@@ -6,7 +6,7 @@
 
     <groupId>com.aliyun</groupId>
     <artifactId>tea</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
     <packaging>jar</packaging>
 
     <name>tea</name>

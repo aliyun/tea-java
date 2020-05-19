@@ -34,6 +34,14 @@ public class OkRequestBody extends RequestBody {
     }
 
     @Override
+    public long contentLength() throws IOException {
+        if (null != inputStream && inputStream.available() > 0) {
+            return inputStream.available();
+        }
+        return super.contentLength();
+    }
+
+    @Override
     public void writeTo(@NotNull BufferedSink bufferedSink) throws IOException {
         if (null == inputStream) {
             return;
