@@ -11,7 +11,7 @@ public class ClientHelperTest {
     @Test
     public void getClientKeyTest() throws Exception {
         new ClientHelper();
-        Assert.assertTrue(ClientHelper.getClientKey("0:0:0:0:0:0:0:1", 0).contains("IPV6"));
+        Assert.assertTrue("0:0:0:0:0:0:0:1:0".equals(ClientHelper.getClientKey("0:0:0:0:0:0:0:1", 0)));
     }
 
     @Test
