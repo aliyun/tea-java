@@ -36,14 +36,6 @@ public class ClientHelper {
     }
 
     public static String getClientKey(String host, int port) throws Exception {
-        InetAddress inetAddress = InetAddress.getByName(host);
-        InetAddress localAddress = InetAddress.getLocalHost();
-        String ipType;
-        if (IPAddressUtil.isIPv6LiteralAddress(inetAddress.getHostAddress())) {
-            ipType = "IPV6";
-        } else {
-            ipType = "IPV4";
-        }
-        return String.format("%s:%d:%s:%s", host, port, localAddress.getHostAddress(), ipType);
+        return String.format("%s:%d", host, port);
     }
 }
