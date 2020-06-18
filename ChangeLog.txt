@@ -1,3 +1,6 @@
+2020-06-18 Version: 0.1.6
+1. Client key changed to host plus port
+
 2020-05-19 Version: 0.1.5
 1. Add content length
 
