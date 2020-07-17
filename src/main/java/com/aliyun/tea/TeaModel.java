@@ -226,7 +226,13 @@ public class TeaModel {
             return map;
         }
         for (Field field : object.getClass().getFields()) {
-            String key = field.getName();
+            NameInMap anno = field.getAnnotation(NameInMap.class);
+            String key;
+            if (anno == null) {
+                key = field.getName();
+            } else {
+                key = anno.value();
+            }
             if (null != field.get(object) && List.class.isAssignableFrom(field.get(object).getClass())) {
                 ParameterizedType listGenericType = (ParameterizedType) field.getGenericType();
                 Type[] listActualTypeArguments = listGenericType.getActualTypeArguments();
@@ -261,7 +267,13 @@ public class TeaModel {
             throws IllegalArgumentException, IllegalAccessException, InstantiationException, InvocationTargetException,
             NoSuchMethodException, SecurityException {
         for (Field field : model.getClass().getFields()) {
-            String key = field.getName();
+            NameInMap anno = field.getAnnotation(NameInMap.class);
+            String key;
+            if (anno == null) {
+                key = field.getName();
+            } else {
+                key = anno.value();
+            }
             Object value = map.get(key);
             if (value == null) {
                 continue;
