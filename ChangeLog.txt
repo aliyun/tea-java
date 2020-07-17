@@ -1,3 +1,6 @@
+2020-06-18 Version: 0.2.0
+1. Improve TeaModel
+
 2020-06-18 Version: 0.1.6
 1. Client key changed to host plus port
 
