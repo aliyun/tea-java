@@ -17,6 +17,11 @@ public class OkRequestBodyTest {
         TeaRequest request = new TeaRequest();
         OkRequestBody body = new OkRequestBody(request);
         MediaType result = body.contentType();
+        Assert.assertNull(result);
+
+        request.body = new ByteArrayInputStream(new byte[]{1});
+        body = new OkRequestBody(request);
+        result = body.contentType();
         Assert.assertEquals("application/json; charset=UTF-8;", result.toString());
 
         request.headers.put("content-type", "text/h323");
