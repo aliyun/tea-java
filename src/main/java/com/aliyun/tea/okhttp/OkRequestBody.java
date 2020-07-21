@@ -27,6 +27,9 @@ public class OkRequestBody extends RequestBody {
     public MediaType contentType() {
         MediaType type;
         if (StringUtils.isEmpty(contentType)) {
+            if (null == inputStream) {
+                return null;
+            }
             type = MediaType.parse("application/json; charset=UTF-8;");
             return type;
         }
