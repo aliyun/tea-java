@@ -1,3 +1,6 @@
+2020-07-27 Version: 0.2.2
+1. Improve TeaModel
+
 2020-07-21 Version: 0.2.1
 1. The fix content type has default values
 
