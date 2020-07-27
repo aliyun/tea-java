@@ -31,9 +31,9 @@ public class TeaModel {
                 if (listActualTypeArgument instanceof Class) {
                     itemType = (Class<?>) listActualTypeArgument;
                 }
-                ArrayList<Object> arrayField = (ArrayList<Object>) field.get(this);
+                List<Object> arrayField = (List<Object>) field.get(this);
                 Map<String, Object> fields;
-                ArrayList<Object> fieldList = new ArrayList<>();
+                List<Object> fieldList = new ArrayList<>();
                 for (int i = 0; i < arrayField.size(); i++) {
                     if (null != itemType && TeaModel.class.isAssignableFrom(itemType)) {
                         fields = ((TeaModel) arrayField.get(i)).toMap();
@@ -74,7 +74,7 @@ public class TeaModel {
             value = parseNumber(value, field.getType());
             Class<?> clazz = field.getType();
             if (List.class.isAssignableFrom(clazz)) {
-                ArrayList<?> valueList = (ArrayList<?>) value;
+                List<?> valueList = (List<?>) value;
                 ParameterizedType listGenericType = (ParameterizedType) field.getGenericType();
                 Type[] listActualTypeArguments = listGenericType.getActualTypeArguments();
                 Type listActualTypeArgument = listActualTypeArguments[0];
@@ -82,7 +82,7 @@ public class TeaModel {
                 if (listActualTypeArgument instanceof Class) {
                     itemType = (Class<?>) listActualTypeArgument;
                 }
-                ArrayList result = new ArrayList();
+                List result = new ArrayList();
                 if (null != itemType && TeaModel.class.isAssignableFrom(itemType)) {
                     if (valueList.size() > 0 && Map.class.isAssignableFrom(valueList.get(0).getClass())) {
                         for (int i = 0; i < valueList.size(); i++) {
@@ -241,9 +241,9 @@ public class TeaModel {
                 if (listActualTypeArgument instanceof Class) {
                     itemType = (Class<?>) listActualTypeArgument;
                 }
-                ArrayList<Object> arrayField = (ArrayList<Object>) field.get(object);
+                List<Object> arrayField = (List<Object>) field.get(object);
                 Map<String, Object> fields;
-                ArrayList<Object> fieldList = new ArrayList<>();
+                List<Object> fieldList = new ArrayList<>();
                 for (int i = 0; i < arrayField.size(); i++) {
                     if (null != itemType && TeaModel.class.isAssignableFrom(itemType)) {
                         fields = TeaModel.toMap(arrayField.get(i));
@@ -280,7 +280,7 @@ public class TeaModel {
             }
             Class<?> clazz = field.getType();
             if (List.class.isAssignableFrom(clazz)) {
-                ArrayList<?> valueList = (ArrayList<?>) value;
+                List<?> valueList = (List<?>) value;
                 ParameterizedType listGenericType = (ParameterizedType) field.getGenericType();
                 Type[] listActualTypeArguments = listGenericType.getActualTypeArguments();
                 Type listActualTypeArgument = listActualTypeArguments[0];
@@ -288,7 +288,7 @@ public class TeaModel {
                 if (listActualTypeArgument instanceof Class) {
                     itemType = (Class<?>) listActualTypeArgument;
                 }
-                ArrayList result = new ArrayList();
+                List result = new ArrayList();
                 if (null != itemType && TeaModel.class.isAssignableFrom(itemType)) {
                     if (valueList.size() > 0 && Map.class.isAssignableFrom(valueList.get(0).getClass())) {
                         for (int i = 0; i < valueList.size(); i++) {
