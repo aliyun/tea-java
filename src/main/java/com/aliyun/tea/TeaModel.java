@@ -267,13 +267,7 @@ public class TeaModel {
             throws IllegalArgumentException, IllegalAccessException, InstantiationException, InvocationTargetException,
             NoSuchMethodException, SecurityException {
         for (Field field : model.getClass().getFields()) {
-            NameInMap anno = field.getAnnotation(NameInMap.class);
-            String key;
-            if (anno == null) {
-                key = field.getName();
-            } else {
-                key = anno.value();
-            }
+            String key = field.getName();
             Object value = map.get(key);
             if (value == null) {
                 continue;
