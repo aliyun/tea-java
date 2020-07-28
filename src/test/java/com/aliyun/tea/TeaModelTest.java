@@ -121,7 +121,7 @@ public class TeaModelTest {
         BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
         list.add(baseDriveResponse);
         map.put("nextMarker", "test");
-        map.put("itemsTest", list);
+        map.put("items", list);
         ListDriveResponse result = TeaModel.build(map, response);
         Assert.assertEquals("test", result.nextMarker);
         Assert.assertNotNull(result.items);
@@ -132,8 +132,8 @@ public class TeaModelTest {
         ArrayList<BaseDriveResponse> mapList = new ArrayList<>();
         mapList.add(baseDriveResponse);
         baseDriveResponse.driveId = "driveId";
-        map.put("baseItem", baseDriveResponse);
-        map.put("itemsTest", mapList);
+        map.put("item", baseDriveResponse);
+        map.put("items", mapList);
         result = TeaModel.build(map, response);
         Assert.assertEquals("test", result.items.get(0).creator);
         Assert.assertEquals("driveId", result.item.driveId);
@@ -142,7 +142,7 @@ public class TeaModelTest {
         map.clear();
         ArrayList<String> stringList = new ArrayList<>();
         stringList.add("test");
-        map.put("listTest", stringList);
+        map.put("list", stringList);
         map.put("boolTest", true);
         map.put("doubleTest", 0.1f);
         map.put("size", 1);
@@ -165,7 +165,7 @@ public class TeaModelTest {
         Map<String, Object> teaModelMap = new HashMap<>();
         teaModelMap.put("driveId", "2");
         modelList.add(teaModelMap);
-        map.put("itemsTest", modelList);
+        map.put("items", modelList);
         result = TeaModel.build(map, new ListDriveResponse());
         Assert.assertEquals("2", result.items.get(0).driveId);
     }
