@@ -122,8 +122,10 @@ public class TeaModelTest {
         list.add(baseDriveResponse);
         map.put("nextMarker", "test");
         map.put("items", list);
+        map.put("HasNameInMap", "test");
         ListDriveResponse result = TeaModel.build(map, response);
         Assert.assertEquals("test", result.nextMarker);
+        Assert.assertEquals("test", result.hasNameInMap);
         Assert.assertNotNull(result.items);
 
         map.clear();
@@ -217,6 +219,11 @@ public class TeaModelTest {
 
         @NameInMap("baseItem")
         public BaseDriveResponse item;
+
+        public String noNameInMap;
+
+        @NameInMap("HasNameInMap")
+        public String hasNameInMap;
     }
 
     public static class HelloResponse extends TeaModel {
