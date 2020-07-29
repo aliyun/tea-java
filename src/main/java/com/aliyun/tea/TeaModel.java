@@ -270,7 +270,15 @@ public class TeaModel {
             String key = field.getName();
             Object value = map.get(key);
             if (value == null) {
-                continue;
+                NameInMap anno = field.getAnnotation(NameInMap.class);
+                if (null == anno) {
+                    continue;
+                }
+                key = anno.value();
+                value = map.get(key);
+                if (null == value) {
+                    continue;
+                }
             }
             Class<?> clazz = field.getType();
             if (List.class.isAssignableFrom(clazz)) {
