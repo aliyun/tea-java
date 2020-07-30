@@ -1,5 +1,8 @@
 package com.aliyun.tea;
 
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
+import sun.reflect.generics.reflectiveObjects.WildcardTypeImpl;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
@@ -14,8 +17,24 @@ import java.util.regex.Pattern;
 public class TeaModel {
 
     public Map<String, Object> toMap() throws IllegalArgumentException, IllegalAccessException {
+        return changeToMap(this);
+    }
+
+    public static Map<String, Object> toMap(Object object) throws IllegalArgumentException, IllegalAccessException {
+        Map<String, Object> map = new HashMap<String, Object>();
+        if (null != object && object instanceof Map) {
+            return (Map<String, Object>) object;
+        }
+        if (null == object || !TeaModel.class.isAssignableFrom(object.getClass())) {
+            return map;
+        }
+        map = changeToMap(object);
+        return map;
+    }
+
+    private static Map<String, Object> changeToMap(Object object) throws IllegalArgumentException, IllegalAccessException {
         HashMap<String, Object> map = new HashMap<String, Object>();
-        for (Field field : this.getClass().getFields()) {
+        for (Field field : object.getClass().getFields()) {
             NameInMap anno = field.getAnnotation(NameInMap.class);
             String key;
             if (anno == null) {
@@ -23,37 +42,99 @@ public class TeaModel {
             } else {
                 key = anno.value();
             }
-            if (null != field.get(this) && List.class.isAssignableFrom(field.get(this).getClass())) {
-                ParameterizedType listGenericType = (ParameterizedType) field.getGenericType();
-                Type[] listActualTypeArguments = listGenericType.getActualTypeArguments();
-                Type listActualTypeArgument = listActualTypeArguments[0];
-                Class<?> itemType = null;
-                if (listActualTypeArgument instanceof Class) {
-                    itemType = (Class<?>) listActualTypeArgument;
-                }
-                List<Object> arrayField = (List<Object>) field.get(this);
-                Map<String, Object> fields;
+            if (null != field.get(object) && List.class.isAssignableFrom(field.get(object).getClass())) {
+                List<Object> arrayField = (List<Object>) field.get(object);
                 List<Object> fieldList = new ArrayList<>();
                 for (int i = 0; i < arrayField.size(); i++) {
-                    if (null != itemType && TeaModel.class.isAssignableFrom(itemType)) {
-                        fields = ((TeaModel) arrayField.get(i)).toMap();
-                        fieldList.add(fields);
-                    } else {
-                        fieldList.add(arrayField.get(i));
-                    }
+                    fieldList.add(parseObject(arrayField.get(i)));
                 }
                 map.put(key, fieldList);
-            } else if (null != field.get(this) && TeaModel.class.isAssignableFrom(field.get(this).getClass())) {
-                TeaModel teaModel = (TeaModel) field.get(this);
-                map.put(key, teaModel.toMap());
+            } else if (null != field.get(object) && TeaModel.class.isAssignableFrom(field.get(object).getClass())) {
+                map.put(key, TeaModel.toMap(field.get(object)));
+            } else if (null != field.get(object) && Map.class.isAssignableFrom(field.get(object).getClass())) {
+                Map<String, Object> valueMap = (Map<String, Object>) field.get(object);
+                Map<String, Object> result = new HashMap<>();
+                for (Map.Entry<String, Object> entry : valueMap.entrySet()) {
+                    result.put(entry.getKey(), parseObject(entry.getValue()));
+                }
+                map.put(key, result);
             } else {
-                map.put(key, field.get(this));
+                map.put(key, field.get(object));
             }
-
         }
-
         return map;
     }
+
+
+    private static Object parseObject(Object o) throws IllegalAccessException {
+        Class clazz = o.getClass();
+        if (List.class.isAssignableFrom(clazz)) {
+            List<Object> list = (List<Object>) o;
+            List<Object> result = new ArrayList<Object>();
+            for (Object object : list) {
+                result.add(parseObject(object));
+            }
+            return result;
+        } else if (Map.class.isAssignableFrom(clazz)) {
+            Map<String, Object> map = (Map<String, Object>) o;
+            Map<String, Object> result = new HashMap<>();
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                result.put(entry.getKey(), parseObject(entry.getValue()));
+            }
+            return result;
+        } else if (TeaModel.class.isAssignableFrom(clazz)) {
+            return ((TeaModel) o).toMap();
+        } else {
+            return o;
+        }
+    }
+
+    private static Object buildObject(Object o, Class self, Type subType) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        Class valueClass = o.getClass();
+        if (Map.class.isAssignableFrom(self) && Map.class.isAssignableFrom(valueClass)) {
+            Map<String, Object> valueMap = (Map<String, Object>) o;
+            Map<String, Object> result = new HashMap<String, Object>();
+            for (Map.Entry<String, Object> entry : valueMap.entrySet()) {
+                if (null == subType || subType instanceof WildcardTypeImpl) {
+                    result.put(entry.getKey(), entry.getValue());
+                } else if (subType instanceof Class) {
+                    result.put(entry.getKey(), buildObject(entry.getValue(), (Class) subType, null));
+                } else {
+                    ParameterizedTypeImpl parameterizedType = (ParameterizedTypeImpl) subType;
+                    Type[] types = parameterizedType.getActualTypeArguments();
+                    result.put(entry.getKey(), buildObject(entry.getValue(), parameterizedType.getRawType(), types[types.length - 1]));
+                }
+            }
+            return result;
+        } else if (List.class.isAssignableFrom(self) && List.class.isAssignableFrom(valueClass)) {
+            List<Object> valueList = (List<Object>) o;
+            List<Object> result = new ArrayList<Object>();
+            for (Object object : valueList) {
+                if (null == subType || subType instanceof WildcardTypeImpl) {
+                    result.add(object);
+                } else if (subType instanceof Class) {
+                    result.add(buildObject(object, (Class) subType, null));
+                } else {
+                    ParameterizedTypeImpl parameterizedType = (ParameterizedTypeImpl) subType;
+                    Type[] types = parameterizedType.getActualTypeArguments();
+                    result.add(buildObject(object, parameterizedType.getRawType(), types[types.length - 1]));
+                }
+            }
+            return result;
+        } else if (TeaModel.class.isAssignableFrom(self) && Map.class.isAssignableFrom(valueClass)) {
+            return TeaModel.toModel((Map<String, Object>) o, (TeaModel) self.newInstance());
+        } else {
+            return o;
+        }
+    }
+
+    private static Type getType(Field field, int index) {
+        ParameterizedType genericType = (ParameterizedType) field.getGenericType();
+        Type[] actualTypeArguments = genericType.getActualTypeArguments();
+        Type actualTypeArgument = actualTypeArguments[index];
+        return actualTypeArgument;
+    }
+
 
     @SuppressWarnings("unchecked")
     public static <T extends TeaModel> T toModel(Map<String, ?> map, T model)
@@ -71,56 +152,68 @@ public class TeaModel {
             if (value == null) {
                 continue;
             }
-            value = parseNumber(value, field.getType());
-            Class<?> clazz = field.getType();
-            if (List.class.isAssignableFrom(clazz)) {
-                List<?> valueList = (List<?>) value;
-                ParameterizedType listGenericType = (ParameterizedType) field.getGenericType();
-                Type[] listActualTypeArguments = listGenericType.getActualTypeArguments();
-                Type listActualTypeArgument = listActualTypeArguments[0];
-                Class<?> itemType = null;
-                if (listActualTypeArgument instanceof Class) {
-                    itemType = (Class<?>) listActualTypeArgument;
-                }
-                List result = new ArrayList();
-                if (null != itemType && TeaModel.class.isAssignableFrom(itemType)) {
-                    if (valueList.size() > 0 && Map.class.isAssignableFrom(valueList.get(0).getClass())) {
-                        for (int i = 0; i < valueList.size(); i++) {
-                            Object teaModel = TeaModel.toModel((Map<String, Object>) valueList.get(i),
-                                    (TeaModel) itemType.getDeclaredConstructor().newInstance());
-                            result.add(teaModel);
-                        }
-                    } else {
-                        for (int i = 0; i < valueList.size(); i++) {
-                            result.add(valueList.get(i));
-                        }
-                    }
-                } else {
-                    for (int i = 0; i < valueList.size(); i++) {
-                        Object teaModel = valueList.get(i);
-                        result.add(teaModel);
-                    }
-                }
-                field.set(model, result);
+            model = setTeaModelField(model, field, value, false);
+        }
+        return model;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends TeaModel> T setTeaModelField(T model, Field field, Object value, boolean userBuild)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Class<?> clazz = field.getType();
+        Object resultValue = parseNumber(value, clazz);
+        T result = model;
+        if (TeaModel.class.isAssignableFrom(clazz)) {
+            Object data = clazz.getDeclaredConstructor().newInstance();
+            if (userBuild) {
+                field.set(result, TeaModel.build(TeaModel.toMap(resultValue), (TeaModel) data));
+            } else if (!userBuild && Map.class.isAssignableFrom(resultValue.getClass())){
+                field.set(result, TeaModel.toModel((Map<String, Object>) resultValue, (TeaModel) data));
             } else {
-                if (TeaModel.class.isAssignableFrom(clazz) && Map.class.isAssignableFrom(value.getClass())) {
-                    Object data = clazz.getDeclaredConstructor().newInstance();
-                    field.set(model, TeaModel.toModel((Map<String, Object>) value, (TeaModel) data));
-                } else if (Integer.class.isAssignableFrom(clazz)) {
-                    field.set(model, Integer.parseInt(String.valueOf(value)));
-                } else if (Double.class.isAssignableFrom(clazz)) {
-                    field.set(model, Double.parseDouble(String.valueOf(value)));
-                } else if (Long.class.isAssignableFrom(clazz)) {
-                    field.set(model, Long.parseLong(String.valueOf(value)));
-                } else if (Boolean.class.isAssignableFrom(clazz)) {
-                    field.set(model, Boolean.parseBoolean(String.valueOf(value)));
-                } else {
-                    field.set(model, value);
+                field.set(result, resultValue);
+            }
+        } else if (Map.class.isAssignableFrom(clazz)) {
+            field.set(result, buildObject(resultValue, Map.class, getType(field, 1)));
+        } else if (List.class.isAssignableFrom(clazz)) {
+            field.set(result, buildObject(resultValue, List.class, getType(field, 0)));
+        } else if (Integer.class.isAssignableFrom(clazz)) {
+            field.set(result, Integer.parseInt(String.valueOf(resultValue)));
+        } else if (Double.class.isAssignableFrom(clazz)) {
+            field.set(result, Double.parseDouble(String.valueOf(resultValue)));
+        } else if (Float.class.isAssignableFrom(clazz)) {
+            field.set(result, Float.parseFloat(String.valueOf(resultValue)));
+        } else if (Long.class.isAssignableFrom(clazz)) {
+            field.set(result, Long.parseLong(String.valueOf(resultValue)));
+        } else if (Boolean.class.isAssignableFrom(clazz)) {
+            field.set(result, Boolean.parseBoolean(String.valueOf(resultValue)));
+        } else {
+            field.set(result, resultValue);
+        }
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends TeaModel> T build(Map<String, ?> map, T model)
+            throws IllegalArgumentException, IllegalAccessException, InstantiationException, InvocationTargetException,
+            NoSuchMethodException, SecurityException {
+        T result = model;
+        for (Field field : model.getClass().getFields()) {
+            String key = field.getName();
+            Object value = map.get(key);
+            if (value == null) {
+                NameInMap anno = field.getAnnotation(NameInMap.class);
+                if (null == anno) {
+                    continue;
+                }
+                key = anno.value();
+                value = map.get(key);
+                if (null == value) {
+                    continue;
                 }
             }
+            result = setTeaModelField(result, field, value, true);
         }
-
-        return model;
+        return result;
     }
 
     private static Object parseNumber(Object value, Class clazz) {
@@ -132,6 +225,10 @@ public class TeaModel {
         if (value instanceof Double && (clazz == Integer.class || clazz == int.class)) {
             bigDecimal = new BigDecimal(value.toString());
             return bigDecimal.intValue();
+        }
+        if (value instanceof Double && (clazz == Float.class || clazz == float.class)) {
+            bigDecimal = new BigDecimal(value.toString());
+            return bigDecimal.floatValue();
         }
         return value;
     }
@@ -217,116 +314,5 @@ public class TeaModel {
         teaModel.validate();
     }
 
-    public static Map<String, Object> toMap(Object object) throws IllegalArgumentException, IllegalAccessException {
-        HashMap<String, Object> map = new HashMap<String, Object>();
-        if (null != object && object instanceof Map) {
-            return (Map<String, Object>) object;
-        }
-        if (null == object || !TeaModel.class.isAssignableFrom(object.getClass())) {
-            return map;
-        }
-        for (Field field : object.getClass().getFields()) {
-            NameInMap anno = field.getAnnotation(NameInMap.class);
-            String key;
-            if (anno == null) {
-                key = field.getName();
-            } else {
-                key = anno.value();
-            }
-            if (null != field.get(object) && List.class.isAssignableFrom(field.get(object).getClass())) {
-                ParameterizedType listGenericType = (ParameterizedType) field.getGenericType();
-                Type[] listActualTypeArguments = listGenericType.getActualTypeArguments();
-                Type listActualTypeArgument = listActualTypeArguments[0];
-                Class<?> itemType = null;
-                if (listActualTypeArgument instanceof Class) {
-                    itemType = (Class<?>) listActualTypeArgument;
-                }
-                List<Object> arrayField = (List<Object>) field.get(object);
-                Map<String, Object> fields;
-                List<Object> fieldList = new ArrayList<>();
-                for (int i = 0; i < arrayField.size(); i++) {
-                    if (null != itemType && TeaModel.class.isAssignableFrom(itemType)) {
-                        fields = TeaModel.toMap(arrayField.get(i));
-                        fieldList.add(fields);
-                    } else {
-                        fieldList.add(arrayField.get(i));
-                    }
-                }
-                map.put(key, fieldList);
-            } else if (null != field.get(object) && TeaModel.class.isAssignableFrom(field.get(object).getClass())) {
-                map.put(key, TeaModel.toMap(field.get(object)));
-            } else {
-                map.put(key, field.get(object));
-            }
-        }
-        return map;
-    }
 
-    @SuppressWarnings("unchecked")
-    public static <T extends TeaModel> T build(Map<String, ?> map, T model)
-            throws IllegalArgumentException, IllegalAccessException, InstantiationException, InvocationTargetException,
-            NoSuchMethodException, SecurityException {
-        for (Field field : model.getClass().getFields()) {
-            String key = field.getName();
-            Object value = map.get(key);
-            if (value == null) {
-                NameInMap anno = field.getAnnotation(NameInMap.class);
-                if (null == anno) {
-                    continue;
-                }
-                key = anno.value();
-                value = map.get(key);
-                if (null == value) {
-                    continue;
-                }
-            }
-            Class<?> clazz = field.getType();
-            if (List.class.isAssignableFrom(clazz)) {
-                List<?> valueList = (List<?>) value;
-                ParameterizedType listGenericType = (ParameterizedType) field.getGenericType();
-                Type[] listActualTypeArguments = listGenericType.getActualTypeArguments();
-                Type listActualTypeArgument = listActualTypeArguments[0];
-                Class<?> itemType = null;
-                if (listActualTypeArgument instanceof Class) {
-                    itemType = (Class<?>) listActualTypeArgument;
-                }
-                List result = new ArrayList();
-                if (null != itemType && TeaModel.class.isAssignableFrom(itemType)) {
-                    if (valueList.size() > 0 && Map.class.isAssignableFrom(valueList.get(0).getClass())) {
-                        for (int i = 0; i < valueList.size(); i++) {
-                            Object teaModel = TeaModel.build((Map<String, Object>) valueList.get(i),
-                                    (TeaModel) itemType.getDeclaredConstructor().newInstance());
-                            result.add(teaModel);
-                        }
-                    } else {
-                        for (int i = 0; i < valueList.size(); i++) {
-                            result.add(valueList.get(i));
-                        }
-                    }
-                } else {
-                    for (int i = 0; i < valueList.size(); i++) {
-                        Object teaModel = valueList.get(i);
-                        result.add(teaModel);
-                    }
-                }
-                field.set(model, result);
-            } else {
-                if (TeaModel.class.isAssignableFrom(clazz)) {
-                    Object data = clazz.getDeclaredConstructor().newInstance();
-                    field.set(model, TeaModel.build(TeaModel.toMap(value), (TeaModel) data));
-                } else if (Integer.class.isAssignableFrom(clazz)) {
-                    field.set(model, Integer.parseInt(String.valueOf(value)));
-                } else if (Double.class.isAssignableFrom(clazz)) {
-                    field.set(model, Double.parseDouble(String.valueOf(value)));
-                } else if (Long.class.isAssignableFrom(clazz)) {
-                    field.set(model, Long.parseLong(String.valueOf(value)));
-                } else if (Boolean.class.isAssignableFrom(clazz)) {
-                    field.set(model, Boolean.parseBoolean(String.valueOf(value)));
-                } else {
-                    field.set(model, value);
-                }
-            }
-        }
-        return model;
-    }
 }
