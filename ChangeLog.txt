@@ -1,3 +1,7 @@
+2020-07-30 Version: 1.0.0
+1. Modify serialization method
+2. Support Float
+
 2020-07-29 Version: 0.2.4
 1. Improve TeaModel
 
@@ -113,4 +117,3 @@
 
 2019-09-27 Version:0.0.1
 1. Create Project
-
