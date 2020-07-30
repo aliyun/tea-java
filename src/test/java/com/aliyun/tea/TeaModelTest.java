@@ -30,6 +30,9 @@ public class TeaModelTest {
         @NameInMap("doubleTest")
         public Double doubleTest;
 
+        @NameInMap("floatTest")
+        public Float floatTest;
+
         @NameInMap("boolTest")
         public Boolean boolTest;
 
@@ -59,6 +62,7 @@ public class TeaModelTest {
         map.put("list", list);
         map.put("boolTest", true);
         map.put("doubleTest", 0.1f);
+        map.put("floatTest", 0.1D);
         BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
         baseDriveResponse.driveId = "1";
         map.put("teaModel", baseDriveResponse);
@@ -69,6 +73,7 @@ public class TeaModelTest {
         Assert.assertNull(submodel.accessToken);
         Assert.assertEquals("test", submodel.list.get(0));
         Assert.assertEquals(0.1D, submodel.doubleTest, 0.0);
+        Assert.assertEquals(0.1f, submodel.floatTest, 0.0);
         Assert.assertTrue(submodel.boolTest);
         Assert.assertEquals("1", submodel.baseDriveResponse.driveId);
 
@@ -104,7 +109,7 @@ public class TeaModelTest {
         submodel.list = paramList;
 
         Map<String, Object> map = submodel.toMap();
-        Assert.assertEquals(8, map.size());
+        Assert.assertEquals(9, map.size());
         Assert.assertEquals("the access key id", map.get("access_key_id"));
         Assert.assertEquals("the access token", map.get("accessToken"));
         ArrayList list = (ArrayList) map.get("listTest");
@@ -172,42 +177,102 @@ public class TeaModelTest {
         Assert.assertEquals("2", result.items.get(0).driveId);
     }
 
+    @Test
+    public void mapNestedMapTest() throws Exception{
+        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
+        baseDriveResponse.driveName = "test";
+
+        ListDriveResponse listDriveResponse = new ListDriveResponse();
+        List<BaseDriveResponse> items = new ArrayList<>();
+        items.add(baseDriveResponse);
+        listDriveResponse.items = items;
+
+        Map<String, Map<String, ListDriveResponse>> mapNestedMap = new HashMap<>();
+        Map<String, ListDriveResponse> subNestedMap = new HashMap<>();
+        subNestedMap.put("subNestedTeaModel", listDriveResponse);
+        mapNestedMap.put("subNestedMap", subNestedMap);
+
+        NestedTest nestedTest = new NestedTest();
+        nestedTest.mapnestedMap = mapNestedMap;
+
+        Map result = nestedTest.toMap();
+        Map result_mapNestedMap = (Map) result.get("MapNestedMap");
+        Map mapNestedMap_subNestedMap = (Map) result_mapNestedMap.get("subNestedMap");
+        Map subNestedMap_subNestedTeaModel = (Map) mapNestedMap_subNestedMap.get("subNestedTeaModel");
+        List subNestedTeaModel_items = (List) subNestedMap_subNestedTeaModel.get("itemsTest");
+        Map baseDriveResponseMap = (Map) subNestedTeaModel_items.get(0);
+        String drive_name = (String) baseDriveResponseMap.get("drive_name");
+        Assert.assertEquals("test", drive_name);
+
+        NestedTest resultModel = TeaModel.build(result, new NestedTest());
+        result_mapNestedMap = resultModel.mapnestedMap;
+        mapNestedMap_subNestedMap = (Map) result_mapNestedMap.get("subNestedMap");
+        ListDriveResponse resultListDriveResponse = (ListDriveResponse) mapNestedMap_subNestedMap.get("subNestedTeaModel");
+        subNestedTeaModel_items = resultListDriveResponse.items;
+        BaseDriveResponse resultBaseDriveResponse = (BaseDriveResponse) subNestedTeaModel_items.get(0);
+        Assert.assertEquals("test", resultBaseDriveResponse.driveName);
+    }
+
+    @Test
+    public void listNestedListTest() throws Exception{
+        Map<String, String> map = new HashMap<>();
+        map.put("test", "test");
+
+        List<Map<String, ?>> list = new ArrayList<Map<String, ?>>();
+        list.add(map);
+
+        List<List<Map<String, ?>>> listNestedList = new ArrayList<List<Map<String, ?>>>();
+        listNestedList.add(list);
+
+        NestedTest nestedTest = new NestedTest();
+        nestedTest.listNestedList = listNestedList;
+
+        Map<String, Object> resultMap = TeaModel.buildMap(nestedTest);
+        List<List<Map<String, String>>> resultMap_ListNestedList = (List<List<Map<String, String>>>) resultMap.get("ListNestedList");
+        List<Map<String, String>> listNestedList_list = resultMap_ListNestedList.get(0);
+        Map<String, String> list_map = listNestedList_list.get(0);
+        Assert.assertEquals("test", list_map.get("test"));
+
+        NestedTest resultTeaModel = TeaModel.toModel(resultMap, new NestedTest());
+        List<List<Map<String, ?>>> resultTeaModel_ListNestedList = resultTeaModel.listNestedList;
+        List<Map<String, ?>> listNestedList_result = resultTeaModel_ListNestedList.get(0);
+        Map<String, ?> result_map = listNestedList_result.get(0);
+        Assert.assertEquals("test", result_map.get("test"));
+    }
+
+    @Test
+    public void wildcardTest() throws Exception{
+        List<Object> wildcardTest =  new ArrayList<Object>();
+        wildcardTest.add(1);
+
+        NestedTest nestedTest = new NestedTest();
+        nestedTest.wildcardTest = wildcardTest;
+
+        Map<String, Object> resultMap = TeaModel.buildMap(nestedTest);
+        NestedTest result = TeaModel.toModel(resultMap, new NestedTest());
+        Assert.assertEquals(1, result.wildcardTest.get(0));
+    }
+
+    public class NestedTest extends TeaModel {
+        @NameInMap("MapNestedMap")
+        public Map<String, Map<String, ListDriveResponse>> mapnestedMap;
+
+        @NameInMap("ListNestedList")
+        public List<List<Map<String, ?>>> listNestedList;
+
+        @NameInMap("WildcardTest")
+        public List<?> wildcardTest;
+    }
+
     public static class BaseDriveResponse extends TeaModel {
         @NameInMap("creator")
         public String creator;
-
-        @NameInMap("description")
-        public String description;
-
-        @NameInMap("domain_id")
-        public String domainId;
 
         @NameInMap("driveId")
         public String driveId;
 
         @NameInMap("drive_name")
         public String driveName;
-
-        @NameInMap("drive_type")
-        public String driveType;
-
-        @NameInMap("owner")
-        public String owner;
-
-        @NameInMap("relative_path")
-        public String relativePath;
-
-        @NameInMap("status")
-        public String status;
-
-        @NameInMap("store_id")
-        public String storeId;
-
-        @NameInMap("total_size")
-        public Integer totalSize;
-
-        @NameInMap("used_size")
-        public Integer usedSize;
     }
 
     public static class ListDriveResponse extends TeaModel {
@@ -224,12 +289,6 @@ public class TeaModelTest {
 
         @NameInMap("HasNameInMap")
         public String hasNameInMap;
-    }
-
-    public static class HelloResponse extends TeaModel {
-        @NameInMap("data")
-        public Hello data;
-
     }
 
     public static class Hello extends TeaModel {
