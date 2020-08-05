@@ -84,6 +84,9 @@ public class Tea {
     }
 
     public static String toUpperFirstChar(String name) {
+        if (name.startsWith("x-acs")) {
+            return name;
+        }
         return name.substring(0, 1).toUpperCase() + name.substring(1);
     }
 
@@ -95,13 +98,18 @@ public class Tea {
     }
 
     public static boolean allowRetry(Map<String, ?> map, int retryTimes, long now) {
-        int retry;
+        if (0 == retryTimes) {
+            return true;
+        }
         if (map == null) {
             return false;
-        } else {
-            retry = map.get("maxAttempts") == null ? 0 : Integer.parseInt(String.valueOf(map.get("maxAttempts")));
         }
-        return retry >= retryTimes;
+        Object shouldRetry = map.get("retryable");
+        if (shouldRetry instanceof Boolean && (boolean) shouldRetry) {
+            int retry = map.get("maxAttempts") == null ? 0 : Integer.parseInt(String.valueOf(map.get("maxAttempts")));
+            return retry >= retryTimes;
+        }
+        return false;
     }
 
     public static int getBackoffTime(Object o, int retryTimes) {

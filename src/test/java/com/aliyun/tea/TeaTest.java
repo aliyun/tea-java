@@ -71,6 +71,9 @@ public class TeaTest {
     public void toUpperFirstCharTest() {
         String name = Tea.toUpperFirstChar("word");
         Assert.assertEquals("Word", name);
+
+        name = Tea.toUpperFirstChar("x-acs-word");
+        Assert.assertEquals("x-acs-word", name);
     }
 
     @Test
@@ -128,14 +131,23 @@ public class TeaTest {
     @Test
     public void allowRetryTest() {
         Map<String, Object> map = null;
+        Assert.assertTrue(Tea.allowRetry(map, 0, 6L));
+
         Assert.assertFalse(Tea.allowRetry(map, 6, 6L));
 
         map = new HashMap<>();
         map.put("maxAttempts", null);
+        map.put("retryable", true);
         Assert.assertFalse(Tea.allowRetry(map, 6, 6L));
 
         map.put("maxAttempts", 8);
         Assert.assertTrue(Tea.allowRetry(map, 6, 6L));
+
+        map.put("retryable", false);
+        Assert.assertFalse(Tea.allowRetry(map, 6, 6L));
+
+        map.put("retryable", "111");
+        Assert.assertFalse(Tea.allowRetry(map, 6, 6L));
     }
 
     @Test
