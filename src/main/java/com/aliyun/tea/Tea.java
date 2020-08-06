@@ -3,24 +3,17 @@ package com.aliyun.tea;
 import com.aliyun.tea.okhttp.ClientHelper;
 import com.aliyun.tea.okhttp.OkRequestBuilder;
 import com.aliyun.tea.utils.StringUtils;
-import com.aliyun.tea.utils.X509TrustManagerImp;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 public class Tea {
@@ -81,20 +74,6 @@ public class Tea {
             }
         }
         return header;
-    }
-
-    public static String toUpperFirstChar(String name) {
-        if (name.startsWith("x-acs")) {
-            return name;
-        }
-        return name.substring(0, 1).toUpperCase() + name.substring(1);
-    }
-
-    private static SSLSocketFactory createSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
-        X509TrustManager compositeX509TrustManager = new X509TrustManagerImp();
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[]{compositeX509TrustManager}, new java.security.SecureRandom());
-        return sslContext.getSocketFactory();
     }
 
     public static boolean allowRetry(Map<String, ?> map, int retryTimes, long now) {
