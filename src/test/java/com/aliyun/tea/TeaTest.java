@@ -68,27 +68,6 @@ public class TeaTest {
     }
 
     @Test
-    public void toUpperFirstCharTest() {
-        String name = Tea.toUpperFirstChar("word");
-        Assert.assertEquals("Word", name);
-
-        name = Tea.toUpperFirstChar("x-acs-word");
-        Assert.assertEquals("x-acs-word", name);
-    }
-
-    @Test
-    public void createSSLSocketFactoryTest() throws Exception {
-        X509Certificate x509Certificates = mock(X509Certificate.class);
-        Tea tea = new Tea();
-        X509TrustManagerImp x509 = new X509TrustManagerImp();
-        x509.getAcceptedIssuers();
-        x509.checkServerTrusted(new X509Certificate[]{x509Certificates}, "test");
-        x509.checkClientTrusted(new X509Certificate[]{x509Certificates}, "test1");
-        SSLSocketFactory sslSocketFactory = Whitebox.invokeMethod(tea, "createSSLSocketFactory");
-        Assert.assertNotNull(sslSocketFactory);
-    }
-
-    @Test
     public void getBackoffTimeTest() {
         Map<String, Object> map = new HashMap<>();
         map.put("policy", "");

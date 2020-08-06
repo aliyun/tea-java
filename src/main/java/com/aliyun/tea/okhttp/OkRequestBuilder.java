@@ -6,7 +6,6 @@ import okhttp3.Request;
 import java.net.URL;
 import java.util.Map;
 
-import static com.aliyun.tea.Tea.toUpperFirstChar;
 
 public class OkRequestBuilder {
     private Request.Builder builder;
@@ -22,7 +21,7 @@ public class OkRequestBuilder {
 
     public OkRequestBuilder header(Map<String, String> headers) {
         for (String headerName : headers.keySet()) {
-            this.builder.header(toUpperFirstChar(headerName), headers.get(headerName));
+            this.builder.header(headerName, headers.get(headerName));
         }
         return this;
     }
