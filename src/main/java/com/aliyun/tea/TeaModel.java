@@ -239,6 +239,7 @@ public class TeaModel {
         Validation validation;
         String pattern;
         int maxLength;
+        int minLength;
         boolean required;
         for (int i = 0; i < fields.length; i++) {
             object = fields[i].get(this);
@@ -254,33 +255,37 @@ public class TeaModel {
             if (null != validation && null != object) {
                 pattern = validation.pattern();
                 maxLength = validation.maxLength();
+                minLength = validation.minLength();
                 if (!"".equals(pattern)) {
-                    determineType(fields[i].getType(), object, pattern, maxLength);
+                    determineType(fields[i].getType(), object, pattern, maxLength, minLength);
                 }
             }
         }
     }
 
-    private void determineType(Class clazz, Object object, String pattern, int maxLength) throws IllegalAccessException, ValidateException {
+    private void determineType(Class clazz, Object object, String pattern, int maxLength, int minLength) throws IllegalAccessException, ValidateException {
         boolean notException = true;
         if (Map.class.isAssignableFrom(clazz)) {
-            validateMap(pattern, maxLength, (Map<String, Object>) object);
+            validateMap(pattern, maxLength, minLength, (Map<String, Object>) object);
         } else if (TeaModel.class.isAssignableFrom(clazz)) {
             ((TeaModel) object).validate();
         } else if (List.class.isAssignableFrom(clazz)) {
             List<?> list = (List<?>) object;
             for (int j = 0; j < list.size(); j++) {
-                determineType(list.get(j).getClass(), list.get(j), pattern, maxLength);
+                determineType(list.get(j).getClass(), list.get(j), pattern, maxLength, minLength);
             }
         } else if (clazz.isArray()) {
             Object[] objects = (Object[]) object;
             for (int j = 0; j < objects.length; j++) {
-                determineType(clazz.getComponentType(), objects[j], pattern, maxLength);
+                determineType(clazz.getComponentType(), objects[j], pattern, maxLength, minLength);
             }
         } else {
             String value = String.valueOf(object);
             if (maxLength > 0) {
-                notException = value.length() == maxLength;
+                notException = value.length() <= maxLength;
+            }
+            if (notException && minLength > 0) {
+                notException = value.length() >= minLength;
             }
             if (notException) {
                 notException = Pattern.matches(pattern, value);
@@ -291,10 +296,10 @@ public class TeaModel {
         }
     }
 
-    private void validateMap(String pattern, int maxLength, Map<String, Object> map) throws IllegalAccessException, ValidateException {
+    private void validateMap(String pattern, int maxLength, int minLength, Map<String, Object> map) throws IllegalAccessException, ValidateException {
         for (Map.Entry entry : map.entrySet()) {
             if (entry.getValue() != null) {
-                determineType(entry.getValue().getClass(), entry.getValue(), pattern, maxLength);
+                determineType(entry.getValue().getClass(), entry.getValue(), pattern, maxLength, minLength);
             }
         }
     }
