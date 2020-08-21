@@ -1,3 +1,6 @@
+2020-08-21 Version: 1.0.4
+1. Improve determineType
+
 2020-08-13 Version: 1.0.3
 1. Add minLength in Validation
 
