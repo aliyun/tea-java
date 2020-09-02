@@ -1,15 +1,13 @@
 package com.aliyun.tea.okhttp;
 
 import okhttp3.OkHttpClient;
-import sun.net.util.IPAddressUtil;
 
-import java.net.InetAddress;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientHelper {
-    public static final ConcurrentHashMap<String, OkHttpClient> clients = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<String, OkHttpClient> clients = new ConcurrentHashMap<String, OkHttpClient>();
 
     public static OkHttpClient getOkHttpClient(String host, int port, Map<String, Object> map) throws Exception {
         String key;

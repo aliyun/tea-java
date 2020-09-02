@@ -44,7 +44,7 @@ public class TeaModel {
             }
             if (null != field.get(object) && List.class.isAssignableFrom(field.get(object).getClass())) {
                 List<Object> arrayField = (List<Object>) field.get(object);
-                List<Object> fieldList = new ArrayList<>();
+                List<Object> fieldList = new ArrayList<Object>();
                 for (int i = 0; i < arrayField.size(); i++) {
                     fieldList.add(parseObject(arrayField.get(i)));
                 }
@@ -53,7 +53,7 @@ public class TeaModel {
                 map.put(key, TeaModel.toMap(field.get(object)));
             } else if (null != field.get(object) && Map.class.isAssignableFrom(field.get(object).getClass())) {
                 Map<String, Object> valueMap = (Map<String, Object>) field.get(object);
-                Map<String, Object> result = new HashMap<>();
+                Map<String, Object> result = new HashMap<String, Object>();
                 for (Map.Entry<String, Object> entry : valueMap.entrySet()) {
                     result.put(entry.getKey(), parseObject(entry.getValue()));
                 }
@@ -77,7 +77,7 @@ public class TeaModel {
             return result;
         } else if (Map.class.isAssignableFrom(clazz)) {
             Map<String, Object> map = (Map<String, Object>) o;
-            Map<String, Object> result = new HashMap<>();
+            Map<String, Object> result = new HashMap<String, Object>();
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 result.put(entry.getKey(), parseObject(entry.getValue()));
             }

@@ -5,8 +5,6 @@ import com.aliyun.tea.utils.StringUtils;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okio.BufferedSink;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +20,6 @@ public class OkRequestBody extends RequestBody {
     }
 
 
-    @Nullable
     @Override
     public MediaType contentType() {
         MediaType type;
@@ -45,7 +42,7 @@ public class OkRequestBody extends RequestBody {
     }
 
     @Override
-    public void writeTo(@NotNull BufferedSink bufferedSink) throws IOException {
+    public void writeTo(BufferedSink bufferedSink) throws IOException {
         if (null == inputStream) {
             return;
         }
