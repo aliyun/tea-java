@@ -1,13 +1,15 @@
 package com.aliyun.tea;
 
-import kotlin.Pair;
+import com.aliyun.tea.utils.StringUtils;
+import okhttp3.Headers;
 import okhttp3.Response;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class TeaResponse {
 
@@ -18,20 +20,19 @@ public class TeaResponse {
     public InputStream body;
 
     public TeaResponse() {
-        headers = new HashMap<>();
+        headers = new HashMap<String, String>();
     }
 
     public TeaResponse(Response response) {
-        headers = new HashMap<>();
+        headers = new HashMap<String, String>();
         this.response = response;
         statusCode = response.code();
         statusMessage = response.message();
         body = response.body().byteStream();
-        Iterator<Pair<String, String>> headers = response.headers().iterator();
-        Pair<String, String> pair;
-        while (headers.hasNext()) {
-            pair = headers.next();
-            this.headers.put(pair.getFirst(), pair.getSecond());
+        Headers headers = response.headers();
+        Map<String, List<String>> resultHeaders = headers.toMultimap();
+        for(Map.Entry<String, List<String>> entry: resultHeaders.entrySet()) {
+            this.headers.put(entry.getKey(), StringUtils.join(";", entry.getValue()));
         }
     }
 

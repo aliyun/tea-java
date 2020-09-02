@@ -19,7 +19,7 @@ public class TeaConverter {
 
     @SuppressWarnings("unchecked")
     public static <T> Map<String, T> merge(Class<T> t, Map<String, ?>... maps) {
-        Map<String, T> out = new HashMap<>();
+        Map<String, T> out = new HashMap<String, T>();
         for (int i = 0; i < maps.length; i++) {
             Map<String, ?> map = maps[i];
             if (null == map) {
@@ -37,7 +37,7 @@ public class TeaConverter {
 
     @SuppressWarnings("unchecked")
     public static <T> Map<String, T> merge(Class<T> t, Object... maps) throws IllegalAccessException {
-        Map<String, T> out = new HashMap<>();
+        Map<String, T> out = new HashMap<String, T>();
         Map<String, ?> map = null;
         for (int i = 0; i < maps.length; i++) {
             if (null == maps[i]) {

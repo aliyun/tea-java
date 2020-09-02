@@ -3,6 +3,8 @@ package com.aliyun.tea.utils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 public class StringUtilsTest {
     @Test
     public void init() {
@@ -17,6 +19,18 @@ public class StringUtilsTest {
         Assert.assertTrue("empty string should be true", StringUtils.isEmpty(""));
         Assert.assertFalse("other string should be false", StringUtils.isEmpty("ok"));
         Assert.assertFalse("other should be false",StringUtils.isEmpty(21321));
+    }
+
+    @Test
+    public void joinTest() {
+        ArrayList<String> list = new ArrayList<String>();
+        String str = StringUtils.join(";", list);
+        Assert.assertEquals("", str);
+
+        list.add("test");
+        list.add("test");
+        str = StringUtils.join(";", list);
+        Assert.assertEquals(str, "test;test");
     }
 }
 
