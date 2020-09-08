@@ -53,7 +53,7 @@ public class TeaTest {
     }
 
     @Test
-    public void doActionTest() throws Exception {
+    public void doActionTest() {
         TeaRequest request = new TeaRequest();
         Map<String, String> map = new HashMap<>();
         map.put("host", "www.google.com.hk");
@@ -95,7 +95,7 @@ public class TeaTest {
     }
 
     @Test
-    public void sleepTest() throws InterruptedException {
+    public void sleepTest() {
         long start = System.currentTimeMillis();
         Tea.sleep(100);
         long end = System.currentTimeMillis();

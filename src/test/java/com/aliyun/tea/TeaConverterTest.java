@@ -24,7 +24,7 @@ public class TeaConverterTest {
 
 
     @Test
-    public void buildMap() throws Exception {
+    public void buildMap() {
         Map<String, Object> map = TeaConverter.buildMap(
                 new TeaPair("key", "value"),
                 new TeaPair("key2", "value2")
@@ -35,7 +35,7 @@ public class TeaConverterTest {
     }
 
     @Test
-    public void buildMapWithT() throws Exception {
+    public void buildMapWithT() {
         Map<String, String> map = TeaConverter.buildMap(
                 new TeaPair("key", "value"),
                 new TeaPair("key2", "value2")
@@ -47,7 +47,7 @@ public class TeaConverterTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void merge() throws Exception {
+    public void merge() {
         HashMap<String, Object> map1 = new HashMap<String, Object>();
         map1.put("key", "value");
         HashMap<String, Object> map2 = new HashMap<String, Object>();

@@ -26,14 +26,14 @@ public class ClientHelper {
         return client;
     }
 
-    public static OkHttpClient creatClient(Map<String, Object> map) throws Exception {
+    public static OkHttpClient creatClient(Map<String, Object> map) {
         OkHttpClientBuilder builder = new OkHttpClientBuilder();
         builder = builder.connectTimeout(map).readTimeout(map).connectionPool(map).certificate(map).proxy(map);
         OkHttpClient client = builder.buildOkHttpClient();
         return client;
     }
 
-    public static String getClientKey(String host, int port) throws Exception {
+    public static String getClientKey(String host, int port) {
         return String.format("%s:%d", host, port);
     }
 }

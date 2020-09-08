@@ -41,7 +41,7 @@ public class TeaModelTest {
     }
 
     @Test
-    public void toModelTest() throws Exception {
+    public void toModelTest() {
         Map<String, Object> map = new HashMap<>();
         ArrayList testList = new ArrayList();
         testList.add("test");
@@ -99,7 +99,7 @@ public class TeaModelTest {
     }
 
     @Test
-    public void toMap() throws IllegalArgumentException, IllegalAccessException {
+    public void toMap() {
         SubModel submodel = new SubModel();
         submodel.accessToken = "the access token";
         submodel.accessKeyId = "the access key id";
@@ -118,8 +118,7 @@ public class TeaModelTest {
     }
 
     @Test
-    public void buildTest() throws IllegalArgumentException, IllegalAccessException, InstantiationException,
-            InvocationTargetException, NoSuchMethodException, SecurityException {
+    public void buildTest() throws IllegalArgumentException, SecurityException {
         Map<String, Object> map = new HashMap<String, Object>();
         ListDriveResponse response = new ListDriveResponse();
         ArrayList<BaseDriveResponse> list = new ArrayList<>();
@@ -178,7 +177,7 @@ public class TeaModelTest {
     }
 
     @Test
-    public void mapNestedMapTest() throws Exception{
+    public void mapNestedMapTest() {
         BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
         baseDriveResponse.driveName = "test";
 
@@ -214,7 +213,7 @@ public class TeaModelTest {
     }
 
     @Test
-    public void listNestedListTest() throws Exception{
+    public void listNestedListTest() {
         Map<String, String> map = new HashMap<>();
         map.put("test", "test");
 
@@ -241,7 +240,7 @@ public class TeaModelTest {
     }
 
     @Test
-    public void wildcardTest() throws Exception{
+    public void wildcardTest() {
         List<Object> wildcardTest =  new ArrayList<Object>();
         wildcardTest.add(1);
 
@@ -334,7 +333,7 @@ public class TeaModelTest {
     }
 
     @Test
-    public void toMapNoParamTest() throws IllegalAccessException {
+    public void toMapNoParamTest() {
         ListDriveResponse response = new ListDriveResponse();
         BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
         baseDriveResponse.driveId = "1";
@@ -350,7 +349,7 @@ public class TeaModelTest {
     }
 
     @Test
-    public void toMapOneParamTest() throws IllegalAccessException {
+    public void toMapOneParamTest() {
         Map<String, Object> nullMap = new HashMap<>();
         Assert.assertEquals(0, TeaModel.toMap(nullMap).size());
 
@@ -487,7 +486,7 @@ public class TeaModelTest {
     }
 
     @Test
-    public void buildMapTest() throws IllegalAccessException {
+    public void buildMapTest() {
         TeaModel teaModel = null;
         Assert.assertNull(TeaModel.buildMap(teaModel));
 
@@ -496,7 +495,7 @@ public class TeaModelTest {
     }
 
     @Test
-    public void validateParamsTest() throws IllegalAccessException, ValidateException {
+    public void validateParamsTest() {
         TeaModel teaModel = new ValidateParamModel();
         try {
             TeaModel.validateParams(teaModel, "test");

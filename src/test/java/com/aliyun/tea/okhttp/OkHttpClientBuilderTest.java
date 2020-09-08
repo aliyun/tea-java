@@ -40,7 +40,7 @@ public class OkHttpClientBuilderTest {
     }
 
     @Test
-    public void certificateTest() throws Exception {
+    public void certificateTest() {
         map.clear();
         OkHttpClientBuilder clientBuilder = Mockito.spy(new OkHttpClientBuilder());
         clientBuilder.certificate(map);

@@ -11,14 +11,13 @@ import okhttp3.Response;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Map;
 
 public class Tea {
 
-    private static String composeUrl(TeaRequest request) throws UnsupportedEncodingException {
+    private static String composeUrl(TeaRequest request) {
         Map<String, String> queries = request.query;
         String host = request.headers.get("host");
         String protocol = null == request.protocol ? "http" : request.protocol;
@@ -34,16 +33,20 @@ public class Tea {
             } else {
                 urlBuilder.append("?");
             }
-            for (Map.Entry<String, String> entry : queries.entrySet()) {
-                String key = entry.getKey();
-                String val = entry.getValue();
-                if (val == null || "null".equals(val)) {
-                    continue;
+            try {
+                for (Map.Entry<String, String> entry : queries.entrySet()) {
+                    String key = entry.getKey();
+                    String val = entry.getValue();
+                    if (val == null || "null".equals(val)) {
+                        continue;
+                    }
+                    urlBuilder.append(URLEncoder.encode(key, "UTF-8"));
+                    urlBuilder.append("=");
+                    urlBuilder.append(URLEncoder.encode(val, "UTF-8"));
+                    urlBuilder.append("&");
                 }
-                urlBuilder.append(URLEncoder.encode(key, "UTF-8"));
-                urlBuilder.append("=");
-                urlBuilder.append(URLEncoder.encode(val, "UTF-8"));
-                urlBuilder.append("&");
+            } catch (Exception e) {
+                throw new TeaException(e.getMessage(), e);
             }
             int strIndex = urlBuilder.length();
             urlBuilder.deleteCharAt(strIndex - 1);
@@ -52,28 +55,37 @@ public class Tea {
     }
 
 
-    public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions) throws Exception {
-        String urlString = Tea.composeUrl(request);
-        URL url = new URL(urlString);
-        OkHttpClient okHttpClient = ClientHelper.getOkHttpClient(url.getHost(), url.getPort(), runtimeOptions);
-        Request.Builder requestBuilder = new Request.Builder();
-        Map<String, String> header = setProxyAuthorization(request.headers, runtimeOptions.get("httpsProxy"));
-        OkRequestBuilder okRequestBuilder = new OkRequestBuilder(requestBuilder).url(url).header(header);
-        Response response = okHttpClient.newCall(okRequestBuilder.buildRequest(request)).execute();
-        return new TeaResponse(response);
+    public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions) {
+        try {
+            String urlString = Tea.composeUrl(request);
+            URL url = new URL(urlString);
+            OkHttpClient okHttpClient = ClientHelper.getOkHttpClient(url.getHost(), url.getPort(), runtimeOptions);
+            Request.Builder requestBuilder = new Request.Builder();
+            Map<String, String> header = setProxyAuthorization(request.headers, runtimeOptions.get("httpsProxy"));
+            OkRequestBuilder okRequestBuilder = new OkRequestBuilder(requestBuilder).url(url).header(header);
+            Response response = okHttpClient.newCall(okRequestBuilder.buildRequest(request)).execute();
+            return new TeaResponse(response);
+        } catch (Exception e) {
+            throw new TeaException(e.getMessage(), e);
+        }
     }
 
-    private static Map<String, String> setProxyAuthorization(Map<String, String> header, Object httpsProxy) throws MalformedURLException {
-        if (!StringUtils.isEmpty(httpsProxy)) {
-            URL proxyUrl = new URL(String.valueOf(httpsProxy));
-            String userInfo = proxyUrl.getUserInfo();
-            if (null != userInfo) {
-                String[] userMessage = userInfo.split(":");
-                String credential = Credentials.basic(userMessage[0], userMessage[1]);
-                header.put("Proxy-Authorization", credential);
+    private static Map<String, String> setProxyAuthorization(Map<String, String> header, Object httpsProxy) {
+        try {
+            if (!StringUtils.isEmpty(httpsProxy)) {
+                URL proxyUrl = new URL(String.valueOf(httpsProxy));
+                String userInfo = proxyUrl.getUserInfo();
+                if (null != userInfo) {
+                    String[] userMessage = userInfo.split(":");
+                    String credential = Credentials.basic(userMessage[0], userMessage[1]);
+                    header.put("Proxy-Authorization", credential);
+                }
             }
+            return header;
+        } catch (Exception e) {
+            throw new TeaException(e.getMessage(), e);
         }
-        return header;
+
     }
 
     public static boolean allowRetry(Map<String, ?> map, int retryTimes, long now) {
@@ -104,16 +116,24 @@ public class Tea {
         return backOffTime;
     }
 
-    public static void sleep(int time) throws InterruptedException {
-        Thread.sleep(time);
+    public static void sleep(int time) {
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            throw new TeaException(e.getMessage(), e);
+        }
     }
 
     public static boolean isRetryable(Exception e) {
         return e instanceof TeaRetryableException;
     }
 
-    public static InputStream toReadable(String string) throws UnsupportedEncodingException {
-        return toReadable(string.getBytes("UTF-8"));
+    public static InputStream toReadable(String string) {
+        try {
+            return toReadable(string.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new TeaException(e.getMessage(), e);
+        }
     }
 
     public static InputStream toReadable(byte[] byteArray) {
