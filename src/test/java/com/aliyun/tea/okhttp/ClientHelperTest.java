@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class ClientHelperTest {
     @Test
-    public void getClientKeyTest() throws Exception {
+    public void getClientKeyTest() {
         new ClientHelper();
         Assert.assertTrue("0:0:0:0:0:0:0:1:0".equals(ClientHelper.getClientKey("0:0:0:0:0:0:0:1", 0)));
     }

@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TeaException extends Exception {
+public class TeaException extends RuntimeException {
 
     /**
      *
@@ -13,6 +13,10 @@ public class TeaException extends Exception {
     private String code;
     private String message;
     private Map<String, Object> data;
+
+    public TeaException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
     public TeaException(Map<String, ?> map) {
         this.setCode(String.valueOf(map.get("code")));

@@ -4,7 +4,6 @@ import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 import sun.reflect.generics.reflectiveObjects.WildcardTypeImpl;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -16,11 +15,11 @@ import java.util.regex.Pattern;
 
 public class TeaModel {
 
-    public Map<String, Object> toMap() throws IllegalArgumentException, IllegalAccessException {
+    public Map<String, Object> toMap() {
         return changeToMap(this);
     }
 
-    public static Map<String, Object> toMap(Object object) throws IllegalArgumentException, IllegalAccessException {
+    public static Map<String, Object> toMap(Object object) {
         Map<String, Object> map = new HashMap<String, Object>();
         if (null != object && object instanceof Map) {
             return (Map<String, Object>) object;
@@ -32,41 +31,45 @@ public class TeaModel {
         return map;
     }
 
-    private static Map<String, Object> changeToMap(Object object) throws IllegalArgumentException, IllegalAccessException {
+    private static Map<String, Object> changeToMap(Object object) {
         HashMap<String, Object> map = new HashMap<String, Object>();
-        for (Field field : object.getClass().getFields()) {
-            NameInMap anno = field.getAnnotation(NameInMap.class);
-            String key;
-            if (anno == null) {
-                key = field.getName();
-            } else {
-                key = anno.value();
-            }
-            if (null != field.get(object) && List.class.isAssignableFrom(field.get(object).getClass())) {
-                List<Object> arrayField = (List<Object>) field.get(object);
-                List<Object> fieldList = new ArrayList<Object>();
-                for (int i = 0; i < arrayField.size(); i++) {
-                    fieldList.add(parseObject(arrayField.get(i)));
+        try {
+            for (Field field : object.getClass().getFields()) {
+                NameInMap anno = field.getAnnotation(NameInMap.class);
+                String key;
+                if (anno == null) {
+                    key = field.getName();
+                } else {
+                    key = anno.value();
                 }
-                map.put(key, fieldList);
-            } else if (null != field.get(object) && TeaModel.class.isAssignableFrom(field.get(object).getClass())) {
-                map.put(key, TeaModel.toMap(field.get(object)));
-            } else if (null != field.get(object) && Map.class.isAssignableFrom(field.get(object).getClass())) {
-                Map<String, Object> valueMap = (Map<String, Object>) field.get(object);
-                Map<String, Object> result = new HashMap<String, Object>();
-                for (Map.Entry<String, Object> entry : valueMap.entrySet()) {
-                    result.put(entry.getKey(), parseObject(entry.getValue()));
+                if (null != field.get(object) && List.class.isAssignableFrom(field.get(object).getClass())) {
+                    List<Object> arrayField = (List<Object>) field.get(object);
+                    List<Object> fieldList = new ArrayList<Object>();
+                    for (int i = 0; i < arrayField.size(); i++) {
+                        fieldList.add(parseObject(arrayField.get(i)));
+                    }
+                    map.put(key, fieldList);
+                } else if (null != field.get(object) && TeaModel.class.isAssignableFrom(field.get(object).getClass())) {
+                    map.put(key, TeaModel.toMap(field.get(object)));
+                } else if (null != field.get(object) && Map.class.isAssignableFrom(field.get(object).getClass())) {
+                    Map<String, Object> valueMap = (Map<String, Object>) field.get(object);
+                    Map<String, Object> result = new HashMap<String, Object>();
+                    for (Map.Entry<String, Object> entry : valueMap.entrySet()) {
+                        result.put(entry.getKey(), parseObject(entry.getValue()));
+                    }
+                    map.put(key, result);
+                } else {
+                    map.put(key, field.get(object));
                 }
-                map.put(key, result);
-            } else {
-                map.put(key, field.get(object));
             }
+        } catch (Exception e) {
+            throw new TeaException(e.getMessage(), e);
         }
         return map;
     }
 
 
-    private static Object parseObject(Object o) throws IllegalAccessException {
+    private static Object parseObject(Object o) {
         Class clazz = o.getClass();
         if (List.class.isAssignableFrom(clazz)) {
             List<Object> list = (List<Object>) o;
@@ -89,7 +92,7 @@ public class TeaModel {
         }
     }
 
-    private static Object buildObject(Object o, Class self, Type subType) throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+    private static Object buildObject(Object o, Class self, Type subType) {
         Class valueClass = o.getClass();
         if (Map.class.isAssignableFrom(self) && Map.class.isAssignableFrom(valueClass)) {
             Map<String, Object> valueMap = (Map<String, Object>) o;
@@ -122,7 +125,11 @@ public class TeaModel {
             }
             return result;
         } else if (TeaModel.class.isAssignableFrom(self) && Map.class.isAssignableFrom(valueClass)) {
-            return TeaModel.toModel((Map<String, Object>) o, (TeaModel) self.newInstance());
+            try {
+                return TeaModel.toModel((Map<String, Object>) o, (TeaModel) self.newInstance());
+            } catch (Exception e) {
+                throw new TeaException(e.getMessage(), e);
+            }
         } else {
             return o;
         }
@@ -137,10 +144,9 @@ public class TeaModel {
 
 
     @SuppressWarnings("unchecked")
-    public static <T extends TeaModel> T toModel(Map<String, ?> map, T model)
-            throws IllegalArgumentException, IllegalAccessException, InstantiationException, InvocationTargetException,
-            NoSuchMethodException, SecurityException {
-        for (Field field : model.getClass().getFields()) {
+    public static <T extends TeaModel> T toModel(Map<String, ?> map, T model) {
+        T result = model;
+        for (Field field : result.getClass().getFields()) {
             NameInMap anno = field.getAnnotation(NameInMap.class);
             String key;
             if (anno == null) {
@@ -152,50 +158,51 @@ public class TeaModel {
             if (value == null) {
                 continue;
             }
-            model = setTeaModelField(model, field, value, false);
-        }
-        return model;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T extends TeaModel> T setTeaModelField(T model, Field field, Object value, boolean userBuild)
-            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        Class<?> clazz = field.getType();
-        Object resultValue = parseNumber(value, clazz);
-        T result = model;
-        if (TeaModel.class.isAssignableFrom(clazz)) {
-            Object data = clazz.getDeclaredConstructor().newInstance();
-            if (userBuild) {
-                field.set(result, TeaModel.build(TeaModel.toMap(resultValue), (TeaModel) data));
-            } else if (!userBuild && Map.class.isAssignableFrom(resultValue.getClass())){
-                field.set(result, TeaModel.toModel((Map<String, Object>) resultValue, (TeaModel) data));
-            } else {
-                field.set(result, resultValue);
-            }
-        } else if (Map.class.isAssignableFrom(clazz)) {
-            field.set(result, buildObject(resultValue, Map.class, getType(field, 1)));
-        } else if (List.class.isAssignableFrom(clazz)) {
-            field.set(result, buildObject(resultValue, List.class, getType(field, 0)));
-        } else if (Integer.class.isAssignableFrom(clazz)) {
-            field.set(result, Integer.parseInt(String.valueOf(resultValue)));
-        } else if (Double.class.isAssignableFrom(clazz)) {
-            field.set(result, Double.parseDouble(String.valueOf(resultValue)));
-        } else if (Float.class.isAssignableFrom(clazz)) {
-            field.set(result, Float.parseFloat(String.valueOf(resultValue)));
-        } else if (Long.class.isAssignableFrom(clazz)) {
-            field.set(result, Long.parseLong(String.valueOf(resultValue)));
-        } else if (Boolean.class.isAssignableFrom(clazz)) {
-            field.set(result, Boolean.parseBoolean(String.valueOf(resultValue)));
-        } else {
-            field.set(result, resultValue);
+            result = setTeaModelField(result, field, value, false);
         }
         return result;
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends TeaModel> T build(Map<String, ?> map, T model)
-            throws IllegalArgumentException, IllegalAccessException, InstantiationException, InvocationTargetException,
-            NoSuchMethodException, SecurityException {
+    private static <T extends TeaModel> T setTeaModelField(T model, Field field, Object value, boolean userBuild) {
+        try {
+            Class<?> clazz = field.getType();
+            Object resultValue = parseNumber(value, clazz);
+            T result = model;
+            if (TeaModel.class.isAssignableFrom(clazz)) {
+                Object data = clazz.getDeclaredConstructor().newInstance();
+                if (userBuild) {
+                    field.set(result, TeaModel.build(TeaModel.toMap(resultValue), (TeaModel) data));
+                } else if (!userBuild && Map.class.isAssignableFrom(resultValue.getClass())) {
+                    field.set(result, TeaModel.toModel((Map<String, Object>) resultValue, (TeaModel) data));
+                } else {
+                    field.set(result, resultValue);
+                }
+            } else if (Map.class.isAssignableFrom(clazz)) {
+                field.set(result, buildObject(resultValue, Map.class, getType(field, 1)));
+            } else if (List.class.isAssignableFrom(clazz)) {
+                field.set(result, buildObject(resultValue, List.class, getType(field, 0)));
+            } else if (Integer.class.isAssignableFrom(clazz)) {
+                field.set(result, Integer.parseInt(String.valueOf(resultValue)));
+            } else if (Double.class.isAssignableFrom(clazz)) {
+                field.set(result, Double.parseDouble(String.valueOf(resultValue)));
+            } else if (Float.class.isAssignableFrom(clazz)) {
+                field.set(result, Float.parseFloat(String.valueOf(resultValue)));
+            } else if (Long.class.isAssignableFrom(clazz)) {
+                field.set(result, Long.parseLong(String.valueOf(resultValue)));
+            } else if (Boolean.class.isAssignableFrom(clazz)) {
+                field.set(result, Boolean.parseBoolean(String.valueOf(resultValue)));
+            } else {
+                field.set(result, resultValue);
+            }
+            return result;
+        } catch (Exception e) {
+            throw new TeaException(e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends TeaModel> T build(Map<String, ?> map, T model) {
         T result = model;
         for (Field field : model.getClass().getFields()) {
             String key = field.getName();
@@ -233,7 +240,7 @@ public class TeaModel {
         return value;
     }
 
-    public void validate() throws IllegalAccessException, ValidateException {
+    public void validate() {
         Field[] fields = this.getClass().getFields();
         Object object;
         Validation validation;
@@ -241,29 +248,33 @@ public class TeaModel {
         int maxLength;
         int minLength;
         boolean required;
-        for (int i = 0; i < fields.length; i++) {
-            object = fields[i].get(this);
-            validation = fields[i].getAnnotation(Validation.class);
-            if (null != validation) {
-                required = validation.required();
-            } else {
-                required = false;
-            }
-            if (required && null == object) {
-                throw new ValidateException("Field " + fields[i].getName() + " is required");
-            }
-            if (null != validation && null != object) {
-                pattern = validation.pattern();
-                maxLength = validation.maxLength();
-                minLength = validation.minLength();
-                if (!"".equals(pattern)) {
-                    determineType(fields[i].getType(), object, pattern, maxLength, minLength);
+        try {
+            for (int i = 0; i < fields.length; i++) {
+                object = fields[i].get(this);
+                validation = fields[i].getAnnotation(Validation.class);
+                if (null != validation) {
+                    required = validation.required();
+                } else {
+                    required = false;
+                }
+                if (required && null == object) {
+                    throw new ValidateException("Field " + fields[i].getName() + " is required");
+                }
+                if (null != validation && null != object) {
+                    pattern = validation.pattern();
+                    maxLength = validation.maxLength();
+                    minLength = validation.minLength();
+                    if (!"".equals(pattern)) {
+                        determineType(fields[i].getType(), object, pattern, maxLength, minLength);
+                    }
                 }
             }
+        } catch (Exception e) {
+            throw new ValidateException(e.getMessage(), e);
         }
     }
 
-    private void determineType(Class clazz, Object object, String pattern, int maxLength, int minLength) throws IllegalAccessException, ValidateException {
+    private void determineType(Class clazz, Object object, String pattern, int maxLength, int minLength) {
         boolean notException = true;
         if (Map.class.isAssignableFrom(clazz)) {
             validateMap(pattern, maxLength, minLength, (Map<String, Object>) object);
@@ -296,7 +307,7 @@ public class TeaModel {
         }
     }
 
-    private void validateMap(String pattern, int maxLength, int minLength, Map<String, Object> map) throws IllegalAccessException, ValidateException {
+    private void validateMap(String pattern, int maxLength, int minLength, Map<String, Object> map) {
         for (Map.Entry entry : map.entrySet()) {
             if (entry.getValue() != null) {
                 determineType(entry.getValue().getClass(), entry.getValue(), pattern, maxLength, minLength);
@@ -304,7 +315,7 @@ public class TeaModel {
         }
     }
 
-    public static Map<String, Object> buildMap(TeaModel teaModel) throws IllegalAccessException {
+    public static Map<String, Object> buildMap(TeaModel teaModel) {
         if (null == teaModel) {
             return null;
         } else {
@@ -312,7 +323,7 @@ public class TeaModel {
         }
     }
 
-    public static void validateParams(TeaModel teaModel, String paramName) throws ValidateException, IllegalAccessException {
+    public static void validateParams(TeaModel teaModel, String paramName) {
         if (null == teaModel) {
             throw new ValidateException("parameter " + paramName + " is not allowed as null");
         }

@@ -5,7 +5,6 @@ import okhttp3.Headers;
 import okhttp3.Response;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -36,22 +35,26 @@ public class TeaResponse {
         }
     }
 
-    public InputStream getResponse() throws IOException {
+    public InputStream getResponse() {
         return this.body;
     }
 
-    public String getResponseBody() throws IOException {
+    public String getResponseBody() {
         if (null == body) {
             return String.format("{\"message\":\"%s\"}", statusMessage);
         }
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] buff = new byte[4096];
-        while (true) {
-            final int read = body.read(buff);
-            if (read == -1) {
-                break;
+        try {
+            while (true) {
+                final int read = body.read(buff);
+                if (read == -1) {
+                    break;
+                }
+                os.write(buff, 0, read);
             }
-            os.write(buff, 0, read);
+        } catch (Exception e) {
+            throw new TeaException(e.getMessage(), e);
         }
         return new String(os.toByteArray());
     }

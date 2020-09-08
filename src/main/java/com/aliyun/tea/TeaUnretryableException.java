@@ -1,6 +1,6 @@
 package com.aliyun.tea;
 
-public class TeaUnretryableException extends Exception {
+public class TeaUnretryableException extends RuntimeException {
 
     /**
      *
