@@ -1,3 +1,6 @@
+2020-09-08 Version: 1.0.6
+1. Change checked exception to unChecked exception
+
 2020-09-02 Version: 1.0.5
 1. Change okHttp version to 3.8.1
 2. Change jdk version to 1.7
