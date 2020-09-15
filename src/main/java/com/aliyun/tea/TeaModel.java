@@ -1,11 +1,9 @@
 package com.aliyun.tea;
 
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
-import sun.reflect.generics.reflectiveObjects.WildcardTypeImpl;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,14 +96,14 @@ public class TeaModel {
             Map<String, Object> valueMap = (Map<String, Object>) o;
             Map<String, Object> result = new HashMap<String, Object>();
             for (Map.Entry<String, Object> entry : valueMap.entrySet()) {
-                if (null == subType || subType instanceof WildcardTypeImpl) {
+                if (null == subType || subType instanceof WildcardType) {
                     result.put(entry.getKey(), entry.getValue());
                 } else if (subType instanceof Class) {
                     result.put(entry.getKey(), buildObject(entry.getValue(), (Class) subType, null));
                 } else {
-                    ParameterizedTypeImpl parameterizedType = (ParameterizedTypeImpl) subType;
+                    ParameterizedType parameterizedType = (ParameterizedType) subType;
                     Type[] types = parameterizedType.getActualTypeArguments();
-                    result.put(entry.getKey(), buildObject(entry.getValue(), parameterizedType.getRawType(), types[types.length - 1]));
+                    result.put(entry.getKey(), buildObject(entry.getValue(), (Class) parameterizedType.getRawType(), types[types.length - 1]));
                 }
             }
             return result;
@@ -113,14 +111,14 @@ public class TeaModel {
             List<Object> valueList = (List<Object>) o;
             List<Object> result = new ArrayList<Object>();
             for (Object object : valueList) {
-                if (null == subType || subType instanceof WildcardTypeImpl) {
+                if (null == subType || subType instanceof WildcardType) {
                     result.add(object);
                 } else if (subType instanceof Class) {
                     result.add(buildObject(object, (Class) subType, null));
                 } else {
-                    ParameterizedTypeImpl parameterizedType = (ParameterizedTypeImpl) subType;
+                    ParameterizedType parameterizedType = (ParameterizedType) subType;
                     Type[] types = parameterizedType.getActualTypeArguments();
-                    result.add(buildObject(object, parameterizedType.getRawType(), types[types.length - 1]));
+                    result.add(buildObject(object, (Class) parameterizedType.getRawType(), types[types.length - 1]));
                 }
             }
             return result;
