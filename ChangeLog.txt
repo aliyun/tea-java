@@ -1,3 +1,6 @@
+2020-09-15 Version: 1.0.7
+1. Change WildcardTypeImpl to WildcardType
+
 2020-09-08 Version: 1.0.6
 1. Change checked exception to unChecked exception
 
