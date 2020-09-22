@@ -263,7 +263,7 @@ public class TeaModel {
                     maxLength = validation.maxLength();
                     minLength = validation.minLength();
                     if (!"".equals(pattern)) {
-                        determineType(fields[i].getType(), object, pattern, maxLength, minLength);
+                        determineType(fields[i].getType(), object, pattern, maxLength, minLength, fields[i].getName());
                     }
                 }
             }
@@ -272,8 +272,7 @@ public class TeaModel {
         }
     }
 
-    private void determineType(Class clazz, Object object, String pattern, int maxLength, int minLength) {
-        boolean notException = true;
+    private void determineType(Class clazz, Object object, String pattern, int maxLength, int minLength, String fieldName) {
         if (Map.class.isAssignableFrom(clazz)) {
             validateMap(pattern, maxLength, minLength, (Map<String, Object>) object);
         } else if (TeaModel.class.isAssignableFrom(clazz)) {
@@ -281,26 +280,23 @@ public class TeaModel {
         } else if (List.class.isAssignableFrom(clazz)) {
             List<?> list = (List<?>) object;
             for (int j = 0; j < list.size(); j++) {
-                determineType(list.get(j).getClass(), list.get(j), pattern, maxLength, minLength);
+                determineType(list.get(j).getClass(), list.get(j), pattern, maxLength, minLength, fieldName);
             }
         } else if (clazz.isArray()) {
             Object[] objects = (Object[]) object;
             for (int j = 0; j < objects.length; j++) {
-                determineType(clazz.getComponentType(), objects[j], pattern, maxLength, minLength);
+                determineType(clazz.getComponentType(), objects[j], pattern, maxLength, minLength, fieldName);
             }
         } else {
             String value = String.valueOf(object);
-            if (maxLength > 0) {
-                notException = value.length() <= maxLength;
+            if (maxLength > 0 && value.length() > maxLength) {
+                throw new ValidateException(fieldName + " exceeds the maximum length");
             }
-            if (notException && minLength > 0) {
-                notException = value.length() >= minLength;
+            if (minLength > 0 && value.length() < minLength) {
+                throw new ValidateException(fieldName + " less than minimum length");
             }
-            if (notException) {
-                notException = Pattern.matches(pattern, value);
-            }
-            if (!notException) {
-                throw new ValidateException("param don't matched");
+            if (!Pattern.matches(pattern, value)) {
+                throw new ValidateException(fieldName + " regular match failed");
             }
         }
     }
@@ -308,7 +304,7 @@ public class TeaModel {
     private void validateMap(String pattern, int maxLength, int minLength, Map<String, Object> map) {
         for (Map.Entry entry : map.entrySet()) {
             if (entry.getValue() != null) {
-                determineType(entry.getValue().getClass(), entry.getValue(), pattern, maxLength, minLength);
+                determineType(entry.getValue().getClass(), entry.getValue(), pattern, maxLength, minLength, (String) entry.getKey());
             }
         }
     }

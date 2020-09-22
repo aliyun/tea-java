@@ -402,58 +402,58 @@ public class TeaModelTest {
             validateMap.invoke(new ValidateParamModel(), "[1-9]", 0, 0, map);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+            Assert.assertEquals("2 regular match failed", e.getCause().getMessage());
         }
     }
 
     @Test
     public void determineTypeTest() throws NoSuchMethodException {
         Method determineType = TeaModel.class.getDeclaredMethod("determineType",
-                Class.class, Object.class, String.class, int.class, int.class);
+                Class.class, Object.class, String.class, int.class, int.class, String.class);
         determineType.setAccessible(true);
         ValidateParamModel validateParamModel = new ValidateParamModel();
         Map<String, Object> map = new HashMap<>();
         map.put("test", "test");
 
         try {
-            determineType.invoke(validateParamModel, map.getClass(), map, "test", 1, 0);
+            determineType.invoke(validateParamModel, map.getClass(), map, "test", 1, 0, "test");
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+            Assert.assertEquals("test exceeds the maximum length", e.getCause().getMessage());
         }
 
         try {
-            determineType.invoke(validateParamModel, map.getClass(), map, "[1-9]", 0, 0);
+            determineType.invoke(validateParamModel, map.getClass(), map, "[1-9]", 0, 0, "test");
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+            Assert.assertEquals("test regular match failed", e.getCause().getMessage());
         }
 
         try {
-            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "test", 4, 0);
+            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "test", 4, 0, "test");
             validateParamModel.hasStringPattern.put("test", "test");
-            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "[1-9]", 0, 0);
+            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "[1-9]", 0, 0, "test");
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+            Assert.assertEquals("test regular match failed", e.getCause().getMessage());
         }
 
         List<String> list = new ArrayList<>();
         list.add("test");
         try {
-            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "test", 0, 10);
-            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "[1-9]", 0, 0);
+            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "test", 0, 10, "test");
+            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "[1-9]", 0, 0, "test");
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+            Assert.assertEquals("test less than minimum length", e.getCause().getMessage());
         }
         String[] strs = new String[]{"test"};
         try {
-            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "test", 0, 0);
-            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "[1-9]", 0, 0);
+            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "test", 0, 0, "test");
+            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "[1-9]", 0, 0, "test");
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("param don't matched", e.getCause().getMessage());
+            Assert.assertEquals("test regular match failed", e.getCause().getMessage());
         }
     }
 
@@ -481,7 +481,7 @@ public class TeaModelTest {
             validateParamModel.validate();
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("param don't matched", e.getMessage());
+            Assert.assertEquals("message regular match failed", e.getMessage());
         }
     }
 
