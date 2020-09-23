@@ -262,7 +262,7 @@ public class TeaModel {
                     pattern = validation.pattern();
                     maxLength = validation.maxLength();
                     minLength = validation.minLength();
-                    if (!"".equals(pattern)) {
+                    if (!"".equals(pattern) || maxLength > 0 || minLength > 0) {
                         determineType(fields[i].getType(), object, pattern, maxLength, minLength, fields[i].getName());
                     }
                 }
@@ -274,7 +274,7 @@ public class TeaModel {
 
     private void determineType(Class clazz, Object object, String pattern, int maxLength, int minLength, String fieldName) {
         if (Map.class.isAssignableFrom(clazz)) {
-            validateMap(pattern, maxLength, minLength, (Map<String, Object>) object);
+            validateMap(pattern, maxLength, minLength, (Map<String, Object>) object, fieldName);
         } else if (TeaModel.class.isAssignableFrom(clazz)) {
             ((TeaModel) object).validate();
         } else if (List.class.isAssignableFrom(clazz)) {
@@ -290,21 +290,21 @@ public class TeaModel {
         } else {
             String value = String.valueOf(object);
             if (maxLength > 0 && value.length() > maxLength) {
-                throw new ValidateException(fieldName + " exceeds the maximum length");
+                throw new ValidateException(this.getClass().getName() + "." +fieldName + " exceeds the maximum length");
             }
             if (minLength > 0 && value.length() < minLength) {
-                throw new ValidateException(fieldName + " less than minimum length");
+                throw new ValidateException(this.getClass().getName() + "." +fieldName + " less than minimum length");
             }
-            if (!Pattern.matches(pattern, value)) {
-                throw new ValidateException(fieldName + " regular match failed");
+            if (!"".equals(pattern) && !Pattern.matches(pattern, value)) {
+                throw new ValidateException(this.getClass().getName() + "." +fieldName + " regular match failed");
             }
         }
     }
 
-    private void validateMap(String pattern, int maxLength, int minLength, Map<String, Object> map) {
+    private void validateMap(String pattern, int maxLength, int minLength, Map<String, Object> map, String fieldName) {
         for (Map.Entry entry : map.entrySet()) {
             if (entry.getValue() != null) {
-                determineType(entry.getValue().getClass(), entry.getValue(), pattern, maxLength, minLength, (String) entry.getKey());
+                determineType(entry.getValue().getClass(), entry.getValue(), pattern, maxLength, minLength, fieldName);
             }
         }
     }
