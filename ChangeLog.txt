@@ -1,3 +1,6 @@
+2020-09-23 Version: 1.1.0
+1. Add length validation
+
 2020-09-22 Version: 1.0.8
 1. improve determineType exception message
 
