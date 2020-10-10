@@ -1,3 +1,6 @@
+2020-10-10 Version: 1.1.1
+1. Change paserObject to public
+
 2020-09-23 Version: 1.1.0
 1. Add length validation
 
