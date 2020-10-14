@@ -1,3 +1,6 @@
+2020-10-14 Version: 1.1.2
+1. Change TeaException field to public
+
 2020-10-10 Version: 1.1.1
 1. Change paserObject to public
 
