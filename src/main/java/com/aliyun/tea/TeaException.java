@@ -10,9 +10,9 @@ public class TeaException extends RuntimeException {
      *
      */
     private static final long serialVersionUID = 1L;
-    private String code;
-    private String message;
-    private Map<String, Object> data;
+    public String code;
+    public String message;
+    public Map<String, Object> data;
 
     public TeaException(String message, Throwable cause) {
         super(message, cause);
