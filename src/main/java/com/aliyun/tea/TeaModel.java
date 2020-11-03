@@ -68,6 +68,9 @@ public class TeaModel {
 
 
     public static Object parseObject(Object o) {
+        if (null == o) {
+            return o;
+        }
         Class clazz = o.getClass();
         if (List.class.isAssignableFrom(clazz)) {
             List<Object> list = (List<Object>) o;
