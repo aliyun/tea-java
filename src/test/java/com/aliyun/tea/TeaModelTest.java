@@ -3,6 +3,9 @@ package com.aliyun.tea;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -38,6 +41,12 @@ public class TeaModelTest {
 
         @NameInMap("teaModel")
         public BaseDriveResponse baseDriveResponse;
+
+        @NameInMap("readable")
+        public InputStream readable;
+
+        @NameInMap("writeable")
+        public OutputStream writeable;
     }
 
     @Test
@@ -103,12 +112,16 @@ public class TeaModelTest {
         SubModel submodel = new SubModel();
         submodel.accessToken = "the access token";
         submodel.accessKeyId = "the access key id";
+        String str = "test";
+        submodel.readable = Tea.toReadable(str);
+        submodel.writeable = Tea.toWriteable();
         ArrayList paramList = new ArrayList();
         paramList.add("string0");
         paramList.add("string1");
         submodel.list = paramList;
 
         Map<String, Object> map = submodel.toMap();
+        System.out.println(map.toString());
         Assert.assertEquals(9, map.size());
         Assert.assertEquals("the access key id", map.get("access_key_id"));
         Assert.assertEquals("the access token", map.get("accessToken"));
