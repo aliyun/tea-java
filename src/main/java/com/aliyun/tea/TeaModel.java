@@ -1,5 +1,7 @@
 package com.aliyun.tea;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -56,6 +58,10 @@ public class TeaModel {
                         result.put(entry.getKey(), parseObject(entry.getValue()));
                     }
                     map.put(key, result);
+                } else if (null != field.get(object) && InputStream.class.isAssignableFrom(field.get(object).getClass())) {
+                    continue;
+                } else if (null != field.get(object) && OutputStream.class.isAssignableFrom(field.get(object).getClass())) {
+                    continue;
                 } else {
                     map.put(key, field.get(object));
                 }
@@ -293,13 +299,13 @@ public class TeaModel {
         } else {
             String value = String.valueOf(object);
             if (maxLength > 0 && value.length() > maxLength) {
-                throw new ValidateException(this.getClass().getName() + "." +fieldName + " exceeds the maximum length");
+                throw new ValidateException(this.getClass().getName() + "." + fieldName + " exceeds the maximum length");
             }
             if (minLength > 0 && value.length() < minLength) {
-                throw new ValidateException(this.getClass().getName() + "." +fieldName + " less than minimum length");
+                throw new ValidateException(this.getClass().getName() + "." + fieldName + " less than minimum length");
             }
             if (!"".equals(pattern) && !Pattern.matches(pattern, value)) {
-                throw new ValidateException(this.getClass().getName() + "." +fieldName + " regular match failed");
+                throw new ValidateException(this.getClass().getName() + "." + fieldName + " regular match failed");
             }
         }
     }
