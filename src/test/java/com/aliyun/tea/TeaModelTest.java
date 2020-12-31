@@ -15,6 +15,11 @@ import java.util.Map;
 
 public class TeaModelTest {
 
+    public static class MockModel extends TeaModel {
+        @NameInMap("sub_model")
+        public SubModel subModel;
+    }
+
     public static class SubModel extends TeaModel {
         public String accessToken;
 
@@ -108,6 +113,21 @@ public class TeaModelTest {
     }
 
     @Test
+    public void toModelWithStream() {
+        SubModel submodel = new SubModel();
+        submodel.accessToken = "the access token";
+        submodel.accessKeyId = "the access key id";
+        submodel.readable = Tea.toReadable("content");
+        submodel.writeable = Tea.toWriteable();
+        MockModel model = new MockModel();
+        MockModel.build(TeaConverter.buildMap(
+                new TeaPair("subModel", submodel)
+        ), model);
+        Assert.assertNotNull(model.subModel.readable);
+        Assert.assertNotNull(model.subModel.writeable);
+    }
+
+    @Test
     public void toMap() {
         SubModel submodel = new SubModel();
         submodel.accessToken = "the access token";
@@ -128,6 +148,19 @@ public class TeaModelTest {
         ArrayList list = (ArrayList) map.get("listTest");
         Assert.assertEquals("string0", list.get(0));
         Assert.assertEquals("string1", list.get(1));
+    }
+
+    @Test
+    public void toMapAdvance() {
+        SubModel submodel = new SubModel();
+        submodel.accessKeyId = "access key id";
+        submodel.readable = Tea.toReadable("content");
+        submodel.writeable = Tea.toWriteable();
+        MockModel model = new MockModel();
+        model.subModel = submodel;
+        Map<String, Object> m = TeaModel.toMap(model);
+        Map<String, Object> sub = (Map<String, Object>) m.get("sub_model");
+        Assert.assertEquals(9, sub.size()); // except Stream properties
     }
 
     @Test
@@ -254,7 +287,7 @@ public class TeaModelTest {
 
     @Test
     public void wildcardTest() {
-        List<Object> wildcardTest =  new ArrayList<Object>();
+        List<Object> wildcardTest = new ArrayList<Object>();
         wildcardTest.add(1);
 
         NestedTest nestedTest = new NestedTest();
