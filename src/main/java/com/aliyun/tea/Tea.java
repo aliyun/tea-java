@@ -8,9 +8,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Map;
@@ -138,5 +136,17 @@ public class Tea {
 
     public static InputStream toReadable(byte[] byteArray) {
         return new ByteArrayInputStream(byteArray);
+    }
+
+    public static OutputStream toWriteable(int size) {
+        try {
+            return new ByteArrayOutputStream(size);
+        } catch (IllegalArgumentException e) {
+            throw new TeaException(e.getMessage(), e);
+        }
+    }
+
+    public static OutputStream toWriteable() {
+        return new ByteArrayOutputStream();
     }
 }

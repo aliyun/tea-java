@@ -1,5 +1,7 @@
 package com.aliyun.tea;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -14,10 +16,14 @@ import java.util.regex.Pattern;
 public class TeaModel {
 
     public Map<String, Object> toMap() {
-        return changeToMap(this);
+        return changeToMap(this, true);
     }
 
     public static Map<String, Object> toMap(Object object) {
+        return toMap(object, true);
+    }
+
+    private static Map<String, Object> toMap(Object object, Boolean exceptStream) {
         Map<String, Object> map = new HashMap<String, Object>();
         if (null != object && object instanceof Map) {
             return (Map<String, Object>) object;
@@ -25,11 +31,11 @@ public class TeaModel {
         if (null == object || !TeaModel.class.isAssignableFrom(object.getClass())) {
             return map;
         }
-        map = changeToMap(object);
+        map = changeToMap(object, exceptStream);
         return map;
     }
 
-    private static Map<String, Object> changeToMap(Object object) {
+    private static Map<String, Object> changeToMap(Object object, Boolean exceptStream) {
         HashMap<String, Object> map = new HashMap<String, Object>();
         try {
             for (Field field : object.getClass().getFields()) {
@@ -56,6 +62,10 @@ public class TeaModel {
                         result.put(entry.getKey(), parseObject(entry.getValue()));
                     }
                     map.put(key, result);
+                } else if (exceptStream && null != field.get(object) && InputStream.class.isAssignableFrom(field.get(object).getClass())) {
+                    continue;
+                } else if (exceptStream && null != field.get(object) && OutputStream.class.isAssignableFrom(field.get(object).getClass())) {
+                    continue;
                 } else {
                     map.put(key, field.get(object));
                 }
@@ -173,7 +183,7 @@ public class TeaModel {
             if (TeaModel.class.isAssignableFrom(clazz)) {
                 Object data = clazz.getDeclaredConstructor().newInstance();
                 if (userBuild) {
-                    field.set(result, TeaModel.build(TeaModel.toMap(resultValue), (TeaModel) data));
+                    field.set(result, TeaModel.build(TeaModel.toMap(resultValue, false), (TeaModel) data));
                 } else if (!userBuild && Map.class.isAssignableFrom(resultValue.getClass())) {
                     field.set(result, TeaModel.toModel((Map<String, Object>) resultValue, (TeaModel) data));
                 } else {
@@ -293,13 +303,13 @@ public class TeaModel {
         } else {
             String value = String.valueOf(object);
             if (maxLength > 0 && value.length() > maxLength) {
-                throw new ValidateException(this.getClass().getName() + "." +fieldName + " exceeds the maximum length");
+                throw new ValidateException(this.getClass().getName() + "." + fieldName + " exceeds the maximum length");
             }
             if (minLength > 0 && value.length() < minLength) {
-                throw new ValidateException(this.getClass().getName() + "." +fieldName + " less than minimum length");
+                throw new ValidateException(this.getClass().getName() + "." + fieldName + " less than minimum length");
             }
             if (!"".equals(pattern) && !Pattern.matches(pattern, value)) {
-                throw new ValidateException(this.getClass().getName() + "." +fieldName + " regular match failed");
+                throw new ValidateException(this.getClass().getName() + "." + fieldName + " regular match failed");
             }
         }
     }
