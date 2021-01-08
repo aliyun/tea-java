@@ -6,13 +6,12 @@ import java.util.Map;
 
 public class TeaException extends RuntimeException {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 1L;
     public String code;
     public String message;
     public Map<String, Object> data;
+
+    public TeaException(){}
 
     public TeaException(String message, Throwable cause) {
         super(message, cause);
