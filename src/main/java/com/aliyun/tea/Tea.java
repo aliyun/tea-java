@@ -64,7 +64,7 @@ public class Tea {
             Response response = okHttpClient.newCall(okRequestBuilder.buildRequest(request)).execute();
             return new TeaResponse(response);
         } catch (Exception e) {
-            throw new TeaException(e.getMessage(), e);
+            throw new TeaRetryableException(e.getMessage(), e);
         }
     }
 
