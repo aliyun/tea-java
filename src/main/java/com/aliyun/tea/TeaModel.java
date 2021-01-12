@@ -35,6 +35,10 @@ public class TeaModel {
         return map;
     }
 
+    private Map<String, Object> toMap(Boolean exceptStream) {
+        return changeToMap(this, exceptStream);
+    }
+
     private static Map<String, Object> changeToMap(Object object, Boolean exceptStream) {
         HashMap<String, Object> map = new HashMap<String, Object>();
         try {
@@ -54,7 +58,7 @@ public class TeaModel {
                     }
                     map.put(key, fieldList);
                 } else if (null != field.get(object) && TeaModel.class.isAssignableFrom(field.get(object).getClass())) {
-                    map.put(key, TeaModel.toMap(field.get(object)));
+                    map.put(key, TeaModel.toMap(field.get(object), exceptStream));
                 } else if (null != field.get(object) && Map.class.isAssignableFrom(field.get(object).getClass())) {
                     Map<String, Object> valueMap = (Map<String, Object>) field.get(object);
                     Map<String, Object> result = new HashMap<String, Object>();
@@ -97,7 +101,7 @@ public class TeaModel {
             }
             return result;
         } else if (TeaModel.class.isAssignableFrom(clazz)) {
-            return ((TeaModel) o).toMap();
+            return ((TeaModel) o).toMap(false);
         } else {
             return o;
         }

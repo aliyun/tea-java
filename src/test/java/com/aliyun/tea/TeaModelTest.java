@@ -3,7 +3,6 @@ package com.aliyun.tea;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -18,6 +17,11 @@ public class TeaModelTest {
     public static class MockModel extends TeaModel {
         @NameInMap("sub_model")
         public SubModel subModel;
+    }
+
+    public static class MockAdvanceModel extends TeaModel {
+        public MockModel m;
+        public String test;
     }
 
     public static class SubModel extends TeaModel {
@@ -125,6 +129,13 @@ public class TeaModelTest {
         ), model);
         Assert.assertNotNull(model.subModel.readable);
         Assert.assertNotNull(model.subModel.writeable);
+
+        MockAdvanceModel mockAdvanceModel = new MockAdvanceModel();
+        MockAdvanceModel.build(TeaConverter.buildMap(
+                new TeaPair("m", model)
+        ), mockAdvanceModel);
+        Assert.assertNotNull(mockAdvanceModel.m.subModel.readable);
+        Assert.assertNotNull(mockAdvanceModel.m.subModel.writeable);
     }
 
     @Test
