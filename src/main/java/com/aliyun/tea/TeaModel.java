@@ -262,6 +262,8 @@ public class TeaModel {
         String pattern;
         int maxLength;
         int minLength;
+        double maximum;
+        double minimum;
         boolean required;
         try {
             for (int i = 0; i < fields.length; i++) {
@@ -279,8 +281,10 @@ public class TeaModel {
                     pattern = validation.pattern();
                     maxLength = validation.maxLength();
                     minLength = validation.minLength();
-                    if (!"".equals(pattern) || maxLength > 0 || minLength > 0) {
-                        determineType(fields[i].getType(), object, pattern, maxLength, minLength, fields[i].getName());
+                    maximum = validation.maximum();
+                    minimum = validation.minimum();
+                    if (!"".equals(pattern) || maxLength > 0 || minLength > 0 || maximum != Double.MAX_VALUE || minimum != Double.MIN_VALUE) {
+                        determineType(fields[i].getType(), object, pattern, maxLength, minLength, maximum, minimum, fields[i].getName());
                     }
                 }
             }
@@ -289,20 +293,28 @@ public class TeaModel {
         }
     }
 
-    private void determineType(Class clazz, Object object, String pattern, int maxLength, int minLength, String fieldName) {
+    private void determineType(Class clazz, Object object, String pattern, int maxLength, int minLength, double maximum, double minimum, String fieldName) {
         if (Map.class.isAssignableFrom(clazz)) {
-            validateMap(pattern, maxLength, minLength, (Map<String, Object>) object, fieldName);
+            validateMap(pattern, maxLength, minLength, maximum, minimum, (Map<String, Object>) object, fieldName);
         } else if (TeaModel.class.isAssignableFrom(clazz)) {
             ((TeaModel) object).validate();
         } else if (List.class.isAssignableFrom(clazz)) {
             List<?> list = (List<?>) object;
             for (int j = 0; j < list.size(); j++) {
-                determineType(list.get(j).getClass(), list.get(j), pattern, maxLength, minLength, fieldName);
+                determineType(list.get(j).getClass(), list.get(j), pattern, maxLength, minLength, maximum, minimum, fieldName);
             }
         } else if (clazz.isArray()) {
             Object[] objects = (Object[]) object;
             for (int j = 0; j < objects.length; j++) {
-                determineType(clazz.getComponentType(), objects[j], pattern, maxLength, minLength, fieldName);
+                determineType(clazz.getComponentType(), objects[j], pattern, maxLength, minLength, maximum, minimum, fieldName);
+            }
+        } else if (Number.class.isAssignableFrom(clazz)) {
+            double value = Double.valueOf(object.toString());
+            if (value > maximum) {
+                throw new ValidateException(this.getClass().getName() + "." + fieldName + " exceeds the maximum");
+            }
+            if (value < minimum) {
+                throw new ValidateException(this.getClass().getName() + "." + fieldName + " less than minimum");
             }
         } else {
             String value = String.valueOf(object);
@@ -318,10 +330,10 @@ public class TeaModel {
         }
     }
 
-    private void validateMap(String pattern, int maxLength, int minLength, Map<String, Object> map, String fieldName) {
+    private void validateMap(String pattern, int maxLength, int minLength, double maximum, double minimum, Map<String, Object> map, String fieldName) {
         for (Map.Entry entry : map.entrySet()) {
             if (entry.getValue() != null) {
-                determineType(entry.getValue().getClass(), entry.getValue(), pattern, maxLength, minLength, fieldName);
+                determineType(entry.getValue().getClass(), entry.getValue(), pattern, maxLength, minLength, maximum, minimum, fieldName);
             }
         }
     }

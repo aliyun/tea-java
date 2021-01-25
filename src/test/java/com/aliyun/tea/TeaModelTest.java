@@ -449,14 +449,16 @@ public class TeaModelTest {
 
     @Test
     public void validateMapTest() throws NoSuchMethodException {
-        Method validateMap = TeaModel.class.getDeclaredMethod("validateMap", String.class, int.class, int.class, Map.class, String.class);
+        Method validateMap = TeaModel.class.getDeclaredMethod("validateMap", String.class, int.class, int.class, double.class, double.class, Map.class, String.class);
         Map<String, Object> map = new HashMap<>();
         map.put("1", null);
         map.put("2", "test");
+        map.put("3", 1);
+        map.put("4", 10);
         validateMap.setAccessible(true);
         try {
-            validateMap.invoke(new ValidateParamModel(), "test", 4, 0, map, "test");
-            validateMap.invoke(new ValidateParamModel(), "[1-9]", 0, 0, map, "test");
+            validateMap.invoke(new ValidateParamModel(), "test", 4, 0, 10d, 0d, map, "test");
+            validateMap.invoke(new ValidateParamModel(), "[1-9]", 0, 0, 10d, 0d, map, "test");
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test regular match failed", e.getCause().getMessage());
@@ -466,30 +468,30 @@ public class TeaModelTest {
     @Test
     public void determineTypeTest() throws NoSuchMethodException {
         Method determineType = TeaModel.class.getDeclaredMethod("determineType",
-                Class.class, Object.class, String.class, int.class, int.class, String.class);
+                Class.class, Object.class, String.class, int.class, int.class, double.class, double.class, String.class);
         determineType.setAccessible(true);
         ValidateParamModel validateParamModel = new ValidateParamModel();
         Map<String, Object> map = new HashMap<>();
         map.put("test", "test");
 
         try {
-            determineType.invoke(validateParamModel, map.getClass(), map, "test", 1, 0, "test");
+            determineType.invoke(validateParamModel, map.getClass(), map, "test", 1, 0, 10d, 0d, "test");
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test exceeds the maximum length", e.getCause().getMessage());
         }
 
         try {
-            determineType.invoke(validateParamModel, map.getClass(), map, "[1-9]", 0, 0, "test");
+            determineType.invoke(validateParamModel, map.getClass(), map, "[1-9]", 0, 0, 10d, 0d, "test");
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test regular match failed", e.getCause().getMessage());
         }
 
         try {
-            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "test", 4, 0, "test");
+            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "test", 4, 0, 10d, 0d, "test");
             validateParamModel.hasStringPattern.put("test", "test");
-            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "[1-9]", 0, 0, "test");
+            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "[1-9]", 0, 0, 10d, 0d, "test");
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.hasStringPattern regular match failed", e.getCause().getMessage());
@@ -498,19 +500,27 @@ public class TeaModelTest {
         List<String> list = new ArrayList<>();
         list.add("test");
         try {
-            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "test", 0, 10, "test");
-            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "[1-9]", 0, 0, "test");
+            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "test", 0, 10, 10d, 0d, "test");
+            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "[1-9]", 0, 0, 10d, 0d, "test");
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test less than minimum length", e.getCause().getMessage());
         }
         String[] strs = new String[]{"test"};
         try {
-            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "test", 0, 0, "test");
-            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "[1-9]", 0, 0, "test");
+            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "test", 0, 0, 10d, 0d, "test");
+            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "[1-9]", 0, 0, 10d, 0d, "test");
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test regular match failed", e.getCause().getMessage());
+        }
+        Integer number = 11;
+        try {
+            determineType.invoke(new ValidateParamModel(), number.getClass(), number, "test", 0, 0, 20d, 0d, "test");
+            determineType.invoke(new ValidateParamModel(), number.getClass(), number, "[1-9]", 0, 0, 10d, 0d, "test");
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test exceeds the maximum", e.getCause().getMessage());
         }
     }
 

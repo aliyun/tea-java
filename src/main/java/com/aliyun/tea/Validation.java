@@ -12,5 +12,9 @@ public @interface Validation {
 
     int minLength() default 0;
 
+    double maximum() default Double.MAX_VALUE;
+
+    double minimum() default Double.MIN_VALUE;
+
     boolean required() default false;
 }
