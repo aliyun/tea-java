@@ -197,18 +197,8 @@ public class TeaModel {
                 field.set(result, buildObject(resultValue, Map.class, getType(field, 1)));
             } else if (List.class.isAssignableFrom(clazz)) {
                 field.set(result, buildObject(resultValue, List.class, getType(field, 0)));
-            } else if (Integer.class.isAssignableFrom(clazz)) {
-                field.set(result, Integer.parseInt(String.valueOf(resultValue)));
-            } else if (Double.class.isAssignableFrom(clazz)) {
-                field.set(result, Double.parseDouble(String.valueOf(resultValue)));
-            } else if (Float.class.isAssignableFrom(clazz)) {
-                field.set(result, Float.parseFloat(String.valueOf(resultValue)));
-            } else if (Long.class.isAssignableFrom(clazz)) {
-                field.set(result, Long.parseLong(String.valueOf(resultValue)));
-            } else if (Boolean.class.isAssignableFrom(clazz)) {
-                field.set(result, Boolean.parseBoolean(String.valueOf(resultValue)));
             } else {
-                field.set(result, resultValue);
+                field.set(result, confirmType(clazz, resultValue));
             }
             return result;
         } catch (Exception e) {
@@ -354,48 +344,40 @@ public class TeaModel {
     }
 
     public static Object confirmType(Class expect, Object object) throws Exception {
-        if (object.getClass().isAssignableFrom(expect)) {
-            return object;
-        } else {
-            if (String.class == expect) {
-                if (object instanceof String) {
-                    return object;
-                } else if (object instanceof Number || object instanceof Boolean) {
-                    return object.toString();
-                }
-            } else if (Boolean.class == expect) {
-                if (object instanceof String) {
-                    if (object.toString().equals("true")) {
-                        return true;
-                    } else if (object.toString().equals("false")) {
-                        return false;
-                    }
-                } else if (object instanceof Integer) {
-                    if (object.toString().equals("1")) {
-                        return true;
-                    } else if (object.toString().equals("0")) {
-                        return false;
-                    }
-                }
-            } else if (Integer.class == expect) {
-                if (object instanceof String) {
-                    return Integer.parseInt(object.toString());
-                }
-            } else if (Long.class == expect) {
-                if (object instanceof String || object instanceof Integer) {
-                    return Long.parseLong(object.toString());
-                }
-            } else if (Float.class == expect) {
-                if (object instanceof String || object instanceof Integer) {
-                    return Float.parseFloat(object.toString());
-                }
-            } else if (Double.class == expect) {
-                if (object instanceof String || object instanceof Integer || object instanceof Long || object instanceof Float) {
-                    return Double.parseDouble(object.toString());
+        if (String.class.isAssignableFrom(expect)) {
+            if (object instanceof String) {
+                return object;
+            } else if (object instanceof Number || object instanceof Boolean) {
+                return object.toString();
+            }
+        } else if (Boolean.class.isAssignableFrom(expect)) {
+            if (object instanceof String) {
+                return Boolean.parseBoolean(String.valueOf(object));
+            } else if (object instanceof Integer) {
+                if (object.toString().equals("1")) {
+                    return true;
+                } else if (object.toString().equals("0")) {
+                    return false;
                 }
             }
+        } else if (Integer.class.isAssignableFrom(expect)) {
+            if (object instanceof String) {
+                return Integer.parseInt(object.toString());
+            }
+        } else if (Long.class.isAssignableFrom(expect)) {
+            if (object instanceof String || object instanceof Integer) {
+                return Long.parseLong(object.toString());
+            }
+        } else if (Float.class.isAssignableFrom(expect)) {
+            if (object instanceof String || object instanceof Integer) {
+                return Float.parseFloat(object.toString());
+            }
+        } else if (Double.class.isAssignableFrom(expect)) {
+            if (object instanceof String || object instanceof Integer || object instanceof Long || object instanceof Float) {
+                return Double.parseDouble(object.toString());
+            }
         }
-        throw new ValidateException("Type must be " + expect);
+        return object;
     }
 
 

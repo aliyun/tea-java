@@ -573,4 +573,54 @@ public class TeaModelTest {
             Assert.assertEquals("parameter test is not allowed as null", e.getMessage());
         }
     }
+
+    @Test
+    public void confirmTypeTest() throws Exception {
+        String str = "1";
+        Object object = TeaModel.confirmType(Integer.class, str);
+        Assert.assertEquals(1, object);
+        Object object1 = TeaModel.confirmType(String.class, object);
+        Assert.assertEquals("1", object1);
+        object = TeaModel.confirmType(Double.class, str);
+        Assert.assertEquals(1.0D, object);
+        object1 = TeaModel.confirmType(String.class, object);
+        Assert.assertEquals("1.0", object1);
+        object = TeaModel.confirmType(Long.class, str);
+        Assert.assertEquals(1L, object);
+        object1 = TeaModel.confirmType(String.class, object);
+        Assert.assertEquals("1", object1);
+        object = TeaModel.confirmType(Float.class, str);
+        Assert.assertEquals(1.0F, object);
+        object1 = TeaModel.confirmType(String.class, object);
+        Assert.assertEquals("1.0", object1);
+
+        String boolStr1 = "true";
+        String boolStr2 = "false";
+        Object object2 = TeaModel.confirmType(Boolean.class, boolStr1);
+        Assert.assertEquals(true, object2);
+        object2 = TeaModel.confirmType(Boolean.class, boolStr2);
+        Assert.assertEquals(false, object2);
+        Integer boolInt1 = 1;
+        Integer boolInt2 = 0;
+        object2 = TeaModel.confirmType(Boolean.class, boolInt1);
+        Assert.assertEquals(true, object2);
+        Object object3 = TeaModel.confirmType(String.class, object2);
+        Assert.assertEquals("true", object3);
+        object2 = TeaModel.confirmType(Boolean.class, boolInt2);
+        Assert.assertEquals(false, object2);
+        object3 = TeaModel.confirmType(String.class, object2);
+        Assert.assertEquals("false", object3);
+
+        Integer integer = 2;
+        Object object4 = TeaModel.confirmType(Double.class, integer);
+        Assert.assertEquals(2.0D, object4);
+        object4 = TeaModel.confirmType(Long.class, integer);
+        Assert.assertEquals(2L, object4);
+        Object object5 = TeaModel.confirmType(Double.class, object4);
+        Assert.assertEquals(2.0D, object5);
+        object4 = TeaModel.confirmType(Float.class, integer);
+        Assert.assertEquals(2.0F, object4);
+        object5 = TeaModel.confirmType(Double.class, object4);
+        Assert.assertEquals(2.0D, object5);
+    }
 }
