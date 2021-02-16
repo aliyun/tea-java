@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -593,6 +594,16 @@ public class TeaModelTest {
         Assert.assertEquals(1.0F, object);
         object1 = TeaModel.confirmType(String.class, object);
         Assert.assertEquals("1.0", object1);
+
+        String longStr = "9223372036854775807";
+        object1 = TeaModel.confirmType(Long.class, longStr);
+        Assert.assertEquals(9223372036854775807L, object1);
+        String numStr = "11111111111111111111111111111111111111111111111";
+        object1 = TeaModel.confirmType(Double.class, numStr);
+        Assert.assertEquals(1.111111111111111E46, object1);
+        BigInteger bigInteger = new BigInteger(numStr);
+        object1 = TeaModel.confirmType(String.class, bigInteger);
+        Assert.assertEquals("11111111111111111111111111111111111111111111111", object1);
 
         String boolStr1 = "true";
         String boolStr2 = "false";
