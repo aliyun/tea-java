@@ -18,6 +18,10 @@ public class TeaUnretryableException extends RuntimeException {
         this.lastRequest = lastRequest;
     }
 
+    public TeaUnretryableException(TeaRequest lastRequest) {
+        this.lastRequest = lastRequest;
+    }
+
     public TeaUnretryableException(Throwable lastException) {
         super(lastException);
     }
