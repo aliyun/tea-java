@@ -633,5 +633,24 @@ public class TeaModelTest {
         Assert.assertEquals(2.0F, object4);
         object5 = TeaModel.confirmType(Double.class, object4);
         Assert.assertEquals(2.0D, object5);
+
+        // 部分数值类型之间强制转换
+        Long longTest = 2L;
+        Object object6 = TeaModel.confirmType(Integer.class, longTest);
+        Assert.assertEquals(2, object6);
+
+        object6 = TeaModel.confirmType(Float.class, longTest);
+        Assert.assertEquals(2.0F, object6);
+
+        longTest = Long.MAX_VALUE;
+        object6 = TeaModel.confirmType(Integer.class, longTest);
+        Assert.assertEquals(Long.MAX_VALUE, object6);
+
+        object6 = TeaModel.confirmType(Float.class, longTest);
+        Assert.assertEquals(9.223372E18F, object6);
+
+        Double doubleTest = 2.0D;
+        object6 = TeaModel.confirmType(Float.class, doubleTest);
+        Assert.assertEquals(2.0F, object6);
     }
 }
