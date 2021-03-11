@@ -345,9 +345,7 @@ public class TeaModel {
 
     public static Object confirmType(Class expect, Object object) throws Exception {
         if (String.class.isAssignableFrom(expect)) {
-            if (object instanceof String) {
-                return object;
-            } else if (object instanceof Number || object instanceof Boolean) {
+            if (object instanceof Number || object instanceof Boolean) {
                 return object.toString();
             }
         } else if (Boolean.class.isAssignableFrom(expect)) {
@@ -364,12 +362,20 @@ public class TeaModel {
             if (object instanceof String) {
                 return Integer.parseInt(object.toString());
             }
+            // 判断数值大小是否超过期望数据类型的上限，如果不超过则强制转换，如果超过则报错
+            if (object instanceof Long && ((Long) object).longValue() <= Integer.MAX_VALUE) {
+                return Integer.parseInt(object.toString());
+            }
         } else if (Long.class.isAssignableFrom(expect)) {
             if (object instanceof String || object instanceof Integer) {
                 return Long.parseLong(object.toString());
             }
         } else if (Float.class.isAssignableFrom(expect)) {
-            if (object instanceof String || object instanceof Integer) {
+            if (object instanceof String || object instanceof Integer || object instanceof Long) {
+                return Float.parseFloat(object.toString());
+            }
+            // 判断数值大小是否超过期望数据类型的上限，如果不超过则强制转换，如果超过则报错
+            if (object instanceof Double && ((Double) object).doubleValue() <= Float.MAX_VALUE) {
                 return Float.parseFloat(object.toString());
             }
         } else if (Double.class.isAssignableFrom(expect)) {
