@@ -11,6 +11,7 @@ import okhttp3.Response;
 import java.io.*;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Tea {
@@ -52,6 +53,9 @@ public class Tea {
         return urlBuilder.toString();
     }
 
+    public static TeaResponse doAction(TeaRequest request) {
+        return doAction(request, new HashMap<String, Object>());
+    }
 
     public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions) {
         try {
