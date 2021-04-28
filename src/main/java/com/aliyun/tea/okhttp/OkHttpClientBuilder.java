@@ -4,12 +4,12 @@ package com.aliyun.tea.okhttp;
 import com.aliyun.tea.TeaException;
 import com.aliyun.tea.utils.TrueHostnameVerifier;
 import com.aliyun.tea.utils.X509TrustManagerImp;
-import okhttp3.ConnectionPool;
-import okhttp3.OkHttpClient;
+import okhttp3.*;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
@@ -88,6 +88,32 @@ public class OkHttpClientBuilder {
             throw new TeaException(e.getMessage(), e);
         }
 
+    }
+
+    public OkHttpClientBuilder proxyAuthenticator(Map<String, Object> map) {
+        try {
+            Object httpsProxy = map.get("httpsProxy");
+            if (httpsProxy != null) {
+                URL proxyUrl = new URL(String.valueOf(httpsProxy));
+                String userInfo = proxyUrl.getUserInfo();
+                if (null != userInfo) {
+                    String[] userMessage = userInfo.split(":");
+                    final String credential = Credentials.basic(userMessage[0], userMessage[1]);
+                    Authenticator authenticator = new Authenticator() {
+                        @Override
+                        public Request authenticate(Route route, Response response) throws IOException {
+                            return response.request().newBuilder()
+                                    .header("Proxy-Authorization", credential)
+                                    .build();
+                        }
+                    };
+                    this.builder.proxyAuthenticator(authenticator);
+                }
+            }
+            return this;
+        } catch (Exception e) {
+            throw new TeaException(e.getMessage(), e);
+        }
     }
 
     public OkHttpClient buildOkHttpClient() {

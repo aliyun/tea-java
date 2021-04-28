@@ -3,10 +3,7 @@ package com.aliyun.tea;
 import com.aliyun.tea.okhttp.ClientHelper;
 import com.aliyun.tea.okhttp.OkRequestBuilder;
 import com.aliyun.tea.utils.StringUtils;
-import okhttp3.Credentials;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 
 import java.io.*;
 import java.net.URL;
@@ -63,8 +60,7 @@ public class Tea {
             URL url = new URL(urlString);
             OkHttpClient okHttpClient = ClientHelper.getOkHttpClient(url.getHost(), url.getPort(), runtimeOptions);
             Request.Builder requestBuilder = new Request.Builder();
-            Map<String, String> header = setProxyAuthorization(request.headers, runtimeOptions.get("httpsProxy"));
-            OkRequestBuilder okRequestBuilder = new OkRequestBuilder(requestBuilder).url(url).header(header);
+            OkRequestBuilder okRequestBuilder = new OkRequestBuilder(requestBuilder).url(url).header(request.headers);
             Response response = okHttpClient.newCall(okRequestBuilder.buildRequest(request)).execute();
             return new TeaResponse(response);
         } catch (Exception e) {
