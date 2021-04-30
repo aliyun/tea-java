@@ -1,3 +1,5 @@
+2021-4-30  Version: 1.1.11
+1. Fix Tea NullPointerException
 2021-04-20 Version: 1.1.10
 1. Add doAction has no runtimeOptions.
 2. Fix okhttp proxy authenticate failed.
