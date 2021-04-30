@@ -50,11 +50,11 @@ public class TeaTest {
         request.pathname = "?test";
         request.protocol = "HTTP";
         str = (String) composeUrl.invoke(Tea.class, request);
-        Assert.assertEquals("HTTP://test?test&test=and", str);
+        Assert.assertEquals("HTTP://test?test&test=and",str);
 
         request.query = null;
         String str2 = (String) composeUrl.invoke(Tea.class, request);
-        Assert.assertEquals("HTTP://test?test", str2);
+        Assert.assertEquals("HTTP://test?test",str2);
     }
 
     @Test
