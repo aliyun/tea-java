@@ -23,7 +23,7 @@ public class Tea {
         if (null != request.pathname) {
             urlBuilder.append(request.pathname);
         }
-        if (queries.size() > 0) {
+        if (queries != null && queries.size() > 0) {
             if (urlBuilder.indexOf("?") >= 1) {
                 urlBuilder.append("&");
             } else {
