@@ -11,7 +11,8 @@ public class TeaException extends RuntimeException {
     public String message;
     public Map<String, Object> data;
 
-    public TeaException(){}
+    public TeaException() {
+    }
 
     public TeaException(String message, Throwable cause) {
         super(message, cause);

@@ -30,7 +30,7 @@ public class TeaResponse {
         body = response.body().byteStream();
         Headers headers = response.headers();
         Map<String, List<String>> resultHeaders = headers.toMultimap();
-        for(Map.Entry<String, List<String>> entry: resultHeaders.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : resultHeaders.entrySet()) {
             this.headers.put(entry.getKey(), StringUtils.join(";", entry.getValue()));
         }
     }

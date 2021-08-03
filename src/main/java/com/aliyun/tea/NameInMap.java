@@ -11,12 +11,13 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface NameInMap {
 
-  /**
-   * @return the desired name of the field when it is serialized or deserialized
-   */
-  String value();
-  /**
-   * @return the alternative names of the field when it is deserialized
-   */
-  String[] alternate() default {};
+    /**
+     * @return the desired name of the field when it is serialized or deserialized
+     */
+    String value();
+
+    /**
+     * @return the alternative names of the field when it is deserialized
+     */
+    String[] alternate() default {};
 }

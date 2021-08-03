@@ -6,6 +6,6 @@ public class ValidateException extends RuntimeException {
     }
 
     public ValidateException(String message, Exception e) {
-        super(message,e);
+        super(message, e);
     }
 }
