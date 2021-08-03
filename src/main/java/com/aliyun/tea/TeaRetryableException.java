@@ -15,5 +15,6 @@ public class TeaRetryableException extends TeaException {
         super(map);
     }
 
-    public TeaRetryableException(){}
+    public TeaRetryableException() {
+    }
 }
