@@ -61,8 +61,11 @@ public class Tea {
             OkHttpClient okHttpClient = ClientHelper.getOkHttpClient(url.getHost(), url.getPort(), runtimeOptions);
             Request.Builder requestBuilder = new Request.Builder();
             OkRequestBuilder okRequestBuilder = new OkRequestBuilder(requestBuilder).url(url).header(request.headers);
-            Response response = okHttpClient.newCall(okRequestBuilder.buildRequest(request)).execute();
-            return new TeaResponse(response);
+            try (Response response = okHttpClient.newCall(okRequestBuilder.buildRequest(request)).execute();) {
+                return new TeaResponse(response);
+            } catch (Exception e) {
+                throw new TeaRetryableException(e);
+            }
         } catch (Exception e) {
             throw new TeaRetryableException(e);
         }
