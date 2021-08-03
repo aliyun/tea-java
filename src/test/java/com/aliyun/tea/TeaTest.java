@@ -71,6 +71,12 @@ public class TeaTest {
         runtimeOptions.put("connectTimeout", "50000");
         TeaResponse response = Tea.doAction(request, runtimeOptions);
         Assert.assertEquals(200, response.statusCode);
+        try {
+            String body = response.getResponseBody();
+            Assert.assertNotNull(body);
+        } catch (TeaException e) {
+            Assert.fail();
+        }
     }
 
     @Test
