@@ -1,7 +1,10 @@
 package com.aliyun.tea;
 
+import com.aliyun.tea.interceptor.InterceptorChain;
+import com.aliyun.tea.interceptor.InterceptorContext;
 import com.aliyun.tea.okhttp.ClientHelper;
 import com.aliyun.tea.okhttp.OkRequestBuilder;
+import com.aliyun.tea.utils.AttributeMap;
 import com.aliyun.tea.utils.StringUtils;
 import okhttp3.*;
 
@@ -66,6 +69,20 @@ public class Tea {
         } catch (Exception e) {
             throw new TeaRetryableException(e);
         }
+    }
+
+    public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions, InterceptorChain chain) {
+        if (null == chain) {
+            return doAction(request, runtimeOptions);
+        }
+        InterceptorContext context = InterceptorContext.create().setRuntimeOptions(runtimeOptions);
+        context = chain.modifyRuntimeOptions(context, AttributeMap.empty());
+        context.setTeaRequest(request);
+        context = chain.modifyRequest(context, AttributeMap.empty());
+        TeaResponse response = doAction(request, runtimeOptions);
+        context.setTeaResponse(response);
+        context = chain.modifyResponse(context, AttributeMap.empty());
+        return context.teaResponse();
     }
 
     private static Map<String, String> setProxyAuthorization(Map<String, String> header, Object httpsProxy) {
