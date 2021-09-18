@@ -1,5 +1,9 @@
 package com.aliyun.tea;
 
+import com.aliyun.tea.interceptor.InterceptorChain;
+import com.aliyun.tea.interceptor.MockRequestInterceptor;
+import com.aliyun.tea.interceptor.MockResponseInterceptor;
+import com.aliyun.tea.interceptor.MockRuntimeOptionsInterceptor;
 import com.aliyun.tea.utils.X509TrustManagerImp;
 import org.junit.Assert;
 import org.junit.Test;
@@ -71,6 +75,34 @@ public class TeaTest {
         runtimeOptions.put("connectTimeout", "50000");
         TeaResponse response = Tea.doAction(request, runtimeOptions);
         Assert.assertEquals(200, response.statusCode);
+        response = Tea.doAction(request);
+        Assert.assertEquals(200, response.statusCode);
+        try {
+            String body = response.getResponseBody();
+            Assert.assertNotNull(body);
+        } catch (TeaException e) {
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void doActionWithInterceptorTest() {
+        TeaRequest request = new TeaRequest();
+        Map<String, String> map = new HashMap<>();
+        map.put("host", "www.google.com.hk");
+        request.protocol = "http";
+        request.headers = map;
+        request.method = "GET";
+        Map<String, Object> runtimeOptions = new HashMap<>();
+        runtimeOptions.put("readTimeout", "50000");
+        runtimeOptions.put("connectTimeout", "50000");
+        InterceptorChain chain = InterceptorChain.create();
+        chain.addResponseInterceptor(new MockResponseInterceptor());
+        TeaResponse response = Tea.doAction(request, runtimeOptions, chain);
+        Assert.assertEquals(400, response.statusCode);
+        chain.addRequestInterceptor(new MockRequestInterceptor());
+        response = Tea.doAction(request, runtimeOptions, chain);
+        Assert.assertEquals(404, response.statusCode);
         try {
             String body = response.getResponseBody();
             Assert.assertNotNull(body);
