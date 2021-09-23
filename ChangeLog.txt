@@ -1,3 +1,6 @@
+2021-08-03 Version: 1.1.14
+1. Add interceptors for request and response.
+
 2021-08-03 Version: 1.1.13
 1. Response body should not closed.
 
