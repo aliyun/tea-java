@@ -82,6 +82,10 @@ public class OkHttpClientBuilder {
                 Object urlString = null == map.get("httpProxy") ? map.get("httpsProxy") : map.get("httpProxy");
                 URL url = new URL(String.valueOf(urlString));
                 this.builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(url.getHost(), url.getPort())));
+            } else if (null != map.get("socks5Proxy")) {
+                Object urlString = map.get("socks5Proxy");
+                URL url = new URL(String.valueOf(urlString));
+                this.builder.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(url.getHost(), url.getPort())));
             }
             return this;
         } catch (Exception e) {
@@ -92,9 +96,9 @@ public class OkHttpClientBuilder {
 
     public OkHttpClientBuilder proxyAuthenticator(Map<String, Object> map) {
         try {
-            Object httpsProxy = map.get("httpsProxy");
-            if (httpsProxy != null) {
-                URL proxyUrl = new URL(String.valueOf(httpsProxy));
+            Object proxy = map.get("httpsProxy") != null ? map.get("httpsProxy") : map.get("socks5Proxy");
+            if (proxy != null) {
+                URL proxyUrl = new URL(String.valueOf(proxy));
                 String userInfo = proxyUrl.getUserInfo();
                 if (null != userInfo) {
                     String[] userMessage = userInfo.split(":");

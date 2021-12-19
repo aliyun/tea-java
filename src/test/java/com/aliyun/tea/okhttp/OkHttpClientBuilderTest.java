@@ -62,5 +62,12 @@ public class OkHttpClientBuilderTest {
         map.put("httpsProxy", "https://user:password@127.0.0.1:8080");
         clientBuilder.proxy(map);
         Mockito.verify(clientBuilder, Mockito.times(3)).proxy(map);
+        map.put("socks5Proxy", "https://user:password@127.0.0.1:8081");
+        clientBuilder.proxy(map);
+        Mockito.verify(clientBuilder, Mockito.times(4)).proxy(map);
+        map.clear();
+        map.put("socks5Proxy", "https://user:password@127.0.0.1:8081");
+        clientBuilder.proxy(map);
+        Mockito.verify(clientBuilder, Mockito.times(5)).proxy(map);
     }
 }
