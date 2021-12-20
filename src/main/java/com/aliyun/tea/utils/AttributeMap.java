@@ -28,7 +28,7 @@ public class AttributeMap implements AutoCloseable {
 
     public <T> AttributeMap putIfAbsent(Key<T> key, T value) {
         Validate.notNull(key, "Key to set must not be null.");
-        if(attributes.get(key) == null){
+        if (attributes.get(key) == null) {
             attributes.put(key, value);
         }
         return this;
@@ -36,11 +36,15 @@ public class AttributeMap implements AutoCloseable {
 
     public AttributeMap copy() {
         Map<Key<?>, Object> map = new HashMap<>();
-        for (Map.Entry<Key<?>, Object> entry: attributes.entrySet()) {
+        for (Map.Entry<Key<?>, Object> entry : attributes.entrySet()) {
             entry.getKey().validateValue(entry.getValue());
             map.put(entry.getKey(), entry.getValue());
         }
         return new AttributeMap(map);
+    }
+
+    public int size() {
+        return attributes.size();
     }
 
     public static AttributeMap empty() {
@@ -49,9 +53,10 @@ public class AttributeMap implements AutoCloseable {
 
     @Override
     public void close() {
-        for (Object value: attributes.values()) {
+        for (Object value : attributes.values()) {
             IOUtils.closeIfCloseable(value);
         }
+        attributes.clear();
     }
 
     public abstract static class Key<T> {
