@@ -182,7 +182,7 @@ public class TeaModel {
     private static <T extends TeaModel> T setTeaModelField(T model, Field field, Object value, boolean userBuild) {
         try {
             Class<?> clazz = field.getType();
-            Object resultValue = parseNumber(value, clazz);
+            Object resultValue = List.class.isAssignableFrom(clazz) ? parseArray(value, field.getGenericType()) : parseNumber(value, clazz);
             T result = model;
             if (TeaModel.class.isAssignableFrom(clazz)) {
                 Object data = clazz.getDeclaredConstructor().newInstance();
@@ -226,6 +226,20 @@ public class TeaModel {
             result = setTeaModelField(result, field, value, true);
         }
         return result;
+    }
+
+    private static Object parseArray(Object value, Type type) {
+        List<Object> res = new ArrayList<>();
+        if (value instanceof List) {
+            ParameterizedType pt = (ParameterizedType) type;
+            List temp = (List) value;
+            for (Object o : temp) {
+                Double v = Double.parseDouble(o.toString());
+                //将值转换为集合泛型类型
+                res.add(parseNumber(v, (Class) pt.getActualTypeArguments()[0]));
+            }
+        }
+        return res;
     }
 
     private static Object parseNumber(Object value, Class clazz) {
