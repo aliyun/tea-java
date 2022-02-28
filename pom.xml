@@ -109,6 +109,11 @@
             <version>0.8.4</version>
             <classifier>runtime</classifier>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.36</version>
+        </dependency>
     </dependencies>
 
     <build>
