@@ -617,10 +617,14 @@ public class TeaModelTest {
         Assert.assertEquals(true, object2);
         Object object3 = TeaModel.confirmType(String.class, object2);
         Assert.assertEquals("true", object3);
+        object3 = TeaModel.confirmType(Integer.class, object2);
+        Assert.assertEquals(1, object3);
         object2 = TeaModel.confirmType(Boolean.class, boolInt2);
         Assert.assertEquals(false, object2);
         object3 = TeaModel.confirmType(String.class, object2);
         Assert.assertEquals("false", object3);
+        object3 = TeaModel.confirmType(Integer.class, object2);
+        Assert.assertEquals(0, object3);
 
         Integer integer = 2;
         Object object4 = TeaModel.confirmType(Double.class, integer);
@@ -644,13 +648,44 @@ public class TeaModelTest {
 
         longTest = Long.MAX_VALUE;
         object6 = TeaModel.confirmType(Integer.class, longTest);
-        Assert.assertEquals(Long.MAX_VALUE, object6);
+        Assert.assertEquals(-1, object6);
 
         object6 = TeaModel.confirmType(Float.class, longTest);
         Assert.assertEquals(9.223372E18F, object6);
 
+        longTest = Long.parseLong(String.valueOf(Integer.MAX_VALUE));
+        object6 = TeaModel.confirmType(Integer.class, longTest);
+        Assert.assertEquals(2147483647, object6);
+
         Double doubleTest = 2.0D;
         object6 = TeaModel.confirmType(Float.class, doubleTest);
         Assert.assertEquals(2.0F, object6);
+
+        doubleTest = Double.MAX_VALUE;
+        object6 = TeaModel.confirmType(Float.class, doubleTest);
+        Assert.assertTrue(Float.isInfinite((Float) object6));
+
+        doubleTest = Double.parseDouble(String.valueOf(Float.MAX_VALUE));
+        object6 = TeaModel.confirmType(Float.class, doubleTest);
+        Assert.assertEquals(3.4028235E38F, object6);
+
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("test1", "1");
+        object6 = TeaModel.confirmType(String.class, map);
+        Assert.assertEquals("{test1=1}", object6);
+
+        List<Integer> list = new ArrayList<Integer>();
+        list.add(1);
+        list.add(2);
+        object6 = TeaModel.confirmType(String.class, list);
+        Assert.assertEquals("[1, 2]", object6);
+
+        Float f = 0.1f;
+        Double d = f.doubleValue();
+        System.out.println(d);
+        float f1 = 0.1f;
+        double d1 = (double) f1;
+        System.out.println(d1);
+        System.out.println(Double.parseDouble(f.toString()));
     }
 }

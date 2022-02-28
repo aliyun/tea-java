@@ -1,5 +1,7 @@
 package com.aliyun.tea;
 
+import com.aliyun.tea.logging.ClientLogger;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
@@ -14,6 +16,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class TeaModel {
+    private static final ClientLogger logger = new ClientLogger(TeaModel.class);
 
     public Map<String, Object> toMap() {
         return changeToMap(this, true);
@@ -345,7 +348,8 @@ public class TeaModel {
 
     public static Object confirmType(Class expect, Object object) throws Exception {
         if (String.class.isAssignableFrom(expect)) {
-            if (object instanceof Number || object instanceof Boolean) {
+            if (object instanceof Number || object instanceof Boolean
+                    || object instanceof Map || object instanceof List) {
                 return object.toString();
             }
         } else if (Boolean.class.isAssignableFrom(expect)) {
@@ -362,24 +366,36 @@ public class TeaModel {
             if (object instanceof String) {
                 return Integer.parseInt(object.toString());
             }
-            // 判断数值大小是否超过期望数据类型的上限，如果不超过则强制转换，如果超过则报错
-            if (object instanceof Long && ((Long) object).longValue() <= Integer.MAX_VALUE) {
-                return Integer.parseInt(object.toString());
+            if (object instanceof Boolean) {
+                logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
+                return object.toString().equalsIgnoreCase("true") ? 1 : 0;
+            }
+            if (object instanceof Long || object instanceof Float || object instanceof Double) {
+                logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
+                return ((Number) object).intValue();
             }
         } else if (Long.class.isAssignableFrom(expect)) {
             if (object instanceof String || object instanceof Integer) {
                 return Long.parseLong(object.toString());
             }
+            if (object instanceof Float || object instanceof Double) {
+                logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Long.class.getName(), object.getClass().getName(), object.toString());
+                return Long.parseLong(object.toString());
+            }
         } else if (Float.class.isAssignableFrom(expect)) {
-            if (object instanceof String || object instanceof Integer || object instanceof Long) {
+            if (object instanceof String) {
                 return Float.parseFloat(object.toString());
             }
-            // 判断数值大小是否超过期望数据类型的上限，如果不超过则强制转换，如果超过则报错
-            if (object instanceof Double && ((Double) object).doubleValue() <= Float.MAX_VALUE) {
+            if (object instanceof Integer || object instanceof Long || object instanceof Double) {
+                logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Float.class.getName(), object.getClass().getName(), object.toString());
                 return Float.parseFloat(object.toString());
             }
         } else if (Double.class.isAssignableFrom(expect)) {
-            if (object instanceof String || object instanceof Integer || object instanceof Long || object instanceof Float) {
+            if (object instanceof String || object instanceof Float) {
+                return Double.parseDouble(object.toString());
+            }
+            if (object instanceof Integer || object instanceof Long) {
+                logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Double.class.getName(), object.getClass().getName(), object.toString());
                 return Double.parseDouble(object.toString());
             }
         }
