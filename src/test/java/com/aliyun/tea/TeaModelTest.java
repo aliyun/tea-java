@@ -576,7 +576,7 @@ public class TeaModelTest {
     }
 
     @Test
-    public void confirmTypeTest() throws Exception {
+    public void confirmTypeTest() {
         String str = "1";
         Object object = TeaModel.confirmType(Integer.class, str);
         Assert.assertEquals(1, object);
@@ -598,9 +598,21 @@ public class TeaModelTest {
         String longStr = "9223372036854775807";
         object1 = TeaModel.confirmType(Long.class, longStr);
         Assert.assertEquals(9223372036854775807L, object1);
+        object1 = TeaModel.confirmType(Integer.class, longStr);
+        Assert.assertEquals(-1, object1);
+        object1 = TeaModel.confirmType(Double.class, longStr);
+        Assert.assertEquals(9.223372036854776E18D, object1);
+        object1 = TeaModel.confirmType(Float.class, longStr);
+        Assert.assertEquals(9.223372E18F, object1);
         String numStr = "11111111111111111111111111111111111111111111111";
+        object1 = TeaModel.confirmType(Long.class, numStr);
+        Assert.assertEquals(8915328949842375111L, object1);
+        object1 = TeaModel.confirmType(Integer.class, numStr);
+        Assert.assertEquals(-954437177, object1);
         object1 = TeaModel.confirmType(Double.class, numStr);
         Assert.assertEquals(1.111111111111111E46, object1);
+        object1 = TeaModel.confirmType(Float.class, numStr);
+        Assert.assertTrue(Float.isInfinite((Float) object1));
         BigInteger bigInteger = new BigInteger(numStr);
         object1 = TeaModel.confirmType(String.class, bigInteger);
         Assert.assertEquals("11111111111111111111111111111111111111111111111", object1);
@@ -653,6 +665,9 @@ public class TeaModelTest {
         object6 = TeaModel.confirmType(Float.class, longTest);
         Assert.assertEquals(9.223372E18F, object6);
 
+        object6 = TeaModel.confirmType(Double.class, longTest);
+        Assert.assertEquals(9.223372036854776E18D, object6);
+
         longTest = Long.parseLong(String.valueOf(Integer.MAX_VALUE));
         object6 = TeaModel.confirmType(Integer.class, longTest);
         Assert.assertEquals(2147483647, object6);
@@ -669,6 +684,22 @@ public class TeaModelTest {
         object6 = TeaModel.confirmType(Float.class, doubleTest);
         Assert.assertEquals(3.4028235E38F, object6);
 
+        Float floatTest = 2.0F;
+        object6 = TeaModel.confirmType(Double.class, floatTest);
+        Assert.assertEquals(2.0D, object6);
+
+        floatTest = Float.MAX_VALUE;
+        object6 = TeaModel.confirmType(Double.class, floatTest);
+        Assert.assertEquals(3.4028235E38D, object6);
+
+        floatTest = Float.MAX_VALUE;
+        object6 = TeaModel.confirmType(Integer.class, floatTest);
+        Assert.assertEquals(-2147483648, object6);
+
+        floatTest = Float.MAX_VALUE;
+        object6 = TeaModel.confirmType(Long.class, floatTest);
+        Assert.assertEquals(-483344729602260992L, object6);
+
         Map<String, String> map = new HashMap<String, String>();
         map.put("test1", "1");
         object6 = TeaModel.confirmType(String.class, map);
@@ -680,12 +711,5 @@ public class TeaModelTest {
         object6 = TeaModel.confirmType(String.class, list);
         Assert.assertEquals("[1, 2]", object6);
 
-        Float f = 0.1f;
-        Double d = f.doubleValue();
-        System.out.println(d);
-        float f1 = 0.1f;
-        double d1 = (double) f1;
-        System.out.println(d1);
-        System.out.println(Double.parseDouble(f.toString()));
     }
 }
