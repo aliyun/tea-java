@@ -149,7 +149,7 @@ public class TeaModel {
                 throw new TeaException(e.getMessage(), e);
             }
         } else {
-            return o;
+            return confirmType(self, o);
         }
     }
 
@@ -346,7 +346,8 @@ public class TeaModel {
         teaModel.validate();
     }
 
-    public static Object confirmType(Class expect, Object object) throws Exception {
+    public static Object confirmType(Class expect, Object object) {
+        BigDecimal bigDecimal;
         if (String.class.isAssignableFrom(expect)) {
             if (object instanceof Number || object instanceof Boolean
                     || object instanceof Map || object instanceof List) {
@@ -364,39 +365,67 @@ public class TeaModel {
             }
         } else if (Integer.class.isAssignableFrom(expect)) {
             if (object instanceof String) {
-                return Integer.parseInt(object.toString());
+                try {
+                    Integer.parseInt(object.toString());
+                } catch (NumberFormatException e) {
+                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
+                }
+                bigDecimal = new BigDecimal(object.toString());
+                return bigDecimal.intValue();
             }
             if (object instanceof Boolean) {
                 logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
                 return object.toString().equalsIgnoreCase("true") ? 1 : 0;
             }
             if (object instanceof Long || object instanceof Float || object instanceof Double) {
+                bigDecimal = new BigDecimal(object.toString());
                 logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
-                return ((Number) object).intValue();
+                return bigDecimal.intValue();
             }
         } else if (Long.class.isAssignableFrom(expect)) {
             if (object instanceof String || object instanceof Integer) {
-                return Long.parseLong(object.toString());
+                try {
+                    Integer.parseInt(object.toString());
+                } catch (NumberFormatException e) {
+                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Long.class.getName(), object.getClass().getName(), object.toString());
+                }
+                bigDecimal = new BigDecimal(object.toString());
+                return bigDecimal.longValue();
             }
             if (object instanceof Float || object instanceof Double) {
+                bigDecimal = new BigDecimal(object.toString());
                 logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Long.class.getName(), object.getClass().getName(), object.toString());
-                return Long.parseLong(object.toString());
+                return bigDecimal.longValue();
             }
         } else if (Float.class.isAssignableFrom(expect)) {
             if (object instanceof String) {
-                return Float.parseFloat(object.toString());
+                try {
+                    Integer.parseInt(object.toString());
+                } catch (NumberFormatException e) {
+                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Float.class.getName(), object.getClass().getName(), object.toString());
+                }
+                bigDecimal = new BigDecimal(object.toString());
+                return bigDecimal.floatValue();
             }
             if (object instanceof Integer || object instanceof Long || object instanceof Double) {
+                bigDecimal = new BigDecimal(object.toString());
                 logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Float.class.getName(), object.getClass().getName(), object.toString());
-                return Float.parseFloat(object.toString());
+                return bigDecimal.floatValue();
             }
         } else if (Double.class.isAssignableFrom(expect)) {
             if (object instanceof String || object instanceof Float) {
-                return Double.parseDouble(object.toString());
+                try {
+                    Integer.parseInt(object.toString());
+                } catch (NumberFormatException e) {
+                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Double.class.getName(), object.getClass().getName(), object.toString());
+                }
+                bigDecimal = new BigDecimal(object.toString());
+                return bigDecimal.doubleValue();
             }
             if (object instanceof Integer || object instanceof Long) {
+                bigDecimal = new BigDecimal(object.toString());
                 logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Double.class.getName(), object.getClass().getName(), object.toString());
-                return Double.parseDouble(object.toString());
+                return bigDecimal.doubleValue();
             }
         }
         return object;
