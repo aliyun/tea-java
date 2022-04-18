@@ -678,7 +678,10 @@ public class TeaModelTest {
 
         doubleTest = Double.MAX_VALUE;
         object6 = TeaModel.confirmType(Float.class, doubleTest);
+        Float f = 1.0f;
         Assert.assertTrue(Float.isInfinite((Float) object6));
+        Assert.assertTrue(Float.isInfinite((Float)object6 + f));
+        Assert.assertTrue(Float.isInfinite((Float)object6 * f));
 
         doubleTest = Double.parseDouble(String.valueOf(Float.MAX_VALUE));
         object6 = TeaModel.confirmType(Float.class, doubleTest);

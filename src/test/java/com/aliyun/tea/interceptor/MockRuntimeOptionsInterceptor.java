@@ -10,6 +10,7 @@ public class MockRuntimeOptionsInterceptor implements RuntimeOptionsInterceptor 
     public Map<String, Object> modifyRuntimeOptions(InterceptorContext context, AttributeMap attributes) {
         Map<String, Object> runtimeOptions = context.runtimeOptions();
         runtimeOptions.put("test", "test");
+        runtimeOptions.put("key", "test");
         return runtimeOptions;
     }
 
