@@ -75,17 +75,6 @@ public class ClientLogger {
         return logThrowableAsWarning(runtimeException);
     }
 
-    @Deprecated
-    public <T extends Throwable> T logThowableAsWarning(T throwable) {
-        Objects.requireNonNull(throwable, "'throwable' cannot be null.");
-        if (!logger.isWarnEnabled()) {
-            return throwable;
-        }
-
-        performLogging(LogLevel.WARNING, true, throwable.getMessage(), throwable);
-        return throwable;
-    }
-
     public <T extends Throwable> T logThrowableAsWarning(T throwable) {
         Objects.requireNonNull(throwable, "'throwable' cannot be null.");
         if (!logger.isWarnEnabled()) {

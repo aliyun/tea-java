@@ -21,7 +21,7 @@ public final class DefaultLogger extends MarkerIgnoringBase {
     public static final String INFO = "INFO";
     public static final String ERROR = "ERROR";
     public static final String TRACE = "TRACE";
-    public static final String SDK_LOG_LEVEL = "SDK_LOG_LEVEL";
+    public static final String SDK_LOG_LEVEL = "ALIBABA_CLOUD_SDK_LOG_LEVEL";
 
     private final String classPath;
     private final boolean isTraceEnabled;

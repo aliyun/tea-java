@@ -48,7 +48,10 @@ public class LoggerTest {
         ClientLogger logger1 = new ClientLogger(LoggerTest.class);
         Assert.assertTrue(logger1.canLogAtLevel(LogLevel.WARNING));
         Assert.assertTrue(logger1.canLogAtLevel(LogLevel.ERROR));
+        Assert.assertFalse(logger1.canLogAtLevel(LogLevel.INFORMATIONAL));
         Assert.assertFalse(logger1.canLogAtLevel(LogLevel.VERBOSE));
+        Assert.assertFalse(logger1.canLogAtLevel(LogLevel.NOT_SET));
+        Assert.assertFalse(logger1.canLogAtLevel(null));
     }
 
     @Test
@@ -78,6 +81,64 @@ public class LoggerTest {
         logger = new ClientLogger(LoggerTest.class);
         Assert.assertEquals("test logExceptionAsWarning",
                 logger.logExceptionAsError(new RuntimeException("test logExceptionAsWarning")).getMessage());
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "5");
+        logger = new ClientLogger(LoggerTest.class);
+        Assert.assertEquals("test logExceptionAsWarning",
+                logger.logExceptionAsError(new RuntimeException("test logExceptionAsWarning")).getMessage());
+    }
 
+    @Test
+    public void traceTest() {
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "verbose");
+        DefaultLogger logger = new DefaultLogger(LoggerTest.class);
+        logger.trace("");
+        logger.trace("test");
+        logger.trace("key1\r\t\nkey2");
+        logger.trace("test: {}, {}", "key1", "key2");
+        logger.trace("test: {}, {}, {}", "key1", "key2", "key3");
+    }
+
+    @Test
+    public void verboseTest() {
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "verbose");
+        ClientLogger logger = new ClientLogger(LoggerTest.class);
+        logger.verbose("");
+        logger.verbose("test");
+        logger.verbose("key1\r\t\nkey2");
+        logger.verbose("test: {}, {}", "key1", "key2");
+        logger.verbose("test: {}, {}, {}", "key1", "key2", "key3");
+    }
+
+    @Test
+    public void infoTest() {
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "debug");
+        ClientLogger logger = new ClientLogger(LoggerTest.class);
+        logger.info("");
+        logger.info("test");
+        logger.info("key1\r\t\nkey2");
+        logger.info("test: {}, {}", "key1", "key2");
+        logger.info("test: {}, {}, {}", "key1", "key2", "key3");
+    }
+
+    @Test
+    public void warningTest() {
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "debug");
+        ClientLogger logger = new ClientLogger(LoggerTest.class);
+        logger.warning("");
+        logger.warning("test");
+        logger.warning("key1\r\t\nkey2");
+        logger.warning("test: {}, {}", "key1", "key2");
+        logger.warning("test: {}, {}, {}", "key1", "key2", "key3");
+    }
+
+    @Test
+    public void errorTest() {
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "debug");
+        ClientLogger logger = new ClientLogger(LoggerTest.class);
+        logger.error("");
+        logger.error("test");
+        logger.error("key1\r\t\nkey2");
+        logger.error("test: {}, {}", "key1", "key2");
+        logger.error("test: {}, {}, {}", "key1", "key2", "key3");
     }
 }
