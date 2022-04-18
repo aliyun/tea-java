@@ -377,7 +377,14 @@ public class TeaModel {
                 logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
                 return object.toString().equalsIgnoreCase("true") ? 1 : 0;
             }
-            if (object instanceof Long || object instanceof Float || object instanceof Double) {
+            if (object instanceof Long) {
+                if ((Long) object > Integer.MAX_VALUE) {
+                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
+                }
+                bigDecimal = new BigDecimal(object.toString());
+                return bigDecimal.intValue();
+            }
+            if (object instanceof Float || object instanceof Double) {
                 bigDecimal = new BigDecimal(object.toString());
                 logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
                 return bigDecimal.intValue();
@@ -385,7 +392,7 @@ public class TeaModel {
         } else if (Long.class.isAssignableFrom(expect)) {
             if (object instanceof String || object instanceof Integer) {
                 try {
-                    Integer.parseInt(object.toString());
+                    Long.parseLong(object.toString());
                 } catch (NumberFormatException e) {
                     logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Long.class.getName(), object.getClass().getName(), object.toString());
                 }
@@ -400,14 +407,21 @@ public class TeaModel {
         } else if (Float.class.isAssignableFrom(expect)) {
             if (object instanceof String) {
                 try {
-                    Integer.parseInt(object.toString());
+                    Float.parseFloat(object.toString());
                 } catch (NumberFormatException e) {
                     logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Float.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
                 return bigDecimal.floatValue();
             }
-            if (object instanceof Integer || object instanceof Long || object instanceof Double) {
+            if (object instanceof Double) {
+                if ((Double) object > Float.MAX_VALUE) {
+                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Float.class.getName(), object.getClass().getName(), object.toString());
+                }
+                bigDecimal = new BigDecimal(object.toString());
+                return bigDecimal.floatValue();
+            }
+            if (object instanceof Integer || object instanceof Long) {
                 bigDecimal = new BigDecimal(object.toString());
                 logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Float.class.getName(), object.getClass().getName(), object.toString());
                 return bigDecimal.floatValue();
@@ -415,7 +429,7 @@ public class TeaModel {
         } else if (Double.class.isAssignableFrom(expect)) {
             if (object instanceof String || object instanceof Float) {
                 try {
-                    Integer.parseInt(object.toString());
+                    Double.parseDouble(object.toString());
                 } catch (NumberFormatException e) {
                     logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Double.class.getName(), object.getClass().getName(), object.toString());
                 }
