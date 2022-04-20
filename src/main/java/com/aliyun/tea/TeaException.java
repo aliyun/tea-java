@@ -10,6 +10,7 @@ public class TeaException extends RuntimeException {
     public String code;
     public String message;
     public Map<String, Object> data;
+    public Integer statusCode;
 
     public TeaException() {
     }
@@ -27,6 +28,9 @@ public class TeaException extends RuntimeException {
         }
         if (obj instanceof Map) {
             data = (Map<String, Object>) obj;
+            if (data.containsKey("statusCode")) {
+                this.setStatusCode(Integer.parseInt(String.valueOf(data.get("statusCode"))));
+            }
             return;
         }
         Map<String, Object> hashMap = new HashMap<String, Object>();
@@ -57,6 +61,14 @@ public class TeaException extends RuntimeException {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public Integer getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(Integer statusCode) {
+        this.statusCode = statusCode;
     }
 
     public Map<String, Object> getData() {
