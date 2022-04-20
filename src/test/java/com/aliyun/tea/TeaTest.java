@@ -60,6 +60,9 @@ public class TeaTest {
         request.protocol = "HTTP";
         str = (String) composeUrl.invoke(Tea.class, request);
         Assert.assertEquals("HTTP://test?test&test=and", str);
+        request.query.put("test", "null");
+        str = (String) composeUrl.invoke(Tea.class, request);
+        Assert.assertEquals("HTTP://test?test&test=null", str);
     }
 
     @Test
