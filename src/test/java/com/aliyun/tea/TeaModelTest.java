@@ -1,5 +1,6 @@
 package com.aliyun.tea;
 
+import com.google.gson.internal.LinkedTreeMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -703,16 +704,28 @@ public class TeaModelTest {
         object6 = TeaModel.confirmType(Long.class, floatTest);
         Assert.assertEquals(-483344729602260992L, object6);
 
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, Object> map = new HashMap<String, Object>();
         map.put("test1", "1");
+        map.put("test2", 2);
+        map.put("test3", true);
+        Map<String, String> sub = new LinkedTreeMap<>();
+        sub.put("sub", "sub");
+        map.put("test4", sub);
         object6 = TeaModel.confirmType(String.class, map);
-        Assert.assertEquals("{test1=1}", object6);
+        Assert.assertEquals(String.class, object6.getClass());
+        String mapStr = (String)object6;
+        Assert.assertTrue(mapStr.contains("\"test1\":\"1\""));
+        Assert.assertTrue(mapStr.contains("\"test2\":2"));
+        Assert.assertTrue(mapStr.contains("\"test3\":true"));
+        Assert.assertTrue(mapStr.contains("\"test4\":{\"sub\":\"sub\"}"));
 
-        List<Integer> list = new ArrayList<Integer>();
-        list.add(1);
+        List<Object> list = new ArrayList<Object>();
+        list.add("1");
         list.add(2);
+        list.add(true);
+        list.add(sub);
         object6 = TeaModel.confirmType(String.class, list);
-        Assert.assertEquals("[1, 2]", object6);
+        Assert.assertEquals("[\"1\",2,true,{\"sub\":\"sub\"}]", object6);
 
     }
 }
