@@ -1,6 +1,7 @@
 package com.aliyun.tea;
 
 import com.aliyun.tea.logging.ClientLogger;
+import com.google.gson.Gson;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -349,9 +350,11 @@ public class TeaModel {
     public static Object confirmType(Class expect, Object object) {
         BigDecimal bigDecimal;
         if (String.class.isAssignableFrom(expect)) {
-            if (object instanceof Number || object instanceof Boolean
-                    || object instanceof Map || object instanceof List) {
+            if (object instanceof Number || object instanceof Boolean) {
                 return object.toString();
+            }
+            if (object instanceof Map || object instanceof List) {
+                return new Gson().toJson(object);
             }
         } else if (Boolean.class.isAssignableFrom(expect)) {
             if (object instanceof String) {
