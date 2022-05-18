@@ -1,5 +1,7 @@
 package com.aliyun.tea;
 
+import com.aliyun.tea.utils.StringUtils;
+
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +19,7 @@ public class TeaException extends RuntimeException {
 
     public TeaException(String message, Throwable cause) {
         super(message, cause);
+        this.setMessage(message);
     }
 
     public TeaException(Map<String, ?> map) {
@@ -48,6 +51,9 @@ public class TeaException extends RuntimeException {
 
     @Override
     public String getMessage() {
+        if (StringUtils.isEmpty(message)) {
+            return super.getMessage();
+        }
         return message;
     }
 
