@@ -60,5 +60,17 @@ public class TeaExceptionTest {
         Assert.assertNull(exception.getStatusCode());
     }
 
+    @Test
+    public void baseTest() {
+        TeaException exception = new TeaException("test massage", new RuntimeException("runtime exception"));
+        Assert.assertNull(exception.getCode());
+        Assert.assertNull(exception.getData());
+        Assert.assertNull(exception.getStatusCode());
+        Assert.assertEquals("test massage", exception.getMessage());
+        Assert.assertEquals("test massage", exception.message);
+        Assert.assertEquals(exception.getLocalizedMessage(), exception.getMessage());
+        Assert.assertEquals("runtime exception", exception.getCause().getMessage());
+    }
+
 
 }
