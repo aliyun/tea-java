@@ -31,7 +31,8 @@ public class OkRequestBuilder {
         OkRequestBody requestBody;
         switch (method) {
             case "DELETE":
-                this.builder.delete();
+                requestBody = new OkRequestBody(request);
+                this.builder.delete(requestBody);
                 break;
             case "POST":
                 requestBody = new OkRequestBody(request);
@@ -44,6 +45,9 @@ public class OkRequestBuilder {
             case "PATCH":
                 requestBody = new OkRequestBody(request);
                 this.builder.patch(requestBody);
+                break;
+            case "HEAD":
+                this.builder.head();
                 break;
             default:
                 this.builder.get();
