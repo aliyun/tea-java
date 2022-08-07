@@ -2,6 +2,7 @@ package com.aliyun.tea.okhttp;
 
 import okhttp3.OkHttpClient;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +15,10 @@ public class ClientHelper {
         if (null != map.get("httpProxy") || null != map.get("httpsProxy")) {
             Object urlString = null == map.get("httpProxy") ? map.get("httpsProxy") : map.get("httpProxy");
             URL url = new URL(String.valueOf(urlString));
+            key = getClientKey(url.getHost(), url.getPort());
+        } else if (null != map.get("socks5Proxy")) {
+            Object urlString = map.get("socks5Proxy");
+            URI url = new URI(String.valueOf(urlString));
             key = getClientKey(url.getHost(), url.getPort());
         } else {
             key = getClientKey(host, port);

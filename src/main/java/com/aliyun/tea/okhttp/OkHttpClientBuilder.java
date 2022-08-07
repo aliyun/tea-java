@@ -2,17 +2,17 @@ package com.aliyun.tea.okhttp;
 
 
 import com.aliyun.tea.TeaException;
+import com.aliyun.tea.okhttp.interceptors.SocksProxyAuthInterceptor;
 import com.aliyun.tea.utils.TrueHostnameVerifier;
 import com.aliyun.tea.utils.X509TrustManagerImp;
 import okhttp3.*;
+import okhttp3.Authenticator;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.URL;
+import java.net.*;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -84,7 +84,7 @@ public class OkHttpClientBuilder {
                 this.builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(url.getHost(), url.getPort())));
             } else if (null != map.get("socks5Proxy")) {
                 Object urlString = map.get("socks5Proxy");
-                URL url = new URL(String.valueOf(urlString));
+                URI url = new URI(String.valueOf(urlString));
                 this.builder.proxy(new Proxy(Proxy.Type.SOCKS, new InetSocketAddress(url.getHost(), url.getPort())));
             }
             return this;
@@ -96,12 +96,12 @@ public class OkHttpClientBuilder {
 
     public OkHttpClientBuilder proxyAuthenticator(Map<String, Object> map) {
         try {
-            Object proxy = map.get("httpsProxy") != null ? map.get("httpsProxy") : map.get("socks5Proxy");
-            if (proxy != null) {
+            if (null != map.get("httpProxy") || null != map.get("httpsProxy")) {
+                Object proxy = map.get("httpsProxy") != null ? map.get("httpsProxy") : map.get("httpProxy");
                 URL proxyUrl = new URL(String.valueOf(proxy));
                 String userInfo = proxyUrl.getUserInfo();
                 if (null != userInfo) {
-                    String[] userMessage = userInfo.split(":");
+                    final String[] userMessage = userInfo.split(":");
                     final String credential = Credentials.basic(userMessage[0], userMessage[1]);
                     Authenticator authenticator = new Authenticator() {
                         @Override
@@ -112,6 +112,14 @@ public class OkHttpClientBuilder {
                         }
                     };
                     this.builder.proxyAuthenticator(authenticator);
+                }
+            } else if (null != map.get("socks5Proxy")) {
+                Object proxy = map.get("socks5Proxy");
+                URI proxyUrl = new URI(String.valueOf(proxy));
+                String userInfo = proxyUrl.getUserInfo();
+                if (null != userInfo) {
+                    final String[] userMessage = userInfo.split(":");
+                    this.builder.addInterceptor(new SocksProxyAuthInterceptor(userMessage[0], userMessage[1]));
                 }
             }
             return this;

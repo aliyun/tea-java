@@ -7,6 +7,8 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.aliyun.tea.okhttp.ClientHelper.clients;
+
 public class ClientHelperTest {
     @Test
     public void getClientKeyTest() {
@@ -25,5 +27,13 @@ public class ClientHelperTest {
         map.put("httpsProxy", "https://127.0.0.1:80");
         client = ClientHelper.getOkHttpClient(null, 0, map);
         Assert.assertNotNull(client);
+        Assert.assertNotNull(clients.get("127.0.0.1:80"));
+
+        map.put("httpsProxy", null);
+        map.put("socks5Proxy", "socks5://user:password@127.0.0.1:1080");
+        client = ClientHelper.getOkHttpClient(null, 0, map);
+        Assert.assertNotNull(client);
+
+        Assert.assertNotNull(clients.get("127.0.0.1:1080"));
     }
 }
