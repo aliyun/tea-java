@@ -4,6 +4,7 @@ import com.aliyun.tea.interceptor.InterceptorChain;
 import com.aliyun.tea.interceptor.MockRequestInterceptor;
 import com.aliyun.tea.interceptor.MockResponseInterceptor;
 import com.aliyun.tea.interceptor.MockRuntimeOptionsInterceptor;
+import com.aliyun.tea.okhttp.ClientHelper;
 import com.aliyun.tea.utils.X509TrustManagerImp;
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,6 +68,7 @@ public class TeaTest {
 
     @Test
     public void doActionTest() {
+        ClientHelper.clients.clear();
         TeaRequest request = new TeaRequest();
         Map<String, String> map = new HashMap<>();
         map.put("host", "www.google.com.hk");
@@ -89,7 +91,36 @@ public class TeaTest {
     }
 
     @Test
+    public void doActionWithProxyTest() {
+        ClientHelper.clients.clear();
+        TeaRequest request = new TeaRequest();
+        Map<String, String> map = new HashMap<>();
+        map.put("host", "www.google.com.hk");
+        request.protocol = "http";
+        request.headers = map;
+        request.method = "GET";
+        Map<String, Object> runtimeOptions = new HashMap<>();
+        runtimeOptions.put("httpProxy", "https://user:password@127.0.0.1:8080");
+        try {
+            Tea.doAction(request, runtimeOptions);
+            Assert.fail();
+        } catch (TeaRetryableException e) {
+            Assert.assertEquals("Failed to connect to /127.0.0.1:8080", e.getMessage());
+        }
+        ClientHelper.clients.clear();
+        runtimeOptions.clear();
+        runtimeOptions.put("socks5Proxy", "socks5://user:password@127.0.0.1:1080");
+        try {
+            Tea.doAction(request, runtimeOptions);
+            Assert.fail();
+        } catch (TeaRetryableException e) {
+            Assert.assertTrue(e.getMessage().startsWith("Connection refused"));
+        }
+    }
+
+    @Test
     public void doActionWithInterceptorTest() {
+        ClientHelper.clients.clear();
         TeaRequest request = new TeaRequest();
         Map<String, String> map = new HashMap<>();
         map.put("host", "www.google.com.hk");
