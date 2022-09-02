@@ -1,3 +1,9 @@
+2022-09-02 Version: 1.2.1
+1. Support head(http method).
+2. Support payload for delete(http method).
+3. Modify url-parse to uri-parse for socks5Proxy.
+4. Support password auth for socks5Proxy.
+
 2022-05-26 Version: 1.2.0
 1. Support client logger.
 2. Support base type cast for list && modify cast rules.
