@@ -8,7 +8,6 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/10g6aivxp0jwebr3?svg=true)](https://ci.appveyor.com/project/aliyun/tea-java)
 [![codecov](https://codecov.io/gh/aliyun/tea-java/branch/master/graph/badge.svg)](https://codecov.io/gh/aliyun/tea-java)
 [![Latest Stable Version](https://img.shields.io/maven-central/v/com.aliyun/tea.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.aliyun%22%20AND%20a:%22tea%22)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9fb12d023eae49708807c3fc92a9370f)](https://www.codacy.com/manual/aliyun/tea-java?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=aliyun/tea-java&amp;utm_campaign=Badge_Grade)
 
 ## 安装
 
@@ -16,7 +15,7 @@
 <dependency>
     <groupId>com.aliyun</groupId>
     <artifactId>tea</artifactId>
-    <version>[1.0.3,2.0.0)</version>
+    <version>[1.2.0,2.0.0)</version>
 </dependency>
 ```
 
