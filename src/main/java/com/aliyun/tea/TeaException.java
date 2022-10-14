@@ -13,6 +13,8 @@ public class TeaException extends RuntimeException {
     public String message;
     public Map<String, Object> data;
     public Integer statusCode;
+    public String description;
+    public Map<String, Object> accessDeniedDetail;
 
     public TeaException() {
     }
@@ -25,6 +27,10 @@ public class TeaException extends RuntimeException {
     public TeaException(Map<String, ?> map) {
         this.setCode(String.valueOf(map.get("code")));
         this.setMessage(String.valueOf(map.get("message")));
+        this.setDescription(String.valueOf(map.get("description")));
+        if (map.get("accessDeniedDetail") instanceof Map) {
+            this.setAccessDeniedDetail((Map<String, Object>) map.get("accessDeniedDetail"));
+        }
         Object obj = map.get("data");
         if (obj == null) {
             return;
@@ -83,5 +89,21 @@ public class TeaException extends RuntimeException {
 
     public void setData(Map<String, Object> data) {
         this.data = data;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Map<String, Object> getAccessDeniedDetail() {
+        return accessDeniedDetail;
+    }
+
+    public void setAccessDeniedDetail(Map<String, Object> accessDeniedDetail) {
+        this.accessDeniedDetail = accessDeniedDetail;
     }
 }

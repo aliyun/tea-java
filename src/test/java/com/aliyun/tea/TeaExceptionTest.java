@@ -48,6 +48,21 @@ public class TeaExceptionTest {
         Assert.assertEquals((Integer) 200, exception.getStatusCode());
         Assert.assertEquals(200L, exception.getData().get("statusCode"));
 
+        map.put("description", "error description");
+        Map<String, Object> detail = new HashMap<>();
+        detail.put("AuthAction", "ram:ListUsers");
+        detail.put("AuthPrincipalType", "SubUser");
+        detail.put("PolicyType", "ResourceGroupLevelIdentityBassdPolicy");
+        detail.put("NoPermissionType", "ImplicitDeny");
+        map.put("accessDeniedDetail", detail);
+        exception = new TeaException(map);
+        Assert.assertEquals("error description", exception.getDescription());
+        Assert.assertEquals("ImplicitDeny", exception.getAccessDeniedDetail().get("NoPermissionType"));
+
+        map.put("accessDeniedDetail", "wrong type");
+        exception = new TeaException(map);
+        Assert.assertNull(exception.getAccessDeniedDetail());
+
         TestClass testClass = new TestClass();
         testClass.test = "test";
         testClass.statusCode = 200;
