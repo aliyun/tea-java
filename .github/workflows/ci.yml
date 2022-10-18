@@ -15,6 +15,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      CA: ${{ secrets.CA }}
     strategy:
       matrix:
         # test against latest update of each major Java version, as well as specific updates of LTS versions:
@@ -27,6 +29,6 @@ jobs:
       with:
         java-version: ${{ matrix.java }}
     - name: Build with Maven
-      run: mvn test
+      run: CA="$CA" || mvn test
     - name: CodeCov
       run: bash <(curl -s https://codecov.io/bash) -cF java

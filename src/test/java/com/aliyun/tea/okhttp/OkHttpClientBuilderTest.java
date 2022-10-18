@@ -1,10 +1,14 @@
 package com.aliyun.tea.okhttp;
 
+import com.aliyun.tea.TeaException;
+import com.aliyun.tea.utils.TrueHostnameVerifier;
 import okhttp3.OkHttpClient;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
+import sun.security.ssl.SSLSocketFactoryImpl;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,7 +44,7 @@ public class OkHttpClientBuilderTest {
     }
 
     @Test
-    public void certificateTest() {
+    public void certificateTest() throws IOException {
         map.clear();
         OkHttpClientBuilder clientBuilder = Mockito.spy(new OkHttpClientBuilder());
         clientBuilder.certificate(map);
@@ -48,6 +52,25 @@ public class OkHttpClientBuilderTest {
         map.put("ignoreSSL", true);
         clientBuilder.certificate(map);
         Mockito.verify(clientBuilder, Mockito.times(2)).certificate(map);
+
+        map.clear();
+        map.put("ignoreSSL", false);
+        map.put("ca", "-----BEGIN CERTIFICATE-----\nwrong ca-----END CERTIFICATE-----");
+        try {
+            new OkHttpClientBuilder().certificate(map);
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertTrue(e.getMessage().contains("Unable to initialize"));
+        }
+
+        map.put("ca", System.getenv("CA"));
+        OkHttpClientBuilder builder = new OkHttpClientBuilder().certificate(map);
+
+        OkHttpClient client = builder.buildOkHttpClient();
+        Assert.assertTrue(client.hostnameVerifier() instanceof TrueHostnameVerifier);
+        Assert.assertNotNull(client.sslSocketFactory());
+        SSLSocketFactoryImpl ssl = (SSLSocketFactoryImpl)client.sslSocketFactory();
+        ssl.createSocket();
     }
 
     @Test

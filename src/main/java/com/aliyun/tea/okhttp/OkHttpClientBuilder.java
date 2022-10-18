@@ -8,15 +8,18 @@ import com.aliyun.tea.utils.X509TrustManagerImp;
 import okhttp3.*;
 import okhttp3.Authenticator;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.io.IOException;
+import javax.net.ssl.*;
+import java.io.*;
 import java.net.*;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class OkHttpClientBuilder {
+    private static final String charset = "UTF-8";
     private OkHttpClient.Builder builder;
 
     public OkHttpClientBuilder() {
@@ -67,6 +70,35 @@ public class OkHttpClientBuilder {
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(null, new TrustManager[]{compositeX509TrustManager}, new java.security.SecureRandom());
                 this.builder.sslSocketFactory(sslContext.getSocketFactory(), compositeX509TrustManager).
+                        hostnameVerifier(new TrueHostnameVerifier());
+            } else if (map.containsKey("ca")) {
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+                KeyManagerFactory keyManagerFactory = null;
+                if (map.containsKey("key") && map.containsKey("cert")) {
+                    KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                    String cert = String.valueOf(map.get("cert"));
+                    try (InputStream is = new ByteArrayInputStream(cert.getBytes(charset))) {
+                        keyStore.load(is, String.valueOf(map.get("key")).toCharArray());
+                    }
+                    keyManagerFactory = KeyManagerFactory.getInstance("X.509");
+                    keyManagerFactory.init(keyStore, String.valueOf(map.get("key")).toCharArray());
+                }
+                KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                trustStore.load(null);
+                String ca = String.valueOf(map.get("ca"));
+                CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+                Certificate certificate;
+                try (InputStream is = new ByteArrayInputStream(ca.getBytes(charset))) {
+                    certificate = certFactory.generateCertificate(is);
+                }
+                trustStore.setCertificateEntry("server-ca", certificate);
+                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                trustManagerFactory.init(trustStore);
+                X509TrustManager trustManager = (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
+                sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null
+                        , trustManagerFactory.getTrustManagers()
+                        , new SecureRandom());
+                this.builder.sslSocketFactory(sslContext.getSocketFactory(), trustManager).
                         hostnameVerifier(new TrueHostnameVerifier());
             }
             return this;
