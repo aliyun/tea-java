@@ -1,3 +1,6 @@
+2022-10-20 Version: 1.2.2
+1. Return description and accessDeniedDetail in error info.
+
 2022-09-02 Version: 1.2.1
 1. Support head(http method).
 2. Support payload for delete(http method).
