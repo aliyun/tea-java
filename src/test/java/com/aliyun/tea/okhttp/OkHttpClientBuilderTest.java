@@ -69,8 +69,6 @@ public class OkHttpClientBuilderTest {
         OkHttpClient client = builder.buildOkHttpClient();
         Assert.assertTrue(client.hostnameVerifier() instanceof TrueHostnameVerifier);
         Assert.assertNotNull(client.sslSocketFactory());
-        SSLSocketFactoryImpl ssl = (SSLSocketFactoryImpl)client.sslSocketFactory();
-        ssl.createSocket();
     }
 
     @Test
