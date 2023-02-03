@@ -111,7 +111,7 @@ public class TeaModel {
         }
     }
 
-    private static Object buildObject(Object o, Class self, Type subType) {
+    private static Object buildObject(Object o, Class self, Type subType, String objectName) {
         Class valueClass = o.getClass();
         if (Map.class.isAssignableFrom(self) && Map.class.isAssignableFrom(valueClass)) {
             Map<String, Object> valueMap = (Map<String, Object>) o;
@@ -120,11 +120,11 @@ public class TeaModel {
                 if (null == subType || subType instanceof WildcardType) {
                     result.put(entry.getKey(), entry.getValue());
                 } else if (subType instanceof Class) {
-                    result.put(entry.getKey(), buildObject(entry.getValue(), (Class) subType, null));
+                    result.put(entry.getKey(), buildObject(entry.getValue(), (Class) subType, null, objectName));
                 } else {
                     ParameterizedType parameterizedType = (ParameterizedType) subType;
                     Type[] types = parameterizedType.getActualTypeArguments();
-                    result.put(entry.getKey(), buildObject(entry.getValue(), (Class) parameterizedType.getRawType(), types[types.length - 1]));
+                    result.put(entry.getKey(), buildObject(entry.getValue(), (Class) parameterizedType.getRawType(), types[types.length - 1], objectName));
                 }
             }
             return result;
@@ -135,11 +135,11 @@ public class TeaModel {
                 if (null == subType || subType instanceof WildcardType) {
                     result.add(object);
                 } else if (subType instanceof Class) {
-                    result.add(buildObject(object, (Class) subType, null));
+                    result.add(buildObject(object, (Class) subType, null, objectName));
                 } else {
                     ParameterizedType parameterizedType = (ParameterizedType) subType;
                     Type[] types = parameterizedType.getActualTypeArguments();
-                    result.add(buildObject(object, (Class) parameterizedType.getRawType(), types[types.length - 1]));
+                    result.add(buildObject(object, (Class) parameterizedType.getRawType(), types[types.length - 1], objectName));
                 }
             }
             return result;
@@ -150,7 +150,7 @@ public class TeaModel {
                 throw new TeaException(e.getMessage(), e);
             }
         } else {
-            return confirmType(self, o);
+            return confirmType(self, o, objectName);
         }
     }
 
@@ -177,13 +177,13 @@ public class TeaModel {
             if (value == null) {
                 continue;
             }
-            result = setTeaModelField(result, field, value, false);
+            result = setTeaModelField(result, field, value, result.getClass().getName() + "." + field.getName(), false);
         }
         return result;
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends TeaModel> T setTeaModelField(T model, Field field, Object value, boolean userBuild) {
+    private static <T extends TeaModel> T setTeaModelField(T model, Field field, Object value, String objectName, boolean userBuild) {
         try {
             Class<?> clazz = field.getType();
             Object resultValue = parseNumber(value, clazz);
@@ -198,11 +198,11 @@ public class TeaModel {
                     field.set(result, resultValue);
                 }
             } else if (Map.class.isAssignableFrom(clazz)) {
-                field.set(result, buildObject(resultValue, Map.class, getType(field, 1)));
+                field.set(result, buildObject(resultValue, Map.class, getType(field, 1), objectName));
             } else if (List.class.isAssignableFrom(clazz)) {
-                field.set(result, buildObject(resultValue, List.class, getType(field, 0)));
+                field.set(result, buildObject(resultValue, List.class, getType(field, 0), objectName));
             } else {
-                field.set(result, confirmType(clazz, resultValue));
+                field.set(result, confirmType(clazz, resultValue, objectName));
             }
             return result;
         } catch (Exception e) {
@@ -227,7 +227,7 @@ public class TeaModel {
                     continue;
                 }
             }
-            result = setTeaModelField(result, field, value, true);
+            result = setTeaModelField(result, field, value, result.getClass().getName() + "." + field.getName(), true);
         }
         return result;
     }
@@ -348,21 +348,35 @@ public class TeaModel {
     }
 
     public static Object confirmType(Class expect, Object object) {
+        return confirmType(expect, object, "unknown");
+    }
+
+    public static Object confirmType(Class expect, Object object, String objectName) {
         BigDecimal bigDecimal;
         if (String.class.isAssignableFrom(expect)) {
             if (object instanceof Number || object instanceof Boolean) {
+                logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                        objectName, String.class.getName(), object.getClass().getName(), object.toString());
                 return object.toString();
             }
             if (object instanceof Map || object instanceof List) {
+                logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                        objectName, String.class.getName(), object.getClass().getName(), object.toString());
                 return new Gson().toJson(object);
             }
         } else if (Boolean.class.isAssignableFrom(expect)) {
             if (object instanceof String) {
+                logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                        objectName, Boolean.class.getName(), object.getClass().getName(), object.toString());
                 return Boolean.parseBoolean(String.valueOf(object));
             } else if (object instanceof Integer) {
                 if (object.toString().equals("1")) {
+                    logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                            objectName, Boolean.class.getName(), object.getClass().getName(), object.toString());
                     return true;
                 } else if (object.toString().equals("0")) {
+                    logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                            objectName, Boolean.class.getName(), object.getClass().getName(), object.toString());
                     return false;
                 }
             }
@@ -371,25 +385,29 @@ public class TeaModel {
                 try {
                     Integer.parseInt(object.toString());
                 } catch (NumberFormatException e) {
-                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
+                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                            objectName, Integer.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
                 return bigDecimal.intValue();
             }
             if (object instanceof Boolean) {
-                logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
+                logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                        objectName, Integer.class.getName(), object.getClass().getName(), object.toString());
                 return object.toString().equalsIgnoreCase("true") ? 1 : 0;
             }
             if (object instanceof Long) {
                 if ((Long) object > Integer.MAX_VALUE) {
-                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
+                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                            objectName, Integer.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
                 return bigDecimal.intValue();
             }
             if (object instanceof Float || object instanceof Double) {
                 bigDecimal = new BigDecimal(object.toString());
-                logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Integer.class.getName(), object.getClass().getName(), object.toString());
+                logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                        objectName, Integer.class.getName(), object.getClass().getName(), object.toString());
                 return bigDecimal.intValue();
             }
         } else if (Long.class.isAssignableFrom(expect)) {
@@ -397,14 +415,16 @@ public class TeaModel {
                 try {
                     Long.parseLong(object.toString());
                 } catch (NumberFormatException e) {
-                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Long.class.getName(), object.getClass().getName(), object.toString());
+                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                            objectName, Long.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
                 return bigDecimal.longValue();
             }
             if (object instanceof Float || object instanceof Double) {
                 bigDecimal = new BigDecimal(object.toString());
-                logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Long.class.getName(), object.getClass().getName(), object.toString());
+                logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                        objectName, Long.class.getName(), object.getClass().getName(), object.toString());
                 return bigDecimal.longValue();
             }
         } else if (Float.class.isAssignableFrom(expect)) {
@@ -412,21 +432,24 @@ public class TeaModel {
                 try {
                     Float.parseFloat(object.toString());
                 } catch (NumberFormatException e) {
-                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Float.class.getName(), object.getClass().getName(), object.toString());
+                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                            objectName, Float.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
                 return bigDecimal.floatValue();
             }
             if (object instanceof Double) {
                 if ((Double) object > Float.MAX_VALUE) {
-                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Float.class.getName(), object.getClass().getName(), object.toString());
+                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                            objectName, Float.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
                 return bigDecimal.floatValue();
             }
             if (object instanceof Integer || object instanceof Long) {
                 bigDecimal = new BigDecimal(object.toString());
-                logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Float.class.getName(), object.getClass().getName(), object.toString());
+                logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                        objectName, Float.class.getName(), object.getClass().getName(), object.toString());
                 return bigDecimal.floatValue();
             }
         } else if (Double.class.isAssignableFrom(expect)) {
@@ -434,14 +457,16 @@ public class TeaModel {
                 try {
                     Double.parseDouble(object.toString());
                 } catch (NumberFormatException e) {
-                    logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Double.class.getName(), object.getClass().getName(), object.toString());
+                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                            objectName, Double.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
                 return bigDecimal.doubleValue();
             }
             if (object instanceof Integer || object instanceof Long) {
                 bigDecimal = new BigDecimal(object.toString());
-                logger.warning("There are some cast events happening. expect: {}, but: {}, value: {}.", Double.class.getName(), object.getClass().getName(), object.toString());
+                logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                        objectName, Double.class.getName(), object.getClass().getName(), object.toString());
                 return bigDecimal.doubleValue();
             }
         }

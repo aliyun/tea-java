@@ -1,5 +1,6 @@
 package com.aliyun.tea;
 
+import com.aliyun.tea.logging.DefaultLogger;
 import com.google.gson.internal.LinkedTreeMap;
 import org.junit.Assert;
 import org.junit.Test;
@@ -62,9 +63,12 @@ public class TeaModelTest {
 
     @Test
     public void toModelTest() {
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "info");
         Map<String, Object> map = new HashMap<>();
         ArrayList testList = new ArrayList();
         testList.add("test");
+        testList.add(1);
+        testList.add(true);
         map.put("listTest", testList);
         SubModel submodel = TeaModel.toModel(map, new SubModel());
         Assert.assertNull(submodel.accessKeyId);
@@ -72,6 +76,8 @@ public class TeaModelTest {
         Assert.assertNull(submodel.size);
         Assert.assertNull(submodel.accessToken);
         Assert.assertEquals("test", submodel.list.get(0));
+        Assert.assertEquals("1", submodel.list.get(1));
+        Assert.assertEquals("true", submodel.list.get(2));
 
         map.put("accessToken", null);
         map.put("limit", 1);
@@ -98,7 +104,7 @@ public class TeaModelTest {
         Assert.assertEquals("1", submodel.baseDriveResponse.driveId);
 
         Map<String, Object> teaModelMap = new HashMap<>();
-        teaModelMap.put("driveId", "2");
+        teaModelMap.put("driveId", 2);
         map.put("teaModel", teaModelMap);
         submodel = TeaModel.toModel(map, new SubModel());
         Assert.assertEquals("2", submodel.baseDriveResponse.driveId);
@@ -578,6 +584,7 @@ public class TeaModelTest {
 
     @Test
     public void confirmTypeTest() {
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "info");
         String str = "1";
         Object object = TeaModel.confirmType(Integer.class, str);
         Assert.assertEquals(1, object);
@@ -681,8 +688,8 @@ public class TeaModelTest {
         object6 = TeaModel.confirmType(Float.class, doubleTest);
         Float f = 1.0f;
         Assert.assertTrue(Float.isInfinite((Float) object6));
-        Assert.assertTrue(Float.isInfinite((Float)object6 + f));
-        Assert.assertTrue(Float.isInfinite((Float)object6 * f));
+        Assert.assertTrue(Float.isInfinite((Float) object6 + f));
+        Assert.assertTrue(Float.isInfinite((Float) object6 * f));
 
         doubleTest = Double.parseDouble(String.valueOf(Float.MAX_VALUE));
         object6 = TeaModel.confirmType(Float.class, doubleTest);
@@ -713,7 +720,7 @@ public class TeaModelTest {
         map.put("test4", sub);
         object6 = TeaModel.confirmType(String.class, map);
         Assert.assertEquals(String.class, object6.getClass());
-        String mapStr = (String)object6;
+        String mapStr = (String) object6;
         Assert.assertTrue(mapStr.contains("\"test1\":\"1\""));
         Assert.assertTrue(mapStr.contains("\"test2\":2"));
         Assert.assertTrue(mapStr.contains("\"test3\":true"));
