@@ -1,3 +1,6 @@
+2022-11-17 Version: 1.2.4
+1. Update log message && add some info logs to `TeaModel.toModel()`.
+
 2022-11-17 Version: 1.2.3
 1. Support CA verify for server and client.
 
