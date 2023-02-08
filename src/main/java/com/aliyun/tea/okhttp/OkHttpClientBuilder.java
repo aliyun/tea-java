@@ -3,6 +3,7 @@ package com.aliyun.tea.okhttp;
 
 import com.aliyun.tea.TeaException;
 import com.aliyun.tea.okhttp.interceptors.SocksProxyAuthInterceptor;
+import com.aliyun.tea.utils.StringUtils;
 import com.aliyun.tea.utils.TrueHostnameVerifier;
 import com.aliyun.tea.utils.X509TrustManagerImp;
 import okhttp3.*;
@@ -71,10 +72,11 @@ public class OkHttpClientBuilder {
                 sslContext.init(null, new TrustManager[]{compositeX509TrustManager}, new java.security.SecureRandom());
                 this.builder.sslSocketFactory(sslContext.getSocketFactory(), compositeX509TrustManager).
                         hostnameVerifier(new TrueHostnameVerifier());
-            } else if (map.containsKey("ca")) {
+            } else if (map.containsKey("ca") && !StringUtils.isEmpty(map.get("ca"))) {
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 KeyManagerFactory keyManagerFactory = null;
-                if (map.containsKey("key") && map.containsKey("cert")) {
+                if (map.containsKey("key") && !StringUtils.isEmpty(map.get("key"))
+                        && map.containsKey("cert") && !StringUtils.isEmpty(map.get("cert"))) {
                     KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
                     String cert = String.valueOf(map.get("cert"));
                     try (InputStream is = new ByteArrayInputStream(cert.getBytes(charset))) {
