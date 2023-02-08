@@ -6,7 +6,6 @@ import okhttp3.OkHttpClient;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
-import sun.security.ssl.SSLSocketFactoryImpl;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -63,12 +62,35 @@ public class OkHttpClientBuilderTest {
             Assert.assertTrue(e.getMessage().contains("Unable to initialize"));
         }
 
+        map.put("ca", null);
+        new OkHttpClientBuilder().certificate(map);
+        map.put("ca", "");
+        new OkHttpClientBuilder().certificate(map);
+
         map.put("ca", System.getenv("CA"));
         OkHttpClientBuilder builder = new OkHttpClientBuilder().certificate(map);
 
         OkHttpClient client = builder.buildOkHttpClient();
         Assert.assertTrue(client.hostnameVerifier() instanceof TrueHostnameVerifier);
         Assert.assertNotNull(client.sslSocketFactory());
+
+        map.put("key", null);
+        map.put("cert", null);
+        new OkHttpClientBuilder().certificate(map);
+
+        map.put("key", "");
+        map.put("cert", "");
+        new OkHttpClientBuilder().certificate(map);
+
+        map.put("ca", "-----BEGIN CERTIFICATE-----\nwrong ca-----END CERTIFICATE-----");
+        map.put("key", "wrong key");
+        map.put("cert", "-----BEGIN CERTIFICATE-----\nwrong cert-----END CERTIFICATE-----");
+        try {
+            new OkHttpClientBuilder().certificate(map);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof TeaException);
+        }
     }
 
     @Test
