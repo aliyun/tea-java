@@ -40,6 +40,37 @@ public class OkHttpClientBuilderTest {
         map.put("maxIdleConns", 666);
         clientBuilder.connectionPool(map);
         Mockito.verify(clientBuilder, Mockito.times(2)).connectionPool(map);
+
+        map.put("keepAliveDuration", null);
+        clientBuilder.connectionPool(map);
+
+        map.put("keepAliveDuration", "");
+        try {
+            clientBuilder.connectionPool(map);
+            Assert.fail();
+        } catch (NumberFormatException e) {
+            Assert.assertTrue(e.getMessage().contains("For input string: \"\""));
+        }
+
+        map.put("keepAliveDuration", "str");
+        try {
+            clientBuilder.connectionPool(map);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("For input string: \"str\""));
+        }
+
+        map.put("keepAliveDuration", 0);
+        try {
+            clientBuilder.connectionPool(map);
+            Assert.fail();
+        } catch (IllegalArgumentException e) {
+            Assert.assertTrue(e.getMessage().contains("keepAliveDuration <= 0: 0"));
+        }
+
+        map.put("keepAliveDuration", 100L);
+        clientBuilder.connectionPool(map);
+        Mockito.verify(clientBuilder, Mockito.times(7)).connectionPool(map);
     }
 
     @Test
