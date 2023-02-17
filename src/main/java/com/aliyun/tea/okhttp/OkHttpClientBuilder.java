@@ -59,7 +59,11 @@ public class OkHttpClientBuilder {
         } catch (Exception e) {
             maxIdleConnections = 5;
         }
-        ConnectionPool connectionPool = new ConnectionPool(maxIdleConnections, 10000L, TimeUnit.MILLISECONDS);
+        long keepAliveDuration = 10000L;
+        if (map.containsKey("keepAliveDuration") && null != map.get("keepAliveDuration")) {
+            keepAliveDuration = Long.parseLong(String.valueOf(map.get("keepAliveDuration")));
+        }
+        ConnectionPool connectionPool = new ConnectionPool(maxIdleConnections, keepAliveDuration, TimeUnit.MILLISECONDS);
         this.builder.connectionPool(connectionPool);
         return this;
     }
