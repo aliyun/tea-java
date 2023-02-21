@@ -1,3 +1,7 @@
+2023-02-21 Version: 1.2.5
+1. Fix: remove verification when ca is empty.
+2. Support keepAliveDuration config for connectionPool.
+
 2022-11-17 Version: 1.2.4
 1. Update log message && add some info logs to `TeaModel.toModel()`.
 
