@@ -23,6 +23,9 @@ public class Tea {
         StringBuilder urlBuilder = new StringBuilder();
         urlBuilder.append(protocol);
         urlBuilder.append("://").append(host);
+        if (null != request.port) {
+            urlBuilder.append(":").append(request.port);
+        }
         if (null != request.pathname) {
             urlBuilder.append(request.pathname);
         }
