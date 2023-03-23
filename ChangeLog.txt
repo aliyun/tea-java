@@ -1,3 +1,7 @@
+2023-03-23 Version: 1.2.7
+1. Support port for url request.
+2. Transfer data from number type to boolean type.
+
 2023-03-09 Version: 1.2.6
 1. Fix: multiple clients conflicts when clients have proxies.
 
