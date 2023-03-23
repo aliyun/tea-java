@@ -64,6 +64,20 @@ public class TeaTest {
         request.query.put("test", "null");
         str = (String) composeUrl.invoke(Tea.class, request);
         Assert.assertEquals("HTTP://test?test&test=null", str);
+
+        request.query = new HashMap<>();
+        request.query.put("host", "test");
+        request.pathname = "/test";
+        request.protocol = "http";
+        request.port = 80;
+        str = (String) composeUrl.invoke(Tea.class, request);
+        Assert.assertEquals("http://test:80/test?host=test", str);
+        request.port = 443;
+        str = (String) composeUrl.invoke(Tea.class, request);
+        Assert.assertEquals("http://test:443/test?host=test", str);
+        request.port = null;
+        str = (String) composeUrl.invoke(Tea.class, request);
+        Assert.assertEquals("http://test/test?host=test", str);
     }
 
     @Test
