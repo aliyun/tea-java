@@ -645,6 +645,12 @@ public class TeaModelTest {
         Assert.assertEquals("false", object3);
         object3 = TeaModel.confirmType(Integer.class, object2);
         Assert.assertEquals(0, object3);
+        Long boolLong1 = 1L;
+        Long boolLong2 = 0L;
+        object2 = TeaModel.confirmType(Boolean.class, boolLong1);
+        Assert.assertEquals(true, object2);
+        object2 = TeaModel.confirmType(Boolean.class, boolLong2);
+        Assert.assertEquals(false, object2);
 
         Integer integer = 2;
         Object object4 = TeaModel.confirmType(Double.class, integer);

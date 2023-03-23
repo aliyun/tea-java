@@ -369,7 +369,7 @@ public class TeaModel {
                 logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                         objectName, Boolean.class.getName(), object.getClass().getName(), object.toString());
                 return Boolean.parseBoolean(String.valueOf(object));
-            } else if (object instanceof Integer) {
+            } else if (object instanceof Number) {
                 if (object.toString().equals("1")) {
                     logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                             objectName, Boolean.class.getName(), object.getClass().getName(), object.toString());
