@@ -18,7 +18,10 @@ public class Tea {
 
     private static String composeUrl(TeaRequest request) {
         Map<String, String> queries = request.query;
-        String host = request.headers.get("host");
+        String host = request.headers.containsKey("X-Proxy-Endpoint") &&
+                !StringUtils.isEmpty(request.headers.get("X-Proxy-Endpoint")) ?
+                request.headers.get("X-Proxy-Endpoint") :
+                request.headers.get("host");
         String protocol = null == request.protocol ? "http" : request.protocol;
         StringBuilder urlBuilder = new StringBuilder();
         urlBuilder.append(protocol);

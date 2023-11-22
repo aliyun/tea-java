@@ -78,6 +78,17 @@ public class TeaTest {
         request.port = null;
         str = (String) composeUrl.invoke(Tea.class, request);
         Assert.assertEquals("http://test/test?host=test", str);
+
+        map.put("X-Proxy-Endpoint", null);
+        str = (String) composeUrl.invoke(Tea.class, request);
+        Assert.assertEquals("http://test/test?host=test", str);
+        map.put("X-Proxy-Endpoint", "");
+        str = (String) composeUrl.invoke(Tea.class, request);
+        Assert.assertEquals("http://test/test?host=test", str);
+        map.put("X-Proxy-Endpoint", "pre.test");
+        str = (String) composeUrl.invoke(Tea.class, request);
+        Assert.assertEquals("http://pre.test/test?host=test", str);
+
     }
 
     @Test
