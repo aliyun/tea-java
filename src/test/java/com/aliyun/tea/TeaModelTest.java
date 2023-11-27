@@ -453,6 +453,10 @@ public class TeaModelTest {
         public Map<String, String> hasStringPattern = new HashMap<>();
         @Validation(required = true)
         public String requiredTrue = "test";
+        @Validation(maximum = 10)
+        public Long minNum;
+        @Validation(minimum = -10)
+        public Long maxNum;
     }
 
     @Test
@@ -558,6 +562,37 @@ public class TeaModelTest {
         } catch (Exception e) {
             Assert.assertEquals("com.aliyun.tea.TeaModelTest$Hello.message regular match failed", e.getMessage());
         }
+
+        try {
+            validateParamModel.requiredTrue = "test";
+            Hello[] hellos = new Hello[]{new Hello()};
+            hellos[0].message = "test";
+            validateParamModel.hasPattern.put("test", hellos);
+            validateParamModel.hasPattern.put("test", hellos);
+            validateParamModel.maxNum = Long.MAX_VALUE;
+            validateParamModel.minNum = Long.MIN_VALUE;
+            validateParamModel.validate();
+        } catch (Exception e) {
+            Assert.fail();
+        }
+
+        try {
+            validateParamModel.requiredTrue = "test";
+            validateParamModel.maxNum = -11L;
+            validateParamModel.validate();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.maxNum less than minimum", e.getMessage());
+        }
+
+        try {
+            validateParamModel.requiredTrue = "test";
+            validateParamModel.minNum = 11L;
+            validateParamModel.validate();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.minNum exceeds the maximum", e.getMessage());
+        }
     }
 
     @Test
@@ -566,7 +601,7 @@ public class TeaModelTest {
         Assert.assertNull(TeaModel.buildMap(teaModel));
 
         teaModel = new ValidateParamModel();
-        Assert.assertEquals(6, TeaModel.buildMap(teaModel).size());
+        Assert.assertEquals(8, TeaModel.buildMap(teaModel).size());
     }
 
     @Test

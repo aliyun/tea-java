@@ -14,7 +14,7 @@ public @interface Validation {
 
     double maximum() default Double.MAX_VALUE;
 
-    double minimum() default Double.MIN_VALUE;
+    double minimum() default -Double.MAX_VALUE;
 
     boolean required() default false;
 }

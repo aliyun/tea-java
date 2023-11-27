@@ -277,7 +277,7 @@ public class TeaModel {
                     minLength = validation.minLength();
                     maximum = validation.maximum();
                     minimum = validation.minimum();
-                    if (!"".equals(pattern) || maxLength > 0 || minLength > 0 || maximum != Double.MAX_VALUE || minimum != Double.MIN_VALUE) {
+                    if (!"".equals(pattern) || maxLength > 0 || minLength > 0 || maximum != Double.MAX_VALUE || minimum != -Double.MAX_VALUE) {
                         determineType(fields[i].getType(), object, pattern, maxLength, minLength, maximum, minimum, fields[i].getName());
                     }
                 }
