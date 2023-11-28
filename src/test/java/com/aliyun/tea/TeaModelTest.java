@@ -59,6 +59,12 @@ public class TeaModelTest {
 
         @NameInMap("writeable")
         public OutputStream writeable;
+
+        @NameInMap("mapTest")
+        public Map<String, Object> mapTest;
+
+        @NameInMap("listMapTest")
+        public List<Map<String, Object>> listMapTest;
     }
 
     @Test
@@ -108,6 +114,26 @@ public class TeaModelTest {
         map.put("teaModel", teaModelMap);
         submodel = TeaModel.toModel(map, new SubModel());
         Assert.assertEquals("2", submodel.baseDriveResponse.driveId);
+
+        Map<String, Object> mapTest = new HashMap<>();
+        mapTest.put("str", "test");
+        mapTest.put("bool", false);
+        mapTest.put("num", 0);
+        mapTest.put("null", null);
+        map.put("mapTest", mapTest);
+        List<Map<String, Object>> listMapTest = new ArrayList<>();
+        listMapTest.add(null);
+        listMapTest.add(mapTest);
+        listMapTest.add(null);
+        map.put("listMapTest", listMapTest);
+        submodel = TeaModel.toModel(map, new SubModel());
+        Assert.assertEquals("test", submodel.mapTest.get("str"));
+        Assert.assertEquals(false, submodel.mapTest.get("bool"));
+        Assert.assertEquals(0, submodel.mapTest.get("num"));
+        Assert.assertNull(submodel.mapTest.get("null"));
+        Assert.assertNull(submodel.listMapTest.get(0));
+        Assert.assertEquals(4, submodel.listMapTest.get(1).size());
+        Assert.assertNull(submodel.listMapTest.get(2));
 
         map.clear();
         List<BaseDriveResponse> baseDriveResponseList = new ArrayList<>();
@@ -161,7 +187,7 @@ public class TeaModelTest {
 
         Map<String, Object> map = submodel.toMap();
         System.out.println(map.toString());
-        Assert.assertEquals(9, map.size());
+        Assert.assertEquals(11, map.size());
         Assert.assertEquals("the access key id", map.get("access_key_id"));
         Assert.assertEquals("the access token", map.get("accessToken"));
         ArrayList list = (ArrayList) map.get("listTest");
@@ -179,7 +205,7 @@ public class TeaModelTest {
         model.subModel = submodel;
         Map<String, Object> m = TeaModel.toMap(model);
         Map<String, Object> sub = (Map<String, Object>) m.get("sub_model");
-        Assert.assertEquals(9, sub.size()); // except Stream properties
+        Assert.assertEquals(11, sub.size()); // except Stream properties
     }
 
     @Test
