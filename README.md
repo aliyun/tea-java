@@ -3,8 +3,7 @@
 
 ## Alibaba Cloud Tea for Java
 
-[![Travis Build Status](https://travis-ci.org/aliyun/tea-java.svg?branch=master)](https://travis-ci.org/aliyun/tea-java)
-[![Build status](https://ci.appveyor.com/api/projects/status/10g6aivxp0jwebr3?svg=true)](https://ci.appveyor.com/project/aliyun/tea-java)
+[![CI](https://github.com/aliyun/tea-java/actions/workflows/ci.yml/badge.svg)](https://github.com/aliyun/tea-java/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/aliyun/tea-java/branch/master/graph/badge.svg)](https://codecov.io/gh/aliyun/tea-java)
 [![Latest Stable Version](https://img.shields.io/maven-central/v/com.aliyun/tea.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.aliyun%22%20AND%20a:%22tea%22)
 
