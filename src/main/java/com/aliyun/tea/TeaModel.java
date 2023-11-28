@@ -117,7 +117,9 @@ public class TeaModel {
             Map<String, Object> valueMap = (Map<String, Object>) o;
             Map<String, Object> result = new HashMap<String, Object>();
             for (Map.Entry<String, Object> entry : valueMap.entrySet()) {
-                if (null == subType || subType instanceof WildcardType) {
+                if (null == entry.getValue()) {
+                    result.put(entry.getKey(), null);
+                } else if (null == subType || subType instanceof WildcardType) {
                     result.put(entry.getKey(), entry.getValue());
                 } else if (subType instanceof Class) {
                     result.put(entry.getKey(), buildObject(entry.getValue(), (Class) subType, null, objectName));
@@ -132,7 +134,9 @@ public class TeaModel {
             List<Object> valueList = (List<Object>) o;
             List<Object> result = new ArrayList<Object>();
             for (Object object : valueList) {
-                if (null == subType || subType instanceof WildcardType) {
+                if (null == object) {
+                    result.add(null);
+                } else if (null == subType || subType instanceof WildcardType) {
                     result.add(object);
                 } else if (subType instanceof Class) {
                     result.add(buildObject(object, (Class) subType, null, objectName));
