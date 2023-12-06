@@ -1,3 +1,7 @@
+2023-12-06 Version: 1.2.8
+1. Fix the value of minimum for validation.
+2. Resolve null value in map & list.
+
 2023-03-23 Version: 1.2.7
 1. Support port for url request.
 2. Transfer data from number type to boolean type.
