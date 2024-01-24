@@ -3,25 +3,16 @@ package com.aliyun.tea;
 import com.aliyun.tea.interceptor.InterceptorChain;
 import com.aliyun.tea.interceptor.MockRequestInterceptor;
 import com.aliyun.tea.interceptor.MockResponseInterceptor;
-import com.aliyun.tea.interceptor.MockRuntimeOptionsInterceptor;
 import com.aliyun.tea.okhttp.ClientHelper;
-import com.aliyun.tea.utils.X509TrustManagerImp;
+import okhttp3.Protocol;
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
-
-import javax.net.ssl.SSLSocketFactory;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.mockito.Mockito.mock;
 
 public class TeaTest {
     @Test
@@ -102,6 +93,39 @@ public class TeaTest {
         } catch (TeaException e) {
             Assert.fail();
         }
+    }
+
+    @Test
+    public void doActionProtocolsTest() {
+        ClientHelper.clients.clear();
+        TeaRequest request = new TeaRequest();
+        Map<String, String> map = new HashMap<>();
+        map.put("host", "github.com");
+        request.protocol = "http";
+        request.headers = map;
+        request.method = "GET";
+        Map<String, Object> runtimeOptions = new HashMap<>();
+        TeaResponse response = Tea.doAction(request, runtimeOptions);
+        Assert.assertEquals(200, response.statusCode);
+        Assert.assertEquals(Protocol.HTTP_2, response.response.protocol());
+
+        ClientHelper.clients.clear();
+        runtimeOptions.put("disableHttp2", "test");
+        response = Tea.doAction(request, runtimeOptions);
+        Assert.assertEquals(200, response.statusCode);
+        Assert.assertEquals(Protocol.HTTP_2, response.response.protocol());
+
+        ClientHelper.clients.clear();
+        runtimeOptions.put("disableHttp2", false);
+        response = Tea.doAction(request, runtimeOptions);
+        Assert.assertEquals(200, response.statusCode);
+        Assert.assertEquals(Protocol.HTTP_2, response.response.protocol());
+
+        ClientHelper.clients.clear();
+        runtimeOptions.put("disableHttp2", true);
+        response = Tea.doAction(request, runtimeOptions);
+        Assert.assertEquals(200, response.statusCode);
+        Assert.assertEquals(Protocol.HTTP_1_1, response.response.protocol());
     }
 
     @Test

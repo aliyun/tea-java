@@ -38,7 +38,7 @@ public class ClientHelper {
 
     public static OkHttpClient creatClient(Map<String, Object> map) {
         OkHttpClientBuilder builder = new OkHttpClientBuilder();
-        builder = builder.connectTimeout(map).readTimeout(map).connectionPool(map).certificate(map).proxy(map).proxyAuthenticator(map);
+        builder = builder.protocols(map).connectTimeout(map).readTimeout(map).connectionPool(map).certificate(map).proxy(map).proxyAuthenticator(map);
         OkHttpClient client = builder.buildOkHttpClient();
         return client;
     }
