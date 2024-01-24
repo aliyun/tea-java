@@ -16,6 +16,7 @@ import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -25,6 +26,21 @@ public class OkHttpClientBuilder {
 
     public OkHttpClientBuilder() {
         builder = new OkHttpClient().newBuilder();
+    }
+
+    public OkHttpClientBuilder protocols(Map<String, Object> map) {
+        if (map.containsKey("disableHttp2") && null != map.get("disableHttp2")) {
+            Object object = map.get("disableHttp2");
+            boolean disableHttp2 = false;
+            try {
+                disableHttp2 = Boolean.parseBoolean(String.valueOf(object));
+            } catch (Exception ignored) {
+            }
+            if (disableHttp2) {
+                this.builder.protocols(Collections.singletonList(Protocol.HTTP_1_1));
+            }
+        }
+        return this;
     }
 
     public OkHttpClientBuilder connectTimeout(Map<String, Object> map) {

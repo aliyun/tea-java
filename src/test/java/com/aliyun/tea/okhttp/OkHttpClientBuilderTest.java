@@ -3,6 +3,7 @@ package com.aliyun.tea.okhttp;
 import com.aliyun.tea.TeaException;
 import com.aliyun.tea.utils.TrueHostnameVerifier;
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -143,5 +144,27 @@ public class OkHttpClientBuilderTest {
         map.put("socks5Proxy", "socks5://user:password@127.0.0.1:1080");
         clientBuilder.proxy(map);
         Mockito.verify(clientBuilder, Mockito.times(5)).proxy(map);
+    }
+
+    @Test
+    public void protocolsTest() {
+        map.clear();
+        OkHttpClientBuilder clientBuilder = new OkHttpClientBuilder();
+        OkHttpClient client = clientBuilder.protocols(map).buildOkHttpClient();
+        Assert.assertEquals(2, client.protocols().size());
+        Assert.assertTrue(client.protocols().contains(Protocol.HTTP_2));
+        Assert.assertTrue(client.protocols().contains(Protocol.HTTP_1_1));
+        // HTTP_1_0 在 OkHttp 中已不支持
+        Assert.assertFalse(client.protocols().contains(Protocol.HTTP_1_0));
+
+        map.clear();
+        clientBuilder = new OkHttpClientBuilder();
+        map.put("disableHttp2", true);
+        client = clientBuilder.protocols(map).buildOkHttpClient();
+        Assert.assertEquals(1, client.protocols().size());
+        Assert.assertFalse(client.protocols().contains(Protocol.HTTP_2));
+        Assert.assertTrue(client.protocols().contains(Protocol.HTTP_1_1));
+        // HTTP_1_0 在 OkHttp 中已不支持
+        Assert.assertFalse(client.protocols().contains(Protocol.HTTP_1_0));
     }
 }
