@@ -113,6 +113,7 @@
             <artifactId>org.jacoco.agent</artifactId>
             <version>0.8.4</version>
             <classifier>runtime</classifier>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
