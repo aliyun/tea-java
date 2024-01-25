@@ -19,17 +19,20 @@
 ```
 
 ## 问题
+
 [提交 Issue](https://github.com/aliyun/tea-java/issues/new)，不符合指南的问题可能会立即关闭。
 
 ## 发行说明
+
 每个版本的详细更改记录在[发行说明](./ChangeLog.txt)中。
 
 ## 相关
-* [OpenAPI 开发者门户](https://next.api.aliyun.com/)
+
+* [OpenAPI 开发者门户](https://api.aliyun.com/)
 * [最新源码](https://github.com/aliyun/tea-java)
 
 ## 许可证
+
 [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 Copyright 2009-present Alibaba Cloud All rights reserved.
-
