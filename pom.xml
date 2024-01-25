@@ -129,7 +129,7 @@
                 <configuration>
                     <encoding>UTF-8</encoding>
                 </configuration>
-                <version>3.1.0</version>
+                <version>3.3.1</version>
             </plugin>
 
             <plugin>
