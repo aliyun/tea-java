@@ -18,16 +18,20 @@
 ```
 
 ## Issues
+
 [Opening an Issue](https://github.com/aliyun/tea-java/issues/new), Issues not conforming to the guidelines may be closed immediately.
 
 ## Changelog
+
 Detailed changes for each release are documented in the [release notes](./ChangeLog.txt).
 
 ## References
-* [OpenAPI Developer Portal](https://next.api.aliyun.com/)
+
+* [OpenAPI Developer Portal](https://api.aliyun.com/)
 * [Latest Release](https://github.com/aliyun/tea-java)
 
 ## License
+
 [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 Copyright 2009-present Alibaba Cloud All rights reserved.
