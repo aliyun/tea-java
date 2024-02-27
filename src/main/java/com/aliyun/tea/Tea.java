@@ -146,6 +146,10 @@ public class Tea {
         return e instanceof TeaRetryableException;
     }
 
+    public static boolean isRetryable(RetryOption retryOption) {
+        return retryOption.shoudRetry();
+    }
+
     public static InputStream toReadable(String string) {
         try {
             return toReadable(string.getBytes("UTF-8"));
