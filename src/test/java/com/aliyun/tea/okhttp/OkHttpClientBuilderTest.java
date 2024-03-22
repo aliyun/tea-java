@@ -103,7 +103,7 @@ public class OkHttpClientBuilderTest {
         OkHttpClientBuilder builder = new OkHttpClientBuilder().certificate(map);
 
         OkHttpClient client = builder.buildOkHttpClient();
-        Assert.assertTrue(client.hostnameVerifier() instanceof TrueHostnameVerifier);
+        Assert.assertFalse(client.hostnameVerifier() instanceof TrueHostnameVerifier);
         Assert.assertNotNull(client.sslSocketFactory());
 
         map.put("key", null);
