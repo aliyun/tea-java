@@ -120,8 +120,7 @@ public class OkHttpClientBuilder {
                 sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null
                         , trustManagerFactory.getTrustManagers()
                         , new SecureRandom());
-                this.builder.sslSocketFactory(sslContext.getSocketFactory(), trustManager).
-                        hostnameVerifier(new TrueHostnameVerifier());
+                this.builder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
             }
             return this;
         } catch (Exception e) {
