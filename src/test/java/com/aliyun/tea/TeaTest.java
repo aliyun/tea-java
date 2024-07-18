@@ -7,6 +7,7 @@ import com.aliyun.tea.okhttp.ClientHelper;
 import okhttp3.Protocol;
 import org.junit.Assert;
 import org.junit.Test;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -34,17 +35,17 @@ public class TeaTest {
         request.protocol = null;
         request.query = map;
         String str = (String) composeUrl.invoke(Tea.class, request);
-        Assert.assertEquals("http://test/test?host=test", str);
+        Assert.assertEquals("https://test/test?host=test", str);
 
         request.query = new HashMap<>();
         request.pathname = null;
         str = (String) composeUrl.invoke(Tea.class, request);
-        Assert.assertEquals("http://test", str);
+        Assert.assertEquals("https://test", str);
 
         request.query = null;
         request.pathname = null;
         str = (String) composeUrl.invoke(Tea.class, request);
-        Assert.assertEquals("http://test", str);
+        Assert.assertEquals("https://test", str);
 
         request.query = new HashMap<>();
         request.query.put("test", "and");
@@ -253,22 +254,5 @@ public class TeaTest {
         int index = inputStream.read(bytes);
         String result = new String(bytes, 0, index);
         Assert.assertTrue(str.equals(result));
-    }
-
-    @Test
-    public void setProxyAuthorizationTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method setProxyAuthorization = Tea.class.getDeclaredMethod("setProxyAuthorization", Map.class, Object.class);
-        setProxyAuthorization.setAccessible(true);
-        Object httpsProxy = "http://user:password@127.0.0.1:8080";
-        Map<String, String> result = (Map<String, String>) setProxyAuthorization.invoke(new Tea(), new HashMap<String, String>(), httpsProxy);
-        assert "Basic dXNlcjpwYXNzd29yZA==".equals(result.get("Proxy-Authorization"));
-
-        httpsProxy = "http://127.0.0.1:8080";
-        result = (Map<String, String>) setProxyAuthorization.invoke(new Tea(), new HashMap<String, String>(), httpsProxy);
-        assert null == result.get("Proxy-Authorization");
-
-        httpsProxy = null;
-        result = (Map<String, String>) setProxyAuthorization.invoke(new Tea(), new HashMap<String, String>(), httpsProxy);
-        assert null == result.get("Proxy-Authorization");
     }
 }

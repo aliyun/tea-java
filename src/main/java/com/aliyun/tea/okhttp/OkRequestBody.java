@@ -11,8 +11,8 @@ import java.io.InputStream;
 
 public class OkRequestBody extends RequestBody {
 
-    private InputStream inputStream;
-    private String contentType;
+    private final InputStream inputStream;
+    private final String contentType;
 
     public OkRequestBody(TeaRequest teaRequest) {
         this.inputStream = teaRequest.body;

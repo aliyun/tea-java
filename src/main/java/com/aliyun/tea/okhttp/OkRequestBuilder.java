@@ -8,7 +8,7 @@ import java.util.Map;
 
 
 public class OkRequestBuilder {
-    private Request.Builder builder;
+    private final Request.Builder builder;
 
     public OkRequestBuilder(Request.Builder builder) {
         this.builder = builder;

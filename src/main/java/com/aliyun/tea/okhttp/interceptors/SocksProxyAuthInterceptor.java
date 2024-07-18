@@ -5,8 +5,8 @@ import okhttp3.*;
 import java.io.IOException;
 
 public class SocksProxyAuthInterceptor implements Interceptor {
-    private String user;
-    private String password;
+    private final String user;
+    private final String password;
 
     public SocksProxyAuthInterceptor(String user, String password) {
         this.user = user;
