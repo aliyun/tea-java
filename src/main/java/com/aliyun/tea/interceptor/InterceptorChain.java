@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 public class InterceptorChain implements AutoCloseable {
-    private List<RuntimeOptionsInterceptor> runtimeOptionsInterceptors = new ArrayList<>();
-    private List<RequestInterceptor> requestInterceptors = new ArrayList<>();
-    private List<ResponseInterceptor> responseInterceptors = new ArrayList<>();
+    private final List<RuntimeOptionsInterceptor> runtimeOptionsInterceptors = new ArrayList<>();
+    private final List<RequestInterceptor> requestInterceptors = new ArrayList<>();
+    private final List<ResponseInterceptor> responseInterceptors = new ArrayList<>();
 
     private InterceptorChain() {
     }
@@ -41,29 +41,26 @@ public class InterceptorChain implements AutoCloseable {
     }
 
     public InterceptorContext modifyRuntimeOptions(InterceptorContext context, AttributeMap attributes) {
-        InterceptorContext result = context;
         for (RuntimeOptionsInterceptor interceptor : runtimeOptionsInterceptors) {
-            Map<String, Object> interceptorResult = interceptor.modifyRuntimeOptions(result, attributes);
-            result.setRuntimeOptions(interceptorResult);
+            Map<String, Object> interceptorResult = interceptor.modifyRuntimeOptions(context, attributes);
+            context.setRuntimeOptions(interceptorResult);
         }
-        return result;
+        return context;
     }
 
     public InterceptorContext modifyRequest(InterceptorContext context, AttributeMap attributes) {
-        InterceptorContext result = context;
         for (RequestInterceptor interceptor : requestInterceptors) {
-            TeaRequest interceptorResult = interceptor.modifyRequest(result, attributes);
-            result.setTeaRequest(interceptorResult);
+            TeaRequest interceptorResult = interceptor.modifyRequest(context, attributes);
+            context.setTeaRequest(interceptorResult);
         }
-        return result;
+        return context;
     }
 
     public InterceptorContext modifyResponse(InterceptorContext context, AttributeMap attributes) {
-        InterceptorContext result = context;
         for (ResponseInterceptor interceptor : responseInterceptors) {
-            TeaResponse interceptorResult = interceptor.modifyResponse(result, attributes);
-            result.setTeaResponse(interceptorResult);
+            TeaResponse interceptorResult = interceptor.modifyResponse(context, attributes);
+            context.setTeaResponse(interceptorResult);
         }
-        return result;
+        return context;
     }
 }

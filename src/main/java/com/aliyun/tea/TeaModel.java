@@ -29,7 +29,7 @@ public class TeaModel {
 
     private static Map<String, Object> toMap(Object object, Boolean exceptStream) {
         Map<String, Object> map = new HashMap<String, Object>();
-        if (null != object && object instanceof Map) {
+        if (object instanceof Map) {
             return (Map<String, Object>) object;
         }
         if (null == object || !TeaModel.class.isAssignableFrom(object.getClass())) {

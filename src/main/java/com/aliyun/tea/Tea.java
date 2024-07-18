@@ -19,7 +19,7 @@ public class Tea {
     private static String composeUrl(TeaRequest request) {
         Map<String, String> queries = request.query;
         String host = request.headers.get("host");
-        String protocol = null == request.protocol ? "http" : request.protocol;
+        String protocol = null == request.protocol ? "https" : request.protocol;
         StringBuilder urlBuilder = new StringBuilder();
         urlBuilder.append(protocol);
         urlBuilder.append("://").append(host);
@@ -29,7 +29,7 @@ public class Tea {
         if (null != request.pathname) {
             urlBuilder.append(request.pathname);
         }
-        if (queries != null && queries.size() > 0) {
+        if (queries != null && !queries.isEmpty()) {
             if (urlBuilder.indexOf("?") >= 1) {
                 urlBuilder.append("&");
             } else {
@@ -86,24 +86,6 @@ public class Tea {
         context.setTeaResponse(response);
         context = chain.modifyResponse(context, AttributeMap.empty());
         return context.teaResponse();
-    }
-
-    private static Map<String, String> setProxyAuthorization(Map<String, String> header, Object httpsProxy) {
-        try {
-            if (!StringUtils.isEmpty(httpsProxy)) {
-                URL proxyUrl = new URL(String.valueOf(httpsProxy));
-                String userInfo = proxyUrl.getUserInfo();
-                if (null != userInfo) {
-                    String[] userMessage = userInfo.split(":");
-                    String credential = Credentials.basic(userMessage[0], userMessage[1]);
-                    header.put("Proxy-Authorization", credential);
-                }
-            }
-            return header;
-        } catch (Exception e) {
-            throw new TeaException(e.getMessage(), e);
-        }
-
     }
 
     public static boolean allowRetry(Map<String, ?> map, int retryTimes, long now) {

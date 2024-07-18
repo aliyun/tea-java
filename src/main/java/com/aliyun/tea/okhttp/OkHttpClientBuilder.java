@@ -22,14 +22,14 @@ import java.util.concurrent.TimeUnit;
 
 public class OkHttpClientBuilder {
     private static final String charset = "UTF-8";
-    private OkHttpClient.Builder builder;
+    private final OkHttpClient.Builder builder;
 
     public OkHttpClientBuilder() {
         builder = new OkHttpClient().newBuilder();
     }
 
     public OkHttpClientBuilder protocols(Map<String, Object> map) {
-        if (map.containsKey("disableHttp2") && null != map.get("disableHttp2")) {
+        if (null != map.get("disableHttp2")) {
             Object object = map.get("disableHttp2");
             boolean disableHttp2 = false;
             try {
@@ -86,17 +86,16 @@ public class OkHttpClientBuilder {
 
     public OkHttpClientBuilder certificate(Map<String, Object> map) {
         try {
-            if (Boolean.parseBoolean(String.valueOf(map.get("ignoreSSL")))) {
+            if (null != map.get("ignoreSSL") && Boolean.parseBoolean(String.valueOf(map.get("ignoreSSL")))) {
                 X509TrustManager compositeX509TrustManager = new X509TrustManagerImp();
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(null, new TrustManager[]{compositeX509TrustManager}, new java.security.SecureRandom());
                 this.builder.sslSocketFactory(sslContext.getSocketFactory(), compositeX509TrustManager).
                         hostnameVerifier(new TrueHostnameVerifier());
-            } else if (map.containsKey("ca") && !StringUtils.isEmpty(map.get("ca"))) {
+            } else if (!StringUtils.isEmpty(map.get("ca"))) {
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 KeyManagerFactory keyManagerFactory = null;
-                if (map.containsKey("key") && !StringUtils.isEmpty(map.get("key"))
-                        && map.containsKey("cert") && !StringUtils.isEmpty(map.get("cert"))) {
+                if (!StringUtils.isEmpty(map.get("key")) && !StringUtils.isEmpty(map.get("cert"))) {
                     KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
                     String cert = String.valueOf(map.get("cert"));
                     try (InputStream is = new ByteArrayInputStream(cert.getBytes(charset))) {
