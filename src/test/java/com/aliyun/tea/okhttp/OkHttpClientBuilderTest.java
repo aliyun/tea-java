@@ -1,7 +1,7 @@
 package com.aliyun.tea.okhttp;
 
 import com.aliyun.tea.TeaException;
-import com.aliyun.tea.utils.TrueHostnameVerifier;
+import com.aliyun.tea.utils.DefaultHostnameVerifier;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import org.junit.Assert;
@@ -103,7 +103,7 @@ public class OkHttpClientBuilderTest {
         OkHttpClientBuilder builder = new OkHttpClientBuilder().certificate(map);
 
         OkHttpClient client = builder.buildOkHttpClient();
-        Assert.assertFalse(client.hostnameVerifier() instanceof TrueHostnameVerifier);
+        Assert.assertFalse(client.hostnameVerifier() instanceof DefaultHostnameVerifier);
         Assert.assertNotNull(client.sslSocketFactory());
 
         map.put("key", null);
