@@ -1,3 +1,6 @@
+2024-08-19 Version: 1.3.1
+1. Optimize SSLSocketFactory implementation.
+
 2024-07-22 Version: 1.3.0
 1. Resolve http client builder when runtime not same.
 2. Security reinforcement for HTTP requests.
