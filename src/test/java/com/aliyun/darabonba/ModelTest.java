@@ -1,0 +1,805 @@
+package com.aliyun.darabonba;
+
+import com.aliyun.darabonba.logging.DefaultLogger;
+import com.google.gson.internal.LinkedTreeMap;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class ModelTest {
+
+    public static class MockModel extends Model {
+        @NameInMap("sub_model")
+        public SubModel subModel;
+    }
+
+    public static class MockAdvanceModel extends Model {
+        public MockModel m;
+        public String test;
+    }
+
+    public static class SubModel extends Model {
+        public String accessToken;
+
+        @NameInMap("access_key_id")
+        public String accessKeyId;
+
+        @NameInMap("listTest")
+        public List<String> list;
+
+        @NameInMap("size")
+        public Long size;
+
+        @NameInMap("limit")
+        public Integer limit;
+
+        @NameInMap("doubleTest")
+        public Double doubleTest;
+
+        @NameInMap("floatTest")
+        public Float floatTest;
+
+        @NameInMap("boolTest")
+        public Boolean boolTest;
+
+        @NameInMap("teaModel")
+        public BaseDriveResponse baseDriveResponse;
+
+        @NameInMap("readable")
+        public InputStream readable;
+
+        @NameInMap("writeable")
+        public OutputStream writeable;
+
+        @NameInMap("mapTest")
+        public Map<String, Object> mapTest;
+
+        @NameInMap("listMapTest")
+        public List<Map<String, Object>> listMapTest;
+    }
+
+    @Test
+    public void toModelTest() {
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "info");
+        Map<String, Object> map = new HashMap<>();
+        ArrayList testList = new ArrayList();
+        testList.add("test");
+        testList.add(1);
+        testList.add(true);
+        map.put("listTest", testList);
+        SubModel submodel = Model.toModel(map, new SubModel());
+        Assert.assertNull(submodel.accessKeyId);
+        Assert.assertNull(submodel.limit);
+        Assert.assertNull(submodel.size);
+        Assert.assertNull(submodel.accessToken);
+        Assert.assertEquals("test", submodel.list.get(0));
+        Assert.assertEquals("1", submodel.list.get(1));
+        Assert.assertEquals("true", submodel.list.get(2));
+
+        map.put("accessToken", null);
+        map.put("limit", 1);
+        map.put("size", 1);
+        map.put("access_key_id", "test");
+        List list = new ArrayList();
+        list.add("test");
+        map.put("list", list);
+        map.put("boolTest", true);
+        map.put("doubleTest", 0.1f);
+        map.put("floatTest", 0.1D);
+        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
+        baseDriveResponse.driveId = "1";
+        map.put("teaModel", baseDriveResponse);
+        submodel = Model.toModel(map, new SubModel());
+        Assert.assertEquals("test", submodel.accessKeyId);
+        Assert.assertEquals(1, (int) submodel.limit);
+        Assert.assertEquals(1L, (long) submodel.size);
+        Assert.assertNull(submodel.accessToken);
+        Assert.assertEquals("test", submodel.list.get(0));
+        Assert.assertEquals(0.1D, submodel.doubleTest, 0.0);
+        Assert.assertEquals(0.1f, submodel.floatTest, 0.0);
+        Assert.assertTrue(submodel.boolTest);
+        Assert.assertEquals("1", submodel.baseDriveResponse.driveId);
+
+        Map<String, Object> teaModelMap = new HashMap<>();
+        teaModelMap.put("driveId", 2);
+        map.put("teaModel", teaModelMap);
+        submodel = Model.toModel(map, new SubModel());
+        Assert.assertEquals("2", submodel.baseDriveResponse.driveId);
+
+        Map<String, Object> mapTest = new HashMap<>();
+        mapTest.put("str", "test");
+        mapTest.put("bool", false);
+        mapTest.put("num", 0);
+        mapTest.put("null", null);
+        map.put("mapTest", mapTest);
+        List<Map<String, Object>> listMapTest = new ArrayList<>();
+        listMapTest.add(null);
+        listMapTest.add(mapTest);
+        listMapTest.add(null);
+        map.put("listMapTest", listMapTest);
+        submodel = Model.toModel(map, new SubModel());
+        Assert.assertEquals("test", submodel.mapTest.get("str"));
+        Assert.assertEquals(false, submodel.mapTest.get("bool"));
+        Assert.assertEquals(0, submodel.mapTest.get("num"));
+        Assert.assertNull(submodel.mapTest.get("null"));
+        Assert.assertNull(submodel.listMapTest.get(0));
+        Assert.assertEquals(4, submodel.listMapTest.get(1).size());
+        Assert.assertNull(submodel.listMapTest.get(2));
+
+        map.clear();
+        List<BaseDriveResponse> baseDriveResponseList = new ArrayList<>();
+        baseDriveResponseList.add(baseDriveResponse);
+        map.put("itemsTest", baseDriveResponseList);
+        ListDriveResponse listDriveResponse = new ListDriveResponse();
+        listDriveResponse = Model.toModel(map, listDriveResponse);
+        Assert.assertEquals("1", listDriveResponse.items.get(0).driveId);
+
+        List<Map> mapList = new ArrayList<>();
+        mapList.add(teaModelMap);
+        map.put("itemsTest", mapList);
+        listDriveResponse = Model.toModel(map, listDriveResponse);
+        Assert.assertEquals("2", listDriveResponse.items.get(0).driveId);
+    }
+
+    @Test
+    public void toModelWithStream() {
+        SubModel submodel = new SubModel();
+        submodel.accessToken = "the access token";
+        submodel.accessKeyId = "the access key id";
+        submodel.readable = Core.toReadable("content");
+        submodel.writeable = Core.toWriteable();
+        MockModel model = new MockModel();
+        MockModel.build(Converter.buildMap(
+                new Pair("subModel", submodel)
+        ), model);
+        Assert.assertNotNull(model.subModel.readable);
+        Assert.assertNotNull(model.subModel.writeable);
+
+        MockAdvanceModel mockAdvanceModel = new MockAdvanceModel();
+        MockAdvanceModel.build(Converter.buildMap(
+                new Pair("m", model)
+        ), mockAdvanceModel);
+        Assert.assertNotNull(mockAdvanceModel.m.subModel.readable);
+        Assert.assertNotNull(mockAdvanceModel.m.subModel.writeable);
+    }
+
+    @Test
+    public void toMap() {
+        SubModel submodel = new SubModel();
+        submodel.accessToken = "the access token";
+        submodel.accessKeyId = "the access key id";
+        String str = "test";
+        submodel.readable = Core.toReadable(str);
+        submodel.writeable = Core.toWriteable();
+        ArrayList paramList = new ArrayList();
+        paramList.add("string0");
+        paramList.add("string1");
+        submodel.list = paramList;
+
+        Map<String, Object> map = submodel.toMap();
+        System.out.println(map.toString());
+        Assert.assertEquals(11, map.size());
+        Assert.assertEquals("the access key id", map.get("access_key_id"));
+        Assert.assertEquals("the access token", map.get("accessToken"));
+        ArrayList list = (ArrayList) map.get("listTest");
+        Assert.assertEquals("string0", list.get(0));
+        Assert.assertEquals("string1", list.get(1));
+    }
+
+    @Test
+    public void toMapAdvance() {
+        SubModel submodel = new SubModel();
+        submodel.accessKeyId = "access key id";
+        submodel.readable = Core.toReadable("content");
+        submodel.writeable = Core.toWriteable();
+        MockModel model = new MockModel();
+        model.subModel = submodel;
+        Map<String, Object> m = Model.toMap(model);
+        Map<String, Object> sub = (Map<String, Object>) m.get("sub_model");
+        Assert.assertEquals(11, sub.size()); // except Stream properties
+    }
+
+    @Test
+    public void buildTest() throws IllegalArgumentException, SecurityException {
+        Map<String, Object> map = new HashMap<String, Object>();
+        ListDriveResponse response = new ListDriveResponse();
+        ArrayList<BaseDriveResponse> list = new ArrayList<>();
+        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
+        list.add(baseDriveResponse);
+        map.put("nextMarker", "test");
+        map.put("items", list);
+        map.put("HasNameInMap", "test");
+        ListDriveResponse result = Model.build(map, response);
+        Assert.assertEquals("test", result.nextMarker);
+        Assert.assertEquals("test", result.hasNameInMap);
+        Assert.assertNotNull(result.items);
+
+        map.clear();
+        baseDriveResponse = new BaseDriveResponse();
+        baseDriveResponse.creator = "test";
+        ArrayList<BaseDriveResponse> mapList = new ArrayList<>();
+        mapList.add(baseDriveResponse);
+        baseDriveResponse.driveId = "driveId";
+        map.put("item", baseDriveResponse);
+        map.put("items", mapList);
+        result = Model.build(map, response);
+        Assert.assertEquals("test", result.items.get(0).creator);
+        Assert.assertEquals("driveId", result.item.driveId);
+
+        SubModel subModel = new SubModel();
+        map.clear();
+        ArrayList<String> stringList = new ArrayList<>();
+        stringList.add("test");
+        map.put("list", stringList);
+        map.put("boolTest", true);
+        map.put("doubleTest", 0.1f);
+        map.put("size", 1);
+        map.put("limit", 1);
+        SubModel subModelResult = Model.build(map, subModel);
+        Assert.assertEquals("test", subModelResult.list.get(0));
+        Assert.assertEquals(0.1D, subModelResult.doubleTest, 0.0);
+        Assert.assertEquals(1, (int) subModelResult.limit);
+        Assert.assertEquals(1L, (long) subModelResult.size);
+        Assert.assertTrue(subModelResult.boolTest);
+
+        map.clear();
+        ArrayList<String> strings = new ArrayList<>();
+        strings.add("test");
+        map.put("list", strings);
+        subModelResult = Model.build(map, subModel);
+        Assert.assertEquals("test", subModelResult.list.get(0));
+
+        List<Map> modelList = new ArrayList<>();
+        Map<String, Object> teaModelMap = new HashMap<>();
+        teaModelMap.put("driveId", "2");
+        modelList.add(teaModelMap);
+        map.put("items", modelList);
+        result = Model.build(map, new ListDriveResponse());
+        Assert.assertEquals("2", result.items.get(0).driveId);
+    }
+
+    @Test
+    public void mapNestedMapTest() {
+        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
+        baseDriveResponse.driveName = "test";
+
+        ListDriveResponse listDriveResponse = new ListDriveResponse();
+        List<BaseDriveResponse> items = new ArrayList<>();
+        items.add(baseDriveResponse);
+        listDriveResponse.items = items;
+
+        Map<String, Map<String, ListDriveResponse>> mapNestedMap = new HashMap<>();
+        Map<String, ListDriveResponse> subNestedMap = new HashMap<>();
+        subNestedMap.put("subNestedTeaModel", listDriveResponse);
+        mapNestedMap.put("subNestedMap", subNestedMap);
+
+        NestedTest nestedTest = new NestedTest();
+        nestedTest.mapnestedMap = mapNestedMap;
+
+        Map result = nestedTest.toMap();
+        Map result_mapNestedMap = (Map) result.get("MapNestedMap");
+        Map mapNestedMap_subNestedMap = (Map) result_mapNestedMap.get("subNestedMap");
+        Map subNestedMap_subNestedTeaModel = (Map) mapNestedMap_subNestedMap.get("subNestedTeaModel");
+        List subNestedTeaModel_items = (List) subNestedMap_subNestedTeaModel.get("itemsTest");
+        Map baseDriveResponseMap = (Map) subNestedTeaModel_items.get(0);
+        String drive_name = (String) baseDriveResponseMap.get("drive_name");
+        Assert.assertEquals("test", drive_name);
+
+        NestedTest resultModel = Model.build(result, new NestedTest());
+        result_mapNestedMap = resultModel.mapnestedMap;
+        mapNestedMap_subNestedMap = (Map) result_mapNestedMap.get("subNestedMap");
+        ListDriveResponse resultListDriveResponse = (ListDriveResponse) mapNestedMap_subNestedMap.get("subNestedTeaModel");
+        subNestedTeaModel_items = resultListDriveResponse.items;
+        BaseDriveResponse resultBaseDriveResponse = (BaseDriveResponse) subNestedTeaModel_items.get(0);
+        Assert.assertEquals("test", resultBaseDriveResponse.driveName);
+    }
+
+    @Test
+    public void listNestedListTest() {
+        Map<String, String> map = new HashMap<>();
+        map.put("test", "test");
+
+        List<Map<String, ?>> list = new ArrayList<Map<String, ?>>();
+        list.add(map);
+
+        List<List<Map<String, ?>>> listNestedList = new ArrayList<List<Map<String, ?>>>();
+        listNestedList.add(list);
+
+        NestedTest nestedTest = new NestedTest();
+        nestedTest.listNestedList = listNestedList;
+
+        Map<String, Object> resultMap = Model.buildMap(nestedTest);
+        List<List<Map<String, String>>> resultMap_ListNestedList = (List<List<Map<String, String>>>) resultMap.get("ListNestedList");
+        List<Map<String, String>> listNestedList_list = resultMap_ListNestedList.get(0);
+        Map<String, String> list_map = listNestedList_list.get(0);
+        Assert.assertEquals("test", list_map.get("test"));
+
+        NestedTest resultTeaModel = Model.toModel(resultMap, new NestedTest());
+        List<List<Map<String, ?>>> resultTeaModel_ListNestedList = resultTeaModel.listNestedList;
+        List<Map<String, ?>> listNestedList_result = resultTeaModel_ListNestedList.get(0);
+        Map<String, ?> result_map = listNestedList_result.get(0);
+        Assert.assertEquals("test", result_map.get("test"));
+    }
+
+    @Test
+    public void wildcardTest() {
+        List<Object> wildcardTest = new ArrayList<Object>();
+        wildcardTest.add(1);
+
+        NestedTest nestedTest = new NestedTest();
+        nestedTest.wildcardTest = wildcardTest;
+
+        Map<String, Object> resultMap = Model.buildMap(nestedTest);
+        NestedTest result = Model.toModel(resultMap, new NestedTest());
+        Assert.assertEquals(1, result.wildcardTest.get(0));
+    }
+
+    public class NestedTest extends Model {
+        @NameInMap("MapNestedMap")
+        public Map<String, Map<String, ListDriveResponse>> mapnestedMap;
+
+        @NameInMap("ListNestedList")
+        public List<List<Map<String, ?>>> listNestedList;
+
+        @NameInMap("WildcardTest")
+        public List<?> wildcardTest;
+    }
+
+    public static class BaseDriveResponse extends Model {
+        @NameInMap("creator")
+        public String creator;
+
+        @NameInMap("driveId")
+        public String driveId;
+
+        @NameInMap("drive_name")
+        public String driveName;
+    }
+
+    public static class ListDriveResponse extends Model {
+        @NameInMap("itemsTest")
+        public List<BaseDriveResponse> items;
+
+        @NameInMap("nextMarker")
+        public String nextMarker;
+
+        @NameInMap("baseItem")
+        public BaseDriveResponse item;
+
+        public String noNameInMap;
+
+        @NameInMap("HasNameInMap")
+        public String hasNameInMap;
+    }
+
+    public static class Hello extends Model {
+        @NameInMap("message")
+        @Validation(pattern = "test")
+        public String message;
+    }
+
+    @Test
+    public void parseNumberTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Class teaModel = Model.class;
+        Method parseNumber = teaModel.getDeclaredMethod("parseNumber", Object.class, Class.class);
+        parseNumber.setAccessible(true);
+        Object arg = null;
+
+        arg = 2D;
+        Object result = parseNumber.invoke(teaModel, arg, Integer.class);
+        Assert.assertEquals(2, result);
+
+        arg = 2D;
+        result = parseNumber.invoke(teaModel, arg, int.class);
+        Assert.assertEquals(2, result);
+
+        arg = 2L;
+        result = parseNumber.invoke(teaModel, arg, Integer.class);
+        Assert.assertEquals(2L, result);
+
+        arg = 2D;
+        result = parseNumber.invoke(teaModel, arg, double.class);
+        Assert.assertEquals(2D, result);
+
+        arg = Integer.MAX_VALUE + 1D;
+        result = parseNumber.invoke(teaModel, arg, Long.class);
+        Assert.assertEquals(Integer.MAX_VALUE + 1L, result);
+
+        arg = Integer.MAX_VALUE + 1D;
+        result = parseNumber.invoke(teaModel, arg, long.class);
+        Assert.assertEquals(Integer.MAX_VALUE + 1L, result);
+
+        arg = 2;
+        result = parseNumber.invoke(teaModel, arg, Long.class);
+        Assert.assertEquals(2, result);
+    }
+
+    @Test
+    public void toMapNoParamTest() {
+        ListDriveResponse response = new ListDriveResponse();
+        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
+        baseDriveResponse.driveId = "1";
+        ArrayList<BaseDriveResponse> baseDriveResponses = new ArrayList<>();
+        baseDriveResponses.add(baseDriveResponse);
+        response.items = baseDriveResponses;
+        response.item = baseDriveResponse;
+        response.nextMarker = "test";
+        Map<String, Object> map = response.toMap();
+        Assert.assertEquals(response.nextMarker, map.get("nextMarker"));
+        Assert.assertEquals(baseDriveResponse.driveId, ((Map) map.get("baseItem")).get("driveId"));
+        Assert.assertEquals(baseDriveResponse.driveId, ((Map) ((List) map.get("itemsTest")).get(0)).get("driveId"));
+    }
+
+    @Test
+    public void toMapOneParamTest() {
+        Map<String, Object> nullMap = new HashMap<>();
+        Assert.assertEquals(0, Model.toMap(nullMap).size());
+
+        Assert.assertEquals(0, Model.toMap(null).size());
+        Assert.assertEquals(0, Model.toMap("test").size());
+        ListDriveResponse response = new ListDriveResponse();
+        BaseDriveResponse baseDriveResponse = new BaseDriveResponse();
+        baseDriveResponse.driveId = "1";
+        ArrayList<BaseDriveResponse> baseDriveResponses = new ArrayList<>();
+        baseDriveResponses.add(baseDriveResponse);
+        response.items = baseDriveResponses;
+        response.item = baseDriveResponse;
+        response.nextMarker = "test";
+        Map<String, Object> map = Model.toMap(response);
+        Assert.assertEquals(response.nextMarker, map.get("nextMarker"));
+        Assert.assertEquals(baseDriveResponse.driveId, ((Map) map.get("baseItem")).get("driveId"));
+        Assert.assertEquals(baseDriveResponse.driveId, ((Map) ((List) map.get("itemsTest")).get(0)).get("driveId"));
+
+        SubModel submodel = new SubModel();
+        ArrayList<String> list = new ArrayList<>();
+        list.add("test");
+        submodel.list = list;
+        map = Model.toMap(submodel);
+        Assert.assertEquals("test", ((List) map.get("listTest")).get(0));
+    }
+
+    public static class ValidateParamModel extends Model {
+        public String nullValidation;
+        @Validation
+        public String nullObject;
+        @Validation
+        public String notNullObject = "test";
+        @Validation(pattern = "[1-9]")
+        public Map<String, Hello[]> hasPattern = new HashMap<>();
+        @Validation(pattern = "[1-9]")
+        public Map<String, String> hasStringPattern = new HashMap<>();
+        @Validation(required = true)
+        public String requiredTrue = "test";
+        @Validation(maximum = 10)
+        public Long minNum;
+        @Validation(minimum = -10)
+        public Long maxNum;
+    }
+
+    @Test
+    public void validateMapTest() throws NoSuchMethodException {
+        Method validateMap = Model.class.getDeclaredMethod("validateMap", String.class, int.class, int.class, double.class, double.class, Map.class, String.class);
+        Map<String, Object> map = new HashMap<>();
+        map.put("1", null);
+        map.put("2", "test");
+        map.put("3", 1);
+        map.put("4", 10);
+        validateMap.setAccessible(true);
+        try {
+            validateMap.invoke(new ValidateParamModel(), "test", 4, 0, 10d, 0d, map, "test");
+            validateMap.invoke(new ValidateParamModel(), "[1-9]", 0, 0, 10d, 0d, map, "test");
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test regular match failed", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void determineTypeTest() throws NoSuchMethodException {
+        Method determineType = Model.class.getDeclaredMethod("determineType",
+                Class.class, Object.class, String.class, int.class, int.class, double.class, double.class, String.class);
+        determineType.setAccessible(true);
+        ValidateParamModel validateParamModel = new ValidateParamModel();
+        Map<String, Object> map = new HashMap<>();
+        map.put("test", "test");
+
+        try {
+            determineType.invoke(validateParamModel, map.getClass(), map, "test", 1, 0, 10d, 0d, "test");
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test exceeds the maximum length", e.getCause().getMessage());
+        }
+
+        try {
+            determineType.invoke(validateParamModel, map.getClass(), map, "[1-9]", 0, 0, 10d, 0d, "test");
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test regular match failed", e.getCause().getMessage());
+        }
+
+        try {
+            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "test", 4, 0, 10d, 0d, "test");
+            validateParamModel.hasStringPattern.put("test", "test");
+            determineType.invoke(new ValidateParamModel(), validateParamModel.getClass(), validateParamModel, "[1-9]", 0, 0, 10d, 0d, "test");
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.hasStringPattern regular match failed", e.getCause().getMessage());
+        }
+
+        List<String> list = new ArrayList<>();
+        list.add("test");
+        try {
+            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "test", 0, 10, 10d, 0d, "test");
+            determineType.invoke(new ValidateParamModel(), list.getClass(), list, "[1-9]", 0, 0, 10d, 0d, "test");
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test less than minimum length", e.getCause().getMessage());
+        }
+        String[] strs = new String[]{"test"};
+        try {
+            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "test", 0, 0, 10d, 0d, "test");
+            determineType.invoke(new ValidateParamModel(), strs.getClass(), strs, "[1-9]", 0, 0, 10d, 0d, "test");
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test regular match failed", e.getCause().getMessage());
+        }
+        Integer number = 11;
+        try {
+            determineType.invoke(new ValidateParamModel(), number.getClass(), number, "test", 0, 0, 20d, 0d, "test");
+            determineType.invoke(new ValidateParamModel(), number.getClass(), number, "[1-9]", 0, 0, 10d, 0d, "test");
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.test exceeds the maximum", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void validateTest() throws NoSuchMethodException {
+        Method validate = Model.class.getDeclaredMethod("validate");
+        validate.setAccessible(true);
+        ValidateParamModel validateParamModel = new ValidateParamModel();
+        try {
+            validateParamModel.requiredTrue = null;
+            validateParamModel.validate();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("Field requiredTrue is required", e.getMessage());
+        }
+
+        try {
+            validateParamModel.requiredTrue = "test";
+            Hello[] hellos = new Hello[]{new Hello()};
+            hellos[0].message = "test";
+            validateParamModel.hasPattern.put("test", hellos);
+            validateParamModel.validate();
+            hellos[0].message = "0";
+            validateParamModel.hasPattern.put("test", hellos);
+            validateParamModel.validate();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$Hello.message regular match failed", e.getMessage());
+        }
+
+        try {
+            validateParamModel.requiredTrue = "test";
+            Hello[] hellos = new Hello[]{new Hello()};
+            hellos[0].message = "test";
+            validateParamModel.hasPattern.put("test", hellos);
+            validateParamModel.hasPattern.put("test", hellos);
+            validateParamModel.maxNum = Long.MAX_VALUE;
+            validateParamModel.minNum = Long.MIN_VALUE;
+            validateParamModel.validate();
+        } catch (Exception e) {
+            Assert.fail();
+        }
+
+        try {
+            validateParamModel.requiredTrue = "test";
+            validateParamModel.maxNum = -11L;
+            validateParamModel.validate();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.maxNum less than minimum", e.getMessage());
+        }
+
+        try {
+            validateParamModel.requiredTrue = "test";
+            validateParamModel.minNum = 11L;
+            validateParamModel.validate();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.tea.TeaModelTest$ValidateParamModel.minNum exceeds the maximum", e.getMessage());
+        }
+    }
+
+    @Test
+    public void buildMapTest() {
+        Model teaModel = null;
+        Assert.assertNull(Model.buildMap(teaModel));
+
+        teaModel = new ValidateParamModel();
+        Assert.assertEquals(8, Model.buildMap(teaModel).size());
+    }
+
+    @Test
+    public void validateParamsTest() {
+        Model teaModel = new ValidateParamModel();
+        try {
+            Model.validateParams(teaModel, "test");
+            teaModel = null;
+            Model.validateParams(teaModel, "test");
+            Assert.fail();
+        } catch (ValidateException e) {
+            Assert.assertEquals("parameter test is not allowed as null", e.getMessage());
+        }
+    }
+
+    @Test
+    public void confirmTypeTest() {
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "info");
+        String str = "1";
+        Object object = Model.confirmType(Integer.class, str);
+        Assert.assertEquals(1, object);
+        Object object1 = Model.confirmType(String.class, object);
+        Assert.assertEquals("1", object1);
+        object = Model.confirmType(Double.class, str);
+        Assert.assertEquals(1.0D, object);
+        object1 = Model.confirmType(String.class, object);
+        Assert.assertEquals("1.0", object1);
+        object = Model.confirmType(Long.class, str);
+        Assert.assertEquals(1L, object);
+        object1 = Model.confirmType(String.class, object);
+        Assert.assertEquals("1", object1);
+        object = Model.confirmType(Float.class, str);
+        Assert.assertEquals(1.0F, object);
+        object1 = Model.confirmType(String.class, object);
+        Assert.assertEquals("1.0", object1);
+
+        String longStr = "9223372036854775807";
+        object1 = Model.confirmType(Long.class, longStr);
+        Assert.assertEquals(9223372036854775807L, object1);
+        object1 = Model.confirmType(Integer.class, longStr);
+        Assert.assertEquals(-1, object1);
+        object1 = Model.confirmType(Double.class, longStr);
+        Assert.assertEquals(9.223372036854776E18D, object1);
+        object1 = Model.confirmType(Float.class, longStr);
+        Assert.assertEquals(9.223372E18F, object1);
+        String numStr = "11111111111111111111111111111111111111111111111";
+        object1 = Model.confirmType(Long.class, numStr);
+        Assert.assertEquals(8915328949842375111L, object1);
+        object1 = Model.confirmType(Integer.class, numStr);
+        Assert.assertEquals(-954437177, object1);
+        object1 = Model.confirmType(Double.class, numStr);
+        Assert.assertEquals(1.111111111111111E46, object1);
+        object1 = Model.confirmType(Float.class, numStr);
+        Assert.assertTrue(Float.isInfinite((Float) object1));
+        BigInteger bigInteger = new BigInteger(numStr);
+        object1 = Model.confirmType(String.class, bigInteger);
+        Assert.assertEquals("11111111111111111111111111111111111111111111111", object1);
+
+        String boolStr1 = "true";
+        String boolStr2 = "false";
+        Object object2 = Model.confirmType(Boolean.class, boolStr1);
+        Assert.assertEquals(true, object2);
+        object2 = Model.confirmType(Boolean.class, boolStr2);
+        Assert.assertEquals(false, object2);
+        Integer boolInt1 = 1;
+        Integer boolInt2 = 0;
+        object2 = Model.confirmType(Boolean.class, boolInt1);
+        Assert.assertEquals(true, object2);
+        Object object3 = Model.confirmType(String.class, object2);
+        Assert.assertEquals("true", object3);
+        object3 = Model.confirmType(Integer.class, object2);
+        Assert.assertEquals(1, object3);
+        object2 = Model.confirmType(Boolean.class, boolInt2);
+        Assert.assertEquals(false, object2);
+        object3 = Model.confirmType(String.class, object2);
+        Assert.assertEquals("false", object3);
+        object3 = Model.confirmType(Integer.class, object2);
+        Assert.assertEquals(0, object3);
+        Long boolLong1 = 1L;
+        Long boolLong2 = 0L;
+        object2 = Model.confirmType(Boolean.class, boolLong1);
+        Assert.assertEquals(true, object2);
+        object2 = Model.confirmType(Boolean.class, boolLong2);
+        Assert.assertEquals(false, object2);
+
+        Integer integer = 2;
+        Object object4 = Model.confirmType(Double.class, integer);
+        Assert.assertEquals(2.0D, object4);
+        object4 = Model.confirmType(Long.class, integer);
+        Assert.assertEquals(2L, object4);
+        Object object5 = Model.confirmType(Double.class, object4);
+        Assert.assertEquals(2.0D, object5);
+        object4 = Model.confirmType(Float.class, integer);
+        Assert.assertEquals(2.0F, object4);
+        object5 = Model.confirmType(Double.class, object4);
+        Assert.assertEquals(2.0D, object5);
+
+        // 部分数值类型之间强制转换
+        Long longTest = 2L;
+        Object object6 = Model.confirmType(Integer.class, longTest);
+        Assert.assertEquals(2, object6);
+
+        object6 = Model.confirmType(Float.class, longTest);
+        Assert.assertEquals(2.0F, object6);
+
+        longTest = Long.MAX_VALUE;
+        object6 = Model.confirmType(Integer.class, longTest);
+        Assert.assertEquals(-1, object6);
+
+        object6 = Model.confirmType(Float.class, longTest);
+        Assert.assertEquals(9.223372E18F, object6);
+
+        object6 = Model.confirmType(Double.class, longTest);
+        Assert.assertEquals(9.223372036854776E18D, object6);
+
+        longTest = Long.parseLong(String.valueOf(Integer.MAX_VALUE));
+        object6 = Model.confirmType(Integer.class, longTest);
+        Assert.assertEquals(2147483647, object6);
+
+        Double doubleTest = 2.0D;
+        object6 = Model.confirmType(Float.class, doubleTest);
+        Assert.assertEquals(2.0F, object6);
+
+        doubleTest = Double.MAX_VALUE;
+        object6 = Model.confirmType(Float.class, doubleTest);
+        Float f = 1.0f;
+        Assert.assertTrue(Float.isInfinite((Float) object6));
+        Assert.assertTrue(Float.isInfinite((Float) object6 + f));
+        Assert.assertTrue(Float.isInfinite((Float) object6 * f));
+
+        doubleTest = Double.parseDouble(String.valueOf(Float.MAX_VALUE));
+        object6 = Model.confirmType(Float.class, doubleTest);
+        Assert.assertEquals(3.4028235E38F, object6);
+
+        Float floatTest = 2.0F;
+        object6 = Model.confirmType(Double.class, floatTest);
+        Assert.assertEquals(2.0D, object6);
+
+        floatTest = Float.MAX_VALUE;
+        object6 = Model.confirmType(Double.class, floatTest);
+        Assert.assertEquals(3.4028235E38D, object6);
+
+        floatTest = Float.MAX_VALUE;
+        object6 = Model.confirmType(Integer.class, floatTest);
+        Assert.assertEquals(-2147483648, object6);
+
+        floatTest = Float.MAX_VALUE;
+        object6 = Model.confirmType(Long.class, floatTest);
+        Assert.assertEquals(-483344729602260992L, object6);
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("test1", "1");
+        map.put("test2", 2);
+        map.put("test3", true);
+        Map<String, String> sub = new LinkedTreeMap<>();
+        sub.put("sub", "sub");
+        map.put("test4", sub);
+        object6 = Model.confirmType(String.class, map);
+        Assert.assertEquals(String.class, object6.getClass());
+        String mapStr = (String) object6;
+        Assert.assertTrue(mapStr.contains("\"test1\":\"1\""));
+        Assert.assertTrue(mapStr.contains("\"test2\":2"));
+        Assert.assertTrue(mapStr.contains("\"test3\":true"));
+        Assert.assertTrue(mapStr.contains("\"test4\":{\"sub\":\"sub\"}"));
+
+        List<Object> list = new ArrayList<Object>();
+        list.add("1");
+        list.add(2);
+        list.add(true);
+        list.add(sub);
+        object6 = Model.confirmType(String.class, list);
+        Assert.assertEquals("[\"1\",2,true,{\"sub\":\"sub\"}]", object6);
+
+    }
+}
