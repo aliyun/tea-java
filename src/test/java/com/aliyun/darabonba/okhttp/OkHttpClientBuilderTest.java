@@ -94,6 +94,14 @@ public class OkHttpClientBuilderTest {
             Assert.assertTrue(e.getMessage().contains("Unable to initialize"));
         }
 
+        map.put("ca", "-----BEGIN CERTIFICATE-----\nwrong ca-----END CERTIFICATE-----\n\n-----BEGIN CERTIFICATE-----\nwrong ca-----END CERTIFICATE-----");
+        try {
+            new OkHttpClientBuilder().certificate(map);
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertTrue(e.getMessage().contains("Unable to initialize"));
+        }
+
         map.put("ca", null);
         new OkHttpClientBuilder().certificate(map);
         map.put("ca", "");

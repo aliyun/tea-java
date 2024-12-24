@@ -16,13 +16,17 @@ import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class OkHttpClientBuilder {
     private static final String charset = "UTF-8";
     private final OkHttpClient.Builder builder;
+    public static final String PEM_BEGIN = "-----BEGIN CERTIFICATE-----";
+    public static final String PEM_END = "-----END CERTIFICATE-----";
 
     public OkHttpClientBuilder() {
         builder = new OkHttpClient().newBuilder();
@@ -84,6 +88,33 @@ public class OkHttpClientBuilder {
         return this;
     }
 
+    private List<String> splitPemCertificates(String pemData) throws Exception {
+        List<String> certificates = new ArrayList<String>();
+
+        if (null != pemData && pemData.contains(PEM_BEGIN) && pemData.contains(PEM_END)) {
+            StringBuilder sb = null;
+            BufferedReader reader = new BufferedReader(new StringReader(pemData));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains(PEM_BEGIN)) {
+                    sb = new StringBuilder();
+                    sb.append(PEM_BEGIN).append('\n');
+                } else if (null != sb && line.contains(PEM_END)) {
+                    sb.append(PEM_END).append('\n');
+                    certificates.add(sb.toString());
+                    sb = null;
+                } else if (null != sb) {
+                    sb.append(line).append('\n');
+                }
+            }
+        } else if (null != pemData) {
+            certificates.add(pemData);
+        }
+
+        return certificates;
+    }
+
     public OkHttpClientBuilder certificate(Map<String, Object> map) {
         try {
             if (null != map.get("ignoreSSL") && Boolean.parseBoolean(String.valueOf(map.get("ignoreSSL")))) {
@@ -107,12 +138,16 @@ public class OkHttpClientBuilder {
                 KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
                 trustStore.load(null);
                 String ca = String.valueOf(map.get("ca"));
+                List<String> pemCerts = splitPemCertificates(ca);
                 CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-                Certificate certificate;
-                try (InputStream is = new ByteArrayInputStream(ca.getBytes(charset))) {
-                    certificate = certFactory.generateCertificate(is);
+                int certIndex = 0;
+                // Process each certificate and add to the keystore
+                for (String pemCert : pemCerts) {
+                    try (InputStream is = new ByteArrayInputStream(pemCert.getBytes(charset))) {
+                        Certificate certificate = certFactory.generateCertificate(is);
+                        trustStore.setCertificateEntry("ca" + certIndex++, certificate);
+                    }
                 }
-                trustStore.setCertificateEntry("server-ca", certificate);
                 TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                 trustManagerFactory.init(trustStore);
                 X509TrustManager trustManager = (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
