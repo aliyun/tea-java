@@ -29,7 +29,7 @@ public class OkHttpClientBuilder {
     public static final String PEM_END = "-----END CERTIFICATE-----";
 
     public OkHttpClientBuilder() {
-        builder = new OkHttpClient().newBuilder();
+        builder = new OkHttpClient().newBuilder().retryOnConnectionFailure(false);
     }
 
     public OkHttpClientBuilder protocols(Map<String, Object> map) {
