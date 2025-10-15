@@ -134,6 +134,52 @@ public class OkHttpClientBuilderTest {
     }
 
     @Test
+    public void tlsMinVersionTest() {
+        map.clear();
+        map.put("ignoreSSL", true);
+
+        map.put("tlsMinVersion", "TLSv1.2");
+        OkHttpClientBuilder builder = new OkHttpClientBuilder().certificate(map);
+        OkHttpClient client = builder.buildOkHttpClient();
+        Assert.assertNotNull(client.sslSocketFactory());
+
+        map.clear();
+        map.put("ignoreSSL", true);
+        map.put("tlsMinVersion", "TLSv1");
+        builder = new OkHttpClientBuilder().certificate(map);
+        client = builder.buildOkHttpClient();
+        Assert.assertNotNull(client.sslSocketFactory());
+
+        map.clear();
+        map.put("ignoreSSL", true);
+        map.put("tlsMinVersion", "TLSv1.1");
+        builder = new OkHttpClientBuilder().certificate(map);
+        client = builder.buildOkHttpClient();
+        Assert.assertNotNull(client.sslSocketFactory());
+
+        map.clear();
+        map.put("ignoreSSL", true);
+        map.put("tlsMinVersion", "TLSv1.3");
+        builder = new OkHttpClientBuilder().certificate(map);
+        client = builder.buildOkHttpClient();
+        Assert.assertNotNull(client.sslSocketFactory());
+
+        map.clear();
+        map.put("ignoreSSL", true);
+        map.put("tlsMinVersion", null);
+        builder = new OkHttpClientBuilder().certificate(map);
+        client = builder.buildOkHttpClient();
+        Assert.assertNotNull(client.sslSocketFactory());
+
+        map.clear();
+        map.put("ignoreSSL", true);
+        map.put("tlsMinVersion", "");
+        builder = new OkHttpClientBuilder().certificate(map);
+        client = builder.buildOkHttpClient();
+        Assert.assertNotNull(client.sslSocketFactory());
+    }
+
+    @Test
     public void proxyTest() throws Exception {
         map.clear();
         OkHttpClientBuilder clientBuilder = Mockito.spy(new OkHttpClientBuilder());

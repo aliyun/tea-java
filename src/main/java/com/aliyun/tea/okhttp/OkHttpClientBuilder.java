@@ -115,13 +115,43 @@ public class OkHttpClientBuilder {
         return certificates;
     }
 
+    private String[] getEnabledProtocols(String tlsMinVersion) {
+        if (StringUtils.isEmpty(tlsMinVersion)) {
+            return null;
+        }
+
+        List<String> protocols = new ArrayList<>();
+        boolean foundMinVersion = false;
+
+        String[] allProtocols = {"TLSv1", "TLSv1.1", "TLSv1.2", "TLSv1.3"};
+        for (String protocol : allProtocols) {
+            if (protocol.equals(tlsMinVersion)) {
+                foundMinVersion = true;
+            }
+            if (foundMinVersion) {
+                protocols.add(protocol);
+            }
+        }
+
+        return protocols.isEmpty() ? null : protocols.toArray(new String[0]);
+    }
+
     public OkHttpClientBuilder certificate(Map<String, Object> map) {
         try {
             if (null != map.get("ignoreSSL") && Boolean.parseBoolean(String.valueOf(map.get("ignoreSSL")))) {
                 X509TrustManager compositeX509TrustManager = new X509TrustManagerImp(true);
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(null, new TrustManager[]{compositeX509TrustManager}, new java.security.SecureRandom());
-                this.builder.sslSocketFactory(sslContext.getSocketFactory(), compositeX509TrustManager).
+
+                SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+                String tlsMinVersion = map.get("tlsMinVersion") != null ? String.valueOf(map.get("tlsMinVersion")) : null;
+                String[] enabledProtocols = getEnabledProtocols(tlsMinVersion);
+
+                if (enabledProtocols != null) {
+                    sslSocketFactory = new TLSSocketFactory(sslSocketFactory, enabledProtocols);
+                }
+
+                this.builder.sslSocketFactory(sslSocketFactory, compositeX509TrustManager).
                         hostnameVerifier(DefaultHostnameVerifier.getInstance(true));
             } else if (!StringUtils.isEmpty(map.get("ca"))) {
                 SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -141,7 +171,6 @@ public class OkHttpClientBuilder {
                 List<String> pemCerts = splitPemCertificates(ca);
                 CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
                 int certIndex = 0;
-                // Process each certificate and add to the keystore
                 for (String pemCert : pemCerts) {
                     try (InputStream is = new ByteArrayInputStream(pemCert.getBytes(charset))) {
                         Certificate certificate = certFactory.generateCertificate(is);
@@ -154,13 +183,21 @@ public class OkHttpClientBuilder {
                 sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null
                         , trustManagerFactory.getTrustManagers()
                         , new SecureRandom());
-                this.builder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
+
+                SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+                String tlsMinVersion = map.get("tlsMinVersion") != null ? String.valueOf(map.get("tlsMinVersion")) : null;
+                String[] enabledProtocols = getEnabledProtocols(tlsMinVersion);
+
+                if (enabledProtocols != null) {
+                    sslSocketFactory = new TLSSocketFactory(sslSocketFactory, enabledProtocols);
+                }
+
+                this.builder.sslSocketFactory(sslSocketFactory, trustManager);
             }
             return this;
         } catch (Exception e) {
             throw new TeaException(e.getMessage(), e);
         }
-
     }
 
     public OkHttpClientBuilder proxy(Map<String, Object> map) {
@@ -217,5 +254,70 @@ public class OkHttpClientBuilder {
 
     public OkHttpClient buildOkHttpClient() {
         return this.builder.build();
+    }
+
+    private static class TLSSocketFactory extends SSLSocketFactory {
+        private final SSLSocketFactory delegate;
+        private final String[] enabledProtocols;
+
+        public TLSSocketFactory(SSLSocketFactory delegate, String[] enabledProtocols) {
+            this.delegate = delegate;
+            this.enabledProtocols = enabledProtocols;
+        }
+
+        @Override
+        public String[] getDefaultCipherSuites() {
+            return delegate.getDefaultCipherSuites();
+        }
+
+        @Override
+        public String[] getSupportedCipherSuites() {
+            return delegate.getSupportedCipherSuites();
+        }
+
+        @Override
+        public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException {
+            Socket sslSocket = delegate.createSocket(socket, host, port, autoClose);
+            if (sslSocket instanceof SSLSocket) {
+                ((SSLSocket) sslSocket).setEnabledProtocols(enabledProtocols);
+            }
+            return sslSocket;
+        }
+
+        @Override
+        public Socket createSocket(String host, int port) throws IOException {
+            Socket sslSocket = delegate.createSocket(host, port);
+            if (sslSocket instanceof SSLSocket) {
+                ((SSLSocket) sslSocket).setEnabledProtocols(enabledProtocols);
+            }
+            return sslSocket;
+        }
+
+        @Override
+        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException {
+            Socket sslSocket = delegate.createSocket(host, port, localHost, localPort);
+            if (sslSocket instanceof SSLSocket) {
+                ((SSLSocket) sslSocket).setEnabledProtocols(enabledProtocols);
+            }
+            return sslSocket;
+        }
+
+        @Override
+        public Socket createSocket(InetAddress host, int port) throws IOException {
+            Socket sslSocket = delegate.createSocket(host, port);
+            if (sslSocket instanceof SSLSocket) {
+                ((SSLSocket) sslSocket).setEnabledProtocols(enabledProtocols);
+            }
+            return sslSocket;
+        }
+
+        @Override
+        public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort) throws IOException {
+            Socket sslSocket = delegate.createSocket(address, port, localAddress, localPort);
+            if (sslSocket instanceof SSLSocket) {
+                ((SSLSocket) sslSocket).setEnabledProtocols(enabledProtocols);
+            }
+            return sslSocket;
+        }
     }
 }
