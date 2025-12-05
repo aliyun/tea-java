@@ -4,7 +4,7 @@ import com.aliyun.tea.utils.StringUtils;
 import okhttp3.Headers;
 import okhttp3.Response;
 
-import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +27,8 @@ public class TeaResponse {
         this.response = response;
         statusCode = response.code();
         statusMessage = response.message();
-        body = response.body().byteStream();
+        if (response.body() != null)
+            body = response.body().byteStream();
         Headers headers = response.headers();
         Map<String, List<String>> resultHeaders = headers.toMultimap();
         for (Map.Entry<String, List<String>> entry : resultHeaders.entrySet()) {
@@ -43,20 +44,12 @@ public class TeaResponse {
         if (null == body) {
             return String.format("{\"message\":\"%s\"}", statusMessage);
         }
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        byte[] buff = new byte[4096];
+
         try {
-            while (true) {
-                final int read = body.read(buff);
-                if (read == -1) {
-                    break;
-                }
-                os.write(buff, 0, read);
-            }
-        } catch (Exception e) {
+            return response.body().string();
+        } catch (IOException e) {
             throw new TeaException(e.getMessage(), e);
         }
-        return new String(os.toByteArray());
     }
 
 
