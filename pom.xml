@@ -130,7 +130,7 @@
                 <configuration>
                     <encoding>UTF-8</encoding>
                 </configuration>
-                <version>3.3.1</version>
+                <version>3.4.0</version>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
