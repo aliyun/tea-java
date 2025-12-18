@@ -1,3 +1,6 @@
+2025-12-08 Version: 1.4.1
+1. Support domain in runtimeOptions.
+
 2025-12-08 Version: 1.4.0
 1. Bump okhttp from 3.12.13 to 4.12.0.
 
