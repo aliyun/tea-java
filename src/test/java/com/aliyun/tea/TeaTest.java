@@ -24,7 +24,7 @@ public class TeaTest {
     @Test
     public void composeUrlTest() throws NoSuchMethodException, InvocationTargetException,
             IllegalAccessException {
-        Method composeUrl = Tea.class.getDeclaredMethod("composeUrl", TeaRequest.class);
+        Method composeUrl = Tea.class.getDeclaredMethod("composeUrl", TeaRequest.class, Map.class);
         composeUrl.setAccessible(true);
         TeaRequest request = new TeaRequest();
         Map<String, String> map = new HashMap<>();
@@ -34,27 +34,28 @@ public class TeaTest {
         request.pathname = "/test";
         request.protocol = null;
         request.query = map;
-        String str = (String) composeUrl.invoke(Tea.class, request);
+        Map<String, Object> runtimeOptions = new HashMap<>();
+        String str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
         Assert.assertEquals("https://test/test?host=test", str);
 
         request.query = new HashMap<>();
         request.pathname = null;
-        str = (String) composeUrl.invoke(Tea.class, request);
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
         Assert.assertEquals("https://test", str);
 
         request.query = null;
         request.pathname = null;
-        str = (String) composeUrl.invoke(Tea.class, request);
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
         Assert.assertEquals("https://test", str);
 
         request.query = new HashMap<>();
         request.query.put("test", "and");
         request.pathname = "?test";
         request.protocol = "HTTP";
-        str = (String) composeUrl.invoke(Tea.class, request);
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
         Assert.assertEquals("HTTP://test?test&test=and", str);
         request.query.put("test", "null");
-        str = (String) composeUrl.invoke(Tea.class, request);
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
         Assert.assertEquals("HTTP://test?test&test=null", str);
 
         request.query = new HashMap<>();
@@ -62,14 +63,45 @@ public class TeaTest {
         request.pathname = "/test";
         request.protocol = "http";
         request.port = 80;
-        str = (String) composeUrl.invoke(Tea.class, request);
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
         Assert.assertEquals("http://test:80/test?host=test", str);
         request.port = 443;
-        str = (String) composeUrl.invoke(Tea.class, request);
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
         Assert.assertEquals("http://test:443/test?host=test", str);
         request.port = null;
-        str = (String) composeUrl.invoke(Tea.class, request);
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
         Assert.assertEquals("http://test/test?host=test", str);
+
+        runtimeOptions.put("domain", "custom.domain.com");
+        request.query = new HashMap<>();
+        request.query.put("key", "value");
+        request.pathname = "/api";
+        request.protocol = "https";
+        request.port = null;
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
+        Assert.assertEquals("https://custom.domain.com/api?key=value", str);
+
+        runtimeOptions.put("domain", "priority.domain.com");
+        map = new HashMap<>();
+        map.put("host", "original.host.com");
+        request.headers = map;
+        request.pathname = "/test";
+        request.protocol = "http";
+        request.query = null;
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
+        Assert.assertEquals("http://priority.domain.com/test", str);
+
+        runtimeOptions.put("domain", null);
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
+        Assert.assertEquals("http://original.host.com/test", str);
+
+        runtimeOptions.put("domain", "");
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
+        Assert.assertEquals("http://original.host.com/test", str);
+
+        runtimeOptions = new HashMap<>();
+        str = (String) composeUrl.invoke(Tea.class, request, runtimeOptions);
+        Assert.assertEquals("http://original.host.com/test", str);
     }
 
     @Test

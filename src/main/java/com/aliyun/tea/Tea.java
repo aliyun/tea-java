@@ -16,9 +16,15 @@ import java.util.Map;
 
 public class Tea {
 
-    private static String composeUrl(TeaRequest request) {
+    private static String composeUrl(TeaRequest request, Map<String, Object> runtimeOptions) {
         Map<String, String> queries = request.query;
-        String host = request.headers.get("host");
+        String host;
+        if (!StringUtils.isEmpty(runtimeOptions.get("domain"))) {
+            host = String.valueOf(runtimeOptions.get("domain"));
+        } else {
+            host = request.headers.get("host");
+        }
+        
         String protocol = null == request.protocol ? "https" : request.protocol;
         StringBuilder urlBuilder = new StringBuilder();
         urlBuilder.append(protocol);
@@ -62,7 +68,7 @@ public class Tea {
 
     public static TeaResponse doAction(TeaRequest request, Map<String, Object> runtimeOptions) {
         try {
-            String urlString = Tea.composeUrl(request);
+            String urlString = Tea.composeUrl(request, runtimeOptions);
             URL url = new URL(urlString);
             OkHttpClient okHttpClient = ClientHelper.getOkHttpClient(url.getHost(), url.getPort(), runtimeOptions);
             Request.Builder requestBuilder = new Request.Builder();
