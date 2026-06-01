@@ -33,6 +33,51 @@ public class OkHttpClientBuilderTest {
     }
 
     @Test
+    public void callTimeoutTest() {
+        // 未设置 callTimeout 时，默认应为 0（不限制），且不影响 readTimeout 默认值
+        map.clear();
+        OkHttpClientBuilder clientBuilder = new OkHttpClientBuilder();
+        OkHttpClient client = clientBuilder.callTimeout(map).buildOkHttpClient();
+        Assert.assertEquals(0, client.callTimeoutMillis());
+        Assert.assertEquals(10000, client.readTimeoutMillis());
+
+        // 显式设置 callTimeout，应只作用于 callTimeout，readTimeout 保持默认
+        map.clear();
+        clientBuilder = new OkHttpClientBuilder();
+        map.put("callTimeout", 1500);
+        client = clientBuilder.callTimeout(map).buildOkHttpClient();
+        Assert.assertEquals(1500, client.callTimeoutMillis());
+        Assert.assertEquals(10000, client.readTimeoutMillis());
+
+        // callTimeout 为 null 时按未设置处理，默认为 0
+        map.clear();
+        clientBuilder = new OkHttpClientBuilder();
+        map.put("callTimeout", null);
+        client = clientBuilder.callTimeout(map).buildOkHttpClient();
+        Assert.assertEquals(0, client.callTimeoutMillis());
+
+        // callTimeout 与 readTimeout 互不干扰，分别独立生效
+        map.clear();
+        clientBuilder = new OkHttpClientBuilder();
+        map.put("callTimeout", 2000);
+        map.put("readTimeout", 888);
+        client = clientBuilder.readTimeout(map).callTimeout(map).buildOkHttpClient();
+        Assert.assertEquals(2000, client.callTimeoutMillis());
+        Assert.assertEquals(888, client.readTimeoutMillis());
+
+        // callTimeout 为非法字符串时抛出 NumberFormatException
+        map.clear();
+        final OkHttpClientBuilder badBuilder = new OkHttpClientBuilder();
+        map.put("callTimeout", "str");
+        try {
+            badBuilder.callTimeout(map);
+            Assert.fail();
+        } catch (NumberFormatException e) {
+            Assert.assertTrue(e.getMessage().contains("For input string: \"str\""));
+        }
+    }
+
+    @Test
     public void connectionPoolTest() {
         map.clear();
         OkHttpClientBuilder clientBuilder = Mockito.spy(new OkHttpClientBuilder());

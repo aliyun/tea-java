@@ -71,6 +71,14 @@ public class OkHttpClientBuilder {
         return this;
     }
 
+    public OkHttpClientBuilder callTimeout(Map<String, Object> map) {
+        if (map.containsKey("callTimeout") && null != map.get("callTimeout")) {
+            long callTimeout = Long.parseLong(String.valueOf(map.get("callTimeout")));
+            this.builder.callTimeout(callTimeout, TimeUnit.MILLISECONDS);
+        }
+        return this;
+    }
+
     public OkHttpClientBuilder connectionPool(Map<String, Object> map) {
         Object maxIdleConns = map.get("maxIdleConns");
         int maxIdleConnections;
