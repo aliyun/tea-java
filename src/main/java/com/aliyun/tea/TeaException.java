@@ -11,6 +11,7 @@ public class TeaException extends RuntimeException {
     private static final long serialVersionUID = 1L;
     public String code;
     public String message;
+    public String detail;
     public Map<String, Object> data;
     public Integer statusCode;
     public String description;
@@ -26,6 +27,7 @@ public class TeaException extends RuntimeException {
 
     public TeaException(Map<String, ?> map) {
         this.setCode(String.valueOf(map.get("code")));
+        this.setDetail(String.valueOf(map.get("detail")));
         this.setMessage(String.valueOf(map.get("message")));
         this.setDescription(String.valueOf(map.get("description")));
         if (map.get("accessDeniedDetail") instanceof Map) {
@@ -73,6 +75,14 @@ public class TeaException extends RuntimeException {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getDetail() {
+        return detail;
+    }
+
+    public void setDetail(String detail) {
+        this.detail = detail;
     }
 
     public Integer getStatusCode() {
