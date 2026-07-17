@@ -287,4 +287,44 @@ public class TeaTest {
         String result = new String(bytes, 0, index);
         Assert.assertTrue(str.equals(result));
     }
+
+    @Test
+    public void doActionWithNullChainTest() {
+        ClientHelper.clients.clear();
+        TeaRequest request = new TeaRequest();
+        Map<String, String> map = new HashMap<>();
+        map.put("host", "www.google.com.hk");
+        request.protocol = "http";
+        request.headers = map;
+        request.method = "GET";
+        Map<String, Object> runtimeOptions = new HashMap<>();
+        runtimeOptions.put("readTimeout", "50000");
+        runtimeOptions.put("connectTimeout", "50000");
+        TeaResponse response = Tea.doAction(request, runtimeOptions, null);
+        Assert.assertEquals(200, response.statusCode);
+    }
+
+    @Test
+    public void toWriteableTest() {
+        Assert.assertNotNull(Tea.toWriteable(16));
+        try {
+            Tea.toWriteable(-1);
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertNotNull(e.getMessage());
+        }
+    }
+
+    @Test
+    public void sleepInterruptedTest() {
+        Thread.currentThread().interrupt();
+        try {
+            Tea.sleep(1000);
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertNotNull(e.getMessage());
+        } finally {
+            Thread.interrupted();
+        }
+    }
 }

@@ -55,6 +55,11 @@ public class ClientHelperTest {
         map.put("callTimeout", null);
         str = (String) getClientKey.invoke(ClientHelper.class, "0:0:0:0:0:0:0:1", 0, map);
         Assert.assertEquals("0:0:0:0:0:0:0:1:0:http://127.0.0.1:80:https://127.0.0.1:80:socks5://user:password@127.0.0.1:1080:1000:2000:false", str);
+
+        map.put("keepAliveDuration", 10000);
+        map.put("maxIdleConns", 5);
+        str = (String) getClientKey.invoke(ClientHelper.class, "0:0:0:0:0:0:0:1", 0, map);
+        Assert.assertEquals("0:0:0:0:0:0:0:1:0:http://127.0.0.1:80:https://127.0.0.1:80:socks5://user:password@127.0.0.1:1080:1000:2000:10000:5:false", str);
     }
 
     @Test

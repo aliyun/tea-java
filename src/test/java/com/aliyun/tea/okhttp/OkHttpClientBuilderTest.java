@@ -4,16 +4,31 @@ import com.aliyun.tea.TeaException;
 import com.aliyun.tea.utils.DefaultHostnameVerifier;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Route;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 
 public class OkHttpClientBuilderTest {
     private Map<String, Object> map = new HashMap<>();
+
+    private static String readResource(String name) {
+        InputStream is = OkHttpClientBuilderTest.class.getClassLoader().getResourceAsStream(name);
+        Assert.assertNotNull(is);
+        try (Scanner scanner = new Scanner(is, StandardCharsets.UTF_8.name())) {
+            scanner.useDelimiter("\\A");
+            return scanner.hasNext() ? scanner.next() : "";
+        }
+    }
 
     @Test
     public void timeOutTest() {
@@ -175,6 +190,67 @@ public class OkHttpClientBuilderTest {
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e instanceof TeaException);
+        }
+
+        // valid CA PEM covers split + trust store path without requiring CI CA secret
+        map.clear();
+        map.put("ignoreSSL", false);
+        map.put("ca", readResource("test-ca.pem"));
+        OkHttpClient clientWithCa = new OkHttpClientBuilder().certificate(map).buildOkHttpClient();
+        Assert.assertNotNull(clientWithCa.sslSocketFactory());
+
+        map.put("ca", readResource("test-ca-dual.pem"));
+        Assert.assertNotNull(new OkHttpClientBuilder().certificate(map).buildOkHttpClient().sslSocketFactory());
+
+        // non-PEM CA still enters splitPemCertificates else-branch
+        map.put("ca", "not-a-pem-certificate");
+        try {
+            new OkHttpClientBuilder().certificate(map);
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertNotNull(e.getMessage());
+        }
+    }
+
+    @Test
+    public void proxyAuthenticatorTest() throws Exception {
+        map.clear();
+        OkHttpClientBuilder clientBuilder = new OkHttpClientBuilder();
+        map.put("httpsProxy", "https://user:password@127.0.0.1:8080");
+        OkHttpClient client = clientBuilder.proxy(map).proxyAuthenticator(map).buildOkHttpClient();
+        Assert.assertNotNull(client.proxyAuthenticator());
+
+        Request request = new Request.Builder().url("http://example.com").build();
+        Response response = new Response.Builder()
+                .request(request)
+                .protocol(Protocol.HTTP_1_1)
+                .code(407)
+                .message("Proxy Authentication Required")
+                .build();
+        Request authenticated = client.proxyAuthenticator().authenticate((Route) null, response);
+        Assert.assertNotNull(authenticated);
+        Assert.assertNotNull(authenticated.header("Proxy-Authorization"));
+
+        map.clear();
+        map.put("socks5Proxy", "socks5://user:password@127.0.0.1:1080");
+        Assert.assertNotNull(new OkHttpClientBuilder().proxy(map).proxyAuthenticator(map).buildOkHttpClient());
+
+        map.clear();
+        map.put("httpProxy", "://bad-url");
+        try {
+            new OkHttpClientBuilder().proxy(map);
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertNotNull(e.getMessage());
+        }
+
+        map.clear();
+        map.put("httpProxy", "://bad-url");
+        try {
+            new OkHttpClientBuilder().proxyAuthenticator(map);
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertNotNull(e.getMessage());
         }
     }
 

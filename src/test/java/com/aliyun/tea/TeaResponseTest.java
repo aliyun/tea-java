@@ -25,4 +25,21 @@ public class TeaResponseTest {
         response.body = new ByteArrayInputStream("test".getBytes("UTF-8"));
         Assert.assertEquals("test", response.getResponseBody());
     }
+
+    @Test
+    public void getResponseBodyExceptionTest() {
+        TeaResponse response = new TeaResponse();
+        response.body = new InputStream() {
+            @Override
+            public int read() throws java.io.IOException {
+                throw new java.io.IOException("read failed");
+            }
+        };
+        try {
+            response.getResponseBody();
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertEquals("read failed", e.getMessage());
+        }
+    }
 }

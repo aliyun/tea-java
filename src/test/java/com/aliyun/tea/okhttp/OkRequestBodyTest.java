@@ -44,5 +44,14 @@ public class OkRequestBodyTest {
         Mockito.verify(body).writeTo(sink);
     }
 
+    @Test
+    public void contentLengthTest() throws IOException {
+        TeaRequest request = new TeaRequest();
+        OkRequestBody body = new OkRequestBody(request);
+        Assert.assertEquals(-1L, body.contentLength());
 
+        request.body = new ByteArrayInputStream("tes".getBytes("UTF-8"));
+        body = new OkRequestBody(request);
+        Assert.assertEquals(3L, body.contentLength());
+    }
 }
