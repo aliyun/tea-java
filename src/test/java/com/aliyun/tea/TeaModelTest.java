@@ -802,4 +802,51 @@ public class TeaModelTest {
         Assert.assertEquals("[\"1\",2,true,{\"sub\":\"sub\"}]", object6);
 
     }
+
+    @Test
+    public void confirmTypeShrinkFiltersMapToString() {
+        Map<String, Object> filter = new HashMap<String, Object>();
+        filter.put("Operator", "IN");
+        List<String> values = new ArrayList<String>();
+        values.add("po-000001bctotzplhahu1d");
+        filter.put("Value", values);
+        filter.put("Name", "policyId");
+
+        List<Object> filters = new ArrayList<Object>();
+        filters.add(filter);
+
+        Map<String, Object> filtersWrapper = new HashMap<String, Object>();
+        filtersWrapper.put("Filters", filters);
+
+        Object result = TeaModel.confirmType(String.class, filtersWrapper,
+                "com.aliyun.hbrpolicyinner20260527.models.ListPolicyBindingsShrinkRequest.filtersShrink");
+        Assert.assertEquals(String.class, result.getClass());
+        String json = (String) result;
+        Assert.assertTrue(json.contains("\"Filters\""));
+        Assert.assertTrue(json.contains("\"Operator\":\"IN\""));
+        Assert.assertTrue(json.contains("\"Name\":\"policyId\""));
+        Assert.assertTrue(json.contains("po-000001bctotzplhahu1d"));
+
+        Object listJson = TeaModel.confirmType(String.class, filters,
+                "com.aliyun.hbrpolicyinner20260527.models.ListPolicyBindingsShrinkRequest.filtersShrink");
+        Assert.assertEquals(String.class, listJson.getClass());
+        Assert.assertTrue(((String) listJson).startsWith("["));
+        Assert.assertTrue(((String) listJson).contains("\"Operator\":\"IN\""));
+    }
+
+    @Test
+    public void confirmTypeInvalidFloatDoubleStringStillLogsVerboseThenFails() {
+        try {
+            TeaModel.confirmType(Float.class, "not-a-number", "field.float");
+            Assert.fail("expected NumberFormatException");
+        } catch (NumberFormatException e) {
+            // Float.parseFloat fails → verbose cast log; BigDecimal then throws
+        }
+        try {
+            TeaModel.confirmType(Double.class, "not-a-number", "field.double");
+            Assert.fail("expected NumberFormatException");
+        } catch (NumberFormatException e) {
+            // same path for Double
+        }
+    }
 }

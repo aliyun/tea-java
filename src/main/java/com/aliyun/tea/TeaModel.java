@@ -359,27 +359,27 @@ public class TeaModel {
         BigDecimal bigDecimal;
         if (String.class.isAssignableFrom(expect)) {
             if (object instanceof Number || object instanceof Boolean) {
-                logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                         objectName, String.class.getName(), object.getClass().getName(), object.toString());
                 return object.toString();
             }
             if (object instanceof Map || object instanceof List) {
-                logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                         objectName, String.class.getName(), object.getClass().getName(), object.toString());
                 return new Gson().toJson(object);
             }
         } else if (Boolean.class.isAssignableFrom(expect)) {
             if (object instanceof String) {
-                logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                         objectName, Boolean.class.getName(), object.getClass().getName(), object.toString());
                 return Boolean.parseBoolean(String.valueOf(object));
             } else if (object instanceof Number) {
                 if (object.toString().equals("1")) {
-                    logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                    logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                             objectName, Boolean.class.getName(), object.getClass().getName(), object.toString());
                     return true;
                 } else if (object.toString().equals("0")) {
-                    logger.info("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                    logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                             objectName, Boolean.class.getName(), object.getClass().getName(), object.toString());
                     return false;
                 }
@@ -389,20 +389,20 @@ public class TeaModel {
                 try {
                     Integer.parseInt(object.toString());
                 } catch (NumberFormatException e) {
-                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                    logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                             objectName, Integer.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
                 return bigDecimal.intValue();
             }
             if (object instanceof Boolean) {
-                logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                         objectName, Integer.class.getName(), object.getClass().getName(), object.toString());
                 return object.toString().equalsIgnoreCase("true") ? 1 : 0;
             }
             if (object instanceof Long) {
                 if ((Long) object > Integer.MAX_VALUE) {
-                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                    logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                             objectName, Integer.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
@@ -410,7 +410,7 @@ public class TeaModel {
             }
             if (object instanceof Float || object instanceof Double) {
                 bigDecimal = new BigDecimal(object.toString());
-                logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                         objectName, Integer.class.getName(), object.getClass().getName(), object.toString());
                 return bigDecimal.intValue();
             }
@@ -419,7 +419,7 @@ public class TeaModel {
                 try {
                     Long.parseLong(object.toString());
                 } catch (NumberFormatException e) {
-                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                    logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                             objectName, Long.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
@@ -427,7 +427,7 @@ public class TeaModel {
             }
             if (object instanceof Float || object instanceof Double) {
                 bigDecimal = new BigDecimal(object.toString());
-                logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                         objectName, Long.class.getName(), object.getClass().getName(), object.toString());
                 return bigDecimal.longValue();
             }
@@ -436,7 +436,7 @@ public class TeaModel {
                 try {
                     Float.parseFloat(object.toString());
                 } catch (NumberFormatException e) {
-                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                    logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                             objectName, Float.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
@@ -444,7 +444,7 @@ public class TeaModel {
             }
             if (object instanceof Double) {
                 if ((Double) object > Float.MAX_VALUE) {
-                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                    logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                             objectName, Float.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
@@ -452,7 +452,7 @@ public class TeaModel {
             }
             if (object instanceof Integer || object instanceof Long) {
                 bigDecimal = new BigDecimal(object.toString());
-                logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                         objectName, Float.class.getName(), object.getClass().getName(), object.toString());
                 return bigDecimal.floatValue();
             }
@@ -461,7 +461,7 @@ public class TeaModel {
                 try {
                     Double.parseDouble(object.toString());
                 } catch (NumberFormatException e) {
-                    logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                    logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                             objectName, Double.class.getName(), object.getClass().getName(), object.toString());
                 }
                 bigDecimal = new BigDecimal(object.toString());
@@ -469,7 +469,7 @@ public class TeaModel {
             }
             if (object instanceof Integer || object instanceof Long) {
                 bigDecimal = new BigDecimal(object.toString());
-                logger.warning("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
+                logger.verbose("[{}] There are some cast events happening. expect: {}, but: {}, value: {}.",
                         objectName, Double.class.getName(), object.getClass().getName(), object.toString());
                 return bigDecimal.doubleValue();
             }
