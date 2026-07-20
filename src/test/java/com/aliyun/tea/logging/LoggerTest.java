@@ -141,4 +141,41 @@ public class LoggerTest {
         logger.error("test: {}, {}", "key1", "key2");
         logger.error("test: {}, {}, {}", "key1", "key2", "key3");
     }
+
+    @Test
+    public void defaultLoggerOverloadsTest() {
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "verbose");
+        DefaultLogger logger = new DefaultLogger("com.aliyun.tea.logging.NotExistClass");
+        Assert.assertEquals("com.aliyun.tea.logging.NotExistClass", logger.getName());
+
+        logger.trace("trace {}", "a");
+        logger.trace("trace", new RuntimeException("t"));
+        logger.debug("debug {}", "a");
+        logger.debug("debug {} {}", "a", "b");
+        logger.debug("debug", new RuntimeException("d"));
+        logger.info("info {}", "a");
+        logger.info("info {} {}", "a", "b");
+        logger.info("info", new RuntimeException("i"));
+        logger.warn("warn {}", "a");
+        logger.warn("warn {} {}", "a", "b");
+        logger.warn("warn", new RuntimeException("w"));
+        logger.error("error {}", "a");
+        logger.error("error {} {}", "a", "b");
+        logger.error("error", new RuntimeException("e"));
+    }
+
+    @Test
+    public void logLevelFromStringNullTest() {
+        Assert.assertEquals(LogLevel.NOT_SET, LogLevel.fromString(null));
+    }
+
+    @Test
+    public void clientLoggerThrowableInArgsTest() {
+        System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "warn");
+        ClientLogger logger = new ClientLogger(LoggerTest.class);
+        logger.warning("warn with throwable: {}", "x", new RuntimeException("warn-ex"));
+        logger.error("error with throwable: {}", "y", new RuntimeException("error-ex"));
+        logger.verbose("empty-args");
+        logger.verbose("format-only", new Object[0]);
+    }
 }

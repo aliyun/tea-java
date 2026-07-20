@@ -16,6 +16,9 @@ public class TrueHostnameVerifierTest {
         Assert.assertTrue(trueHostnameVerifier.verify("authType", sslSession));
         Assert.assertTrue(trueHostnameVerifier.verify(null, null));
 
+        HostnameVerifier defaultVerifier = DefaultHostnameVerifier.getInstance(false);
+        Assert.assertFalse(defaultVerifier instanceof DefaultHostnameVerifier);
+
         Constructor<DefaultHostnameVerifier> constructor = DefaultHostnameVerifier.class.getDeclaredConstructor(boolean.class);
         constructor.setAccessible(true);
         DefaultHostnameVerifier hostnameVerifier = constructor.newInstance(false);

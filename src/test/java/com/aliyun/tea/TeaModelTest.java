@@ -801,5 +801,17 @@ public class TeaModelTest {
         object6 = TeaModel.confirmType(String.class, list);
         Assert.assertEquals("[\"1\",2,true,{\"sub\":\"sub\"}]", object6);
 
+        Assert.assertNull(TeaModel.parseObject(null));
+        try {
+            TeaModel.confirmType(Float.class, "not-a-float");
+            Assert.fail();
+        } catch (NumberFormatException ignored) {
+        }
+        try {
+            TeaModel.confirmType(Double.class, "not-a-double");
+            Assert.fail();
+        } catch (NumberFormatException ignored) {
+        }
+        Assert.assertEquals(1L, TeaModel.confirmType(Long.class, 1.5F));
     }
 }

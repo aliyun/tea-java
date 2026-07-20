@@ -4,16 +4,112 @@ import com.aliyun.tea.TeaException;
 import com.aliyun.tea.utils.DefaultHostnameVerifier;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Route;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 public class OkHttpClientBuilderTest {
     private Map<String, Object> map = new HashMap<>();
+
+    /**
+     * Build an ephemeral self-signed CA PEM at runtime (CN under *.local / UnitTestFixture).
+     * No production certificates or private keys are committed to the repository.
+     */
+    private static String createEphemeralSelfSignedCaPem(String commonName) throws Exception {
+        Path workDir = Files.createTempDirectory("tea-java-test-ca-");
+        Path keystore = workDir.resolve("test-ca.p12");
+        Path pemFile = workDir.resolve("test-ca.pem");
+        try {
+            Path keytool = resolveKeytool();
+            runKeytool(keytool,
+                    "-genkeypair",
+                    "-alias", "testca",
+                    "-keyalg", "RSA",
+                    "-keysize", "2048",
+                    "-validity", "1",
+                    "-dname", "CN=" + commonName + ",OU=UnitTestFixture,O=AliyunTeaJavaTest,C=CN",
+                    "-keystore", keystore.toString(),
+                    "-storetype", "PKCS12",
+                    "-storepass", "changeit",
+                    "-keypass", "changeit",
+                    "-noprompt");
+            runKeytool(keytool,
+                    "-exportcert",
+                    "-alias", "testca",
+                    "-keystore", keystore.toString(),
+                    "-storetype", "PKCS12",
+                    "-storepass", "changeit",
+                    "-rfc",
+                    "-file", pemFile.toString());
+            byte[] pemBytes = Files.readAllBytes(pemFile);
+            return new String(pemBytes, StandardCharsets.US_ASCII);
+        } finally {
+            deleteRecursively(workDir);
+        }
+    }
+
+    private static Path resolveKeytool() {
+        Path keytool = java.nio.file.Paths.get(System.getProperty("java.home"), "bin", "keytool");
+        if (!Files.isExecutable(keytool)) {
+            keytool = java.nio.file.Paths.get(System.getProperty("java.home"), "bin", "keytool.exe");
+        }
+        Assert.assertTrue("keytool not found under java.home", Files.isExecutable(keytool));
+        return keytool;
+    }
+
+    private static void runKeytool(Path keytool, String... args) throws Exception {
+        String[] command = new String[args.length + 1];
+        command[0] = keytool.toString();
+        System.arraycopy(args, 0, command, 1, args.length);
+        Process process = new ProcessBuilder(command)
+                .redirectErrorStream(true)
+                .start();
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try (InputStream in = process.getInputStream()) {
+            byte[] buf = new byte[1024];
+            int n;
+            while ((n = in.read(buf)) >= 0) {
+                output.write(buf, 0, n);
+            }
+        }
+        if (!process.waitFor(60, TimeUnit.SECONDS)) {
+            process.destroyForcibly();
+            Assert.fail("keytool timed out");
+        }
+        if (process.exitValue() != 0) {
+            Assert.fail("keytool failed: " + new String(output.toByteArray(), StandardCharsets.UTF_8));
+        }
+    }
+
+    private static void deleteRecursively(Path root) throws IOException {
+        if (!Files.exists(root)) {
+            return;
+        }
+        try (Stream<Path> walk = Files.walk(root)) {
+            walk.sorted(Comparator.reverseOrder()).forEach(path -> {
+                try {
+                    Files.deleteIfExists(path);
+                } catch (IOException ignored) {
+                    // best-effort cleanup of ephemeral fixtures
+                }
+            });
+        }
+    }
 
     @Test
     public void timeOutTest() {
@@ -120,7 +216,7 @@ public class OkHttpClientBuilderTest {
     }
 
     @Test
-    public void certificateTest() throws IOException {
+    public void certificateTest() throws Exception {
         map.clear();
         OkHttpClientBuilder clientBuilder = Mockito.spy(new OkHttpClientBuilder());
         clientBuilder.certificate(map);
@@ -175,6 +271,71 @@ public class OkHttpClientBuilderTest {
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e instanceof TeaException);
+        }
+
+        // ephemeral self-signed fixtures only — covers split + trust store without committed PEMs / CI CA secret
+        map.clear();
+        map.put("ignoreSSL", false);
+        String singleCa = createEphemeralSelfSignedCaPem("tea-java-unit-test.local");
+        map.put("ca", singleCa);
+        OkHttpClient clientWithCa = new OkHttpClientBuilder().certificate(map).buildOkHttpClient();
+        Assert.assertNotNull(clientWithCa.sslSocketFactory());
+
+        String dualCa = createEphemeralSelfSignedCaPem("tea-java-unit-test-a.local")
+                + "\n"
+                + createEphemeralSelfSignedCaPem("tea-java-unit-test-b.local");
+        map.put("ca", dualCa);
+        Assert.assertNotNull(new OkHttpClientBuilder().certificate(map).buildOkHttpClient().sslSocketFactory());
+
+        // non-PEM CA still enters splitPemCertificates else-branch
+        map.put("ca", "not-a-pem-certificate");
+        try {
+            new OkHttpClientBuilder().certificate(map);
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertNotNull(e.getMessage());
+        }
+    }
+
+    @Test
+    public void proxyAuthenticatorTest() throws Exception {
+        map.clear();
+        OkHttpClientBuilder clientBuilder = new OkHttpClientBuilder();
+        map.put("httpsProxy", "https://user:password@127.0.0.1:8080");
+        OkHttpClient client = clientBuilder.proxy(map).proxyAuthenticator(map).buildOkHttpClient();
+        Assert.assertNotNull(client.proxyAuthenticator());
+
+        Request request = new Request.Builder().url("http://example.com").build();
+        Response response = new Response.Builder()
+                .request(request)
+                .protocol(Protocol.HTTP_1_1)
+                .code(407)
+                .message("Proxy Authentication Required")
+                .build();
+        Request authenticated = client.proxyAuthenticator().authenticate((Route) null, response);
+        Assert.assertNotNull(authenticated);
+        Assert.assertNotNull(authenticated.header("Proxy-Authorization"));
+
+        map.clear();
+        map.put("socks5Proxy", "socks5://user:password@127.0.0.1:1080");
+        Assert.assertNotNull(new OkHttpClientBuilder().proxy(map).proxyAuthenticator(map).buildOkHttpClient());
+
+        map.clear();
+        map.put("httpProxy", "://bad-url");
+        try {
+            new OkHttpClientBuilder().proxy(map);
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertNotNull(e.getMessage());
+        }
+
+        map.clear();
+        map.put("httpProxy", "://bad-url");
+        try {
+            new OkHttpClientBuilder().proxyAuthenticator(map);
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertNotNull(e.getMessage());
         }
     }
 
