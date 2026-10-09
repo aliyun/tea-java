@@ -223,6 +223,13 @@ public class OkHttpClientBuilder {
         }
     }
 
+    public OkHttpClientBuilder ipv4Only(Map<String, Object> map) {
+        if (Boolean.parseBoolean(String.valueOf(map.get("ipv4Only")))) {
+            this.builder.dns(Ipv4OnlyDns.INSTANCE).socketFactory(Ipv4OnlySocketFactory.INSTANCE);
+        }
+        return this;
+    }
+
     public OkHttpClient buildOkHttpClient() {
         return this.builder.build();
     }
