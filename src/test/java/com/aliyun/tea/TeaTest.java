@@ -317,6 +317,8 @@ public class TeaTest {
 
     @Test
     public void sleepInterruptedTest() {
+        // The offline JaCoCo agent fails to initialize on an interrupted thread, so load Tea first.
+        Tea.sleep(0);
         Thread.currentThread().interrupt();
         try {
             Tea.sleep(1000);
