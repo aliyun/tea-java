@@ -20,7 +20,7 @@ public class ClientHelper {
 
     private static OkHttpClient creatClient(Map<String, Object> map) {
         OkHttpClientBuilder builder = new OkHttpClientBuilder();
-        builder = builder.protocols(map).connectTimeout(map).readTimeout(map).callTimeout(map).connectionPool(map).certificate(map).proxy(map).proxyAuthenticator(map);
+        builder = builder.protocols(map).connectTimeout(map).readTimeout(map).callTimeout(map).connectionPool(map).certificate(map).proxy(map).proxyAuthenticator(map).ipv4Only(map);
         return builder.buildOkHttpClient();
     }
 
@@ -42,6 +42,7 @@ public class ClientHelper {
                 (map.containsKey("callTimeout") && null != map.get("callTimeout") ? ":" + map.get("callTimeout") : "") +
                 (map.containsKey("keepAliveDuration") && null != map.get("keepAliveDuration") ? ":" + map.get("keepAliveDuration") : "") +
                 (map.containsKey("maxIdleConns") && null != map.get("maxIdleConns") ? ":" + map.get("maxIdleConns") : "") +
-                (map.containsKey("ignoreSSL") && null != map.get("ignoreSSL") ? ":" + map.get("ignoreSSL") : "");
+                (map.containsKey("ignoreSSL") && null != map.get("ignoreSSL") ? ":" + map.get("ignoreSSL") : "") +
+                (Boolean.parseBoolean(String.valueOf(map.get("ipv4Only"))) ? ":ipv4Only" : "");
     }
 }
