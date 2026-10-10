@@ -223,9 +223,29 @@ public class OkHttpClientBuilder {
         }
     }
 
+    /**
+     * Must be applied after {@link #proxy(Map)}.
+     */
     public OkHttpClientBuilder ipv4Only(Map<String, Object> map) {
-        if (Boolean.parseBoolean(String.valueOf(map.get("ipv4Only")))) {
+        if (!Boolean.parseBoolean(String.valueOf(map.get("ipv4Only")))) {
+            return this;
+        }
+        // an HTTP proxy resolves the target itself, and the proxy address is not subject to ipv4Only
+        if (null != map.get("httpProxy") || null != map.get("httpsProxy")) {
+            return this;
+        }
+        if (null == map.get("socks5Proxy")) {
             this.builder.dns(Ipv4OnlyDns.INSTANCE).socketFactory(Ipv4OnlySocketFactory.INSTANCE);
+            return this;
+        }
+        // OkHttp hands SOCKS proxies the unresolved host name, so the proxy is moved into the
+        // socket factory and OkHttp resolves the target with Ipv4OnlyDns as for a direct route
+        try {
+            URI url = new URI(String.valueOf(map.get("socks5Proxy")));
+            Proxy socks = new Proxy(Proxy.Type.SOCKS, InetSocketAddress.createUnresolved(url.getHost(), url.getPort()));
+            this.builder.proxy(Proxy.NO_PROXY).dns(Ipv4OnlyDns.INSTANCE).socketFactory(new Ipv4OnlySocketFactory(socks));
+        } catch (Exception e) {
+            throw new TeaException(e.getMessage(), e);
         }
         return this;
     }

@@ -1,5 +1,6 @@
 package com.aliyun.tea.okhttp;
 
+import com.aliyun.tea.TeaException;
 import okhttp3.Dns;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -8,17 +9,22 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -228,6 +234,127 @@ public class Ipv4OnlyTest {
             Assert.assertEquals("ok", get(dualStack, url));
         } finally {
             server.close();
+        }
+    }
+
+    /**
+     * Minimal SOCKS5 server (no auth) that records each CONNECT target as "ipv4:addr" or
+     * "domain:name" and then answers the tunnelled HTTP request itself with 200 "ok".
+     */
+    private static ServerSocket startSocks5Server(final List<String> targets) throws IOException {
+        final ServerSocket server = new ServerSocket(0, 50, V4);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!server.isClosed()) {
+                    try (Socket socket = server.accept()) {
+                        DataInputStream in = new DataInputStream(socket.getInputStream());
+                        OutputStream out = socket.getOutputStream();
+                        in.readUnsignedByte();
+                        in.readFully(new byte[in.readUnsignedByte()]);
+                        out.write(new byte[]{5, 0});
+                        in.readFully(new byte[3]);
+                        int atyp = in.readUnsignedByte();
+                        if (atyp == 1) {
+                            byte[] addr = new byte[4];
+                            in.readFully(addr);
+                            targets.add("ipv4:" + InetAddress.getByAddress(addr).getHostAddress());
+                        } else {
+                            byte[] name = new byte[atyp == 3 ? in.readUnsignedByte() : 16];
+                            in.readFully(name);
+                            targets.add(atyp == 3 ? "domain:" + new String(name, StandardCharsets.ISO_8859_1) : "ipv6");
+                        }
+                        in.readUnsignedShort();
+                        out.write(new byte[]{5, 0, 0, 1, 127, 0, 0, 1, 0, 0});
+                        StringBuilder sb = new StringBuilder();
+                        byte[] buf = new byte[4096];
+                        int n;
+                        while (!sb.toString().contains("\r\n\r\n") && (n = in.read(buf)) > 0) {
+                            sb.append(new String(buf, 0, n, StandardCharsets.ISO_8859_1));
+                        }
+                        out.write("HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nok"
+                                .getBytes(StandardCharsets.ISO_8859_1));
+                        out.flush();
+                    } catch (IOException ignored) {
+                    }
+                }
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+        return server;
+    }
+
+    private static OkHttpClient proxiedClient(Map<String, Object> map) {
+        return new OkHttpClientBuilder().connectTimeout(map).readTimeout(map)
+                .proxy(map).proxyAuthenticator(map).ipv4Only(map).buildOkHttpClient();
+    }
+
+    @Test
+    public void socks5ProxyGetsResolvedIpv4TargetWhenIpv4Only() throws Exception {
+        List<String> targets = Collections.synchronizedList(new ArrayList<String>());
+        ServerSocket socks = startSocks5Server(targets);
+        try {
+            String proxy = "socks5://127.0.0.1:" + socks.getLocalPort();
+            Map<String, Object> dualStack = runtime(null);
+            dualStack.put("socks5Proxy", proxy);
+            Assert.assertEquals("ok", get(proxiedClient(dualStack), "http://localhost:1/"));
+            Assert.assertEquals(Arrays.asList("domain:localhost"), targets);
+
+            Map<String, Object> ipv4 = runtime(true);
+            ipv4.put("socks5Proxy", proxy);
+            OkHttpClient client = proxiedClient(ipv4);
+            Assert.assertSame(Proxy.NO_PROXY, client.proxy());
+            Assert.assertSame(Ipv4OnlyDns.INSTANCE, client.dns());
+            Assert.assertEquals("ok", get(client, "http://localhost:1/"));
+            Assert.assertEquals(Arrays.asList("domain:localhost", "ipv4:127.0.0.1"), targets);
+
+            try {
+                get(client, "http://[::1]:1/");
+                Assert.fail("expected IPv6 target to be refused");
+            } catch (IOException e) {
+                Assert.assertTrue(messages(e), messages(e).contains("ipv4Only is enabled"));
+            }
+            Assert.assertEquals(2, targets.size());
+        } finally {
+            socks.close();
+        }
+    }
+
+    @Test
+    public void httpProxyAddressIsNotSubjectToIpv4Only() throws Exception {
+        // the "proxy" answers every request itself, so the target port is never dialled
+        ServerSocket proxy = startIpv6ServerOrSkip();
+        try {
+            Map<String, Object> map = runtime(true);
+            map.put("httpProxy", "http://[::1]:" + proxy.getLocalPort());
+            OkHttpClient client = proxiedClient(map);
+            Assert.assertSame(Dns.SYSTEM, client.dns());
+            Assert.assertEquals("ok", get(client, "http://ipv4only-proxy.test:1/"));
+        } finally {
+            proxy.close();
+        }
+    }
+
+    @Test
+    public void ipv4OnlySocketRefusesUnresolvedTarget() throws Exception {
+        Socket socket = new Ipv4OnlySocketFactory(Proxy.NO_PROXY).createSocket();
+        try {
+            socket.connect(InetSocketAddress.createUnresolved("example.com", 80));
+            Assert.fail("expected ConnectException");
+        } catch (ConnectException e) {
+            Assert.assertTrue(e.getMessage().startsWith("ipv4Only is enabled, refusing to connect to unresolved address"));
+        } finally {
+            socket.close();
+        }
+
+        Map<String, Object> map = runtime(true);
+        map.put("socks5Proxy", "socks5://bad host:1");
+        try {
+            new OkHttpClientBuilder().ipv4Only(map);
+            Assert.fail("expected TeaException");
+        } catch (TeaException e) {
+            Assert.assertTrue(e.getCause() instanceof URISyntaxException);
         }
     }
 }
