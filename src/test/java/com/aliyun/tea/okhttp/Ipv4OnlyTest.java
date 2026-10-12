@@ -322,15 +322,68 @@ public class Ipv4OnlyTest {
     }
 
     @Test
-    public void httpProxyAddressIsNotSubjectToIpv4Only() throws Exception {
-        // the "proxy" answers every request itself, so the target port is never dialled
+    public void httpProxyHopIsPinnedToIpv4WhenIpv4Only() throws Exception {
+        ServerSocket proxy = startServer(V4);
+        try {
+            Map<String, Object> map = runtime(true);
+            map.put("httpProxy", "http://127.0.0.1:" + proxy.getLocalPort());
+            OkHttpClient client = proxiedClient(map);
+            Assert.assertSame(Ipv4OnlyDns.INSTANCE, client.dns());
+            Assert.assertSame(Ipv4OnlySocketFactory.INSTANCE, client.socketFactory());
+            InetSocketAddress address = (InetSocketAddress) client.proxy().address();
+            Assert.assertFalse(address.isUnresolved());
+            Assert.assertTrue(address.getAddress() instanceof java.net.Inet4Address);
+            Assert.assertEquals("ok", get(client, "http://ipv4only-proxy.test:1/"));
+        } finally {
+            proxy.close();
+        }
+    }
+
+    @Test
+    public void httpProxyIpv6OnlyAddressFailsWhenIpv4Only() throws Exception {
         ServerSocket proxy = startIpv6ServerOrSkip();
         try {
             Map<String, Object> map = runtime(true);
             map.put("httpProxy", "http://[::1]:" + proxy.getLocalPort());
-            OkHttpClient client = proxiedClient(map);
-            Assert.assertSame(Dns.SYSTEM, client.dns());
-            Assert.assertEquals("ok", get(client, "http://ipv4only-proxy.test:1/"));
+            try {
+                proxiedClient(map);
+                Assert.fail("expected IPv6-only HTTP proxy to be refused");
+            } catch (TeaException e) {
+                Assert.assertTrue(messages(e), messages(e).contains("ipv4Only is enabled"));
+            }
+        } finally {
+            proxy.close();
+        }
+    }
+
+    @Test
+    public void socks5ProxyHopIsPinnedToIpv4WhenIpv4Only() throws Exception {
+        List<String> targets = Collections.synchronizedList(new ArrayList<String>());
+        ServerSocket socks = startSocks5Server(targets);
+        try {
+            Map<String, Object> ipv4 = runtime(true);
+            ipv4.put("socks5Proxy", "socks5://127.0.0.1:" + socks.getLocalPort());
+            OkHttpClient client = proxiedClient(ipv4);
+            Assert.assertTrue(client.socketFactory() instanceof Ipv4OnlySocketFactory);
+            Assert.assertEquals("ok", get(client, "http://localhost:1/"));
+            Assert.assertEquals(Collections.singletonList("ipv4:127.0.0.1"), targets);
+        } finally {
+            socks.close();
+        }
+    }
+
+    @Test
+    public void socks5ProxyIpv6OnlyAddressFailsWhenIpv4Only() throws Exception {
+        ServerSocket proxy = startIpv6ServerOrSkip();
+        try {
+            Map<String, Object> map = runtime(true);
+            map.put("socks5Proxy", "socks5://[::1]:" + proxy.getLocalPort());
+            try {
+                proxiedClient(map);
+                Assert.fail("expected IPv6-only SOCKS proxy to be refused");
+            } catch (TeaException e) {
+                Assert.assertTrue(messages(e), messages(e).contains("ipv4Only is enabled"));
+            }
         } finally {
             proxy.close();
         }

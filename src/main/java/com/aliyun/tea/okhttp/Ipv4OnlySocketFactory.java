@@ -14,8 +14,8 @@ import java.net.SocketAddress;
  * IPv6 literals in the URL bypass {@link Ipv4OnlyDns}, so the destination is checked again on connect.
  * <p>
  * With a SOCKS proxy the sockets tunnel through it: OkHttp then resolves the target with
- * {@link Ipv4OnlyDns} and only an IPv4 address is handed to the proxy. The proxy address
- * itself is not subject to ipv4Only.
+ * {@link Ipv4OnlyDns} and only an IPv4 address is handed to the proxy. The SOCKS proxy
+ * host must already be resolved to IPv4 by the caller.
  */
 public class Ipv4OnlySocketFactory extends SocketFactory {
     public static final Ipv4OnlySocketFactory INSTANCE = new Ipv4OnlySocketFactory(Proxy.NO_PROXY);
