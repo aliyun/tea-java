@@ -223,6 +223,51 @@ public class OkHttpClientBuilder {
         }
     }
 
+    /**
+     * Must be applied after {@link #proxy(Map)}.
+     * When enabled, every SDK Client hop (direct or to a proxy) uses IPv4 only.
+     * An HTTP/SOCKS proxy still resolves the service target itself.
+     */
+    public OkHttpClientBuilder ipv4Only(Map<String, Object> map) {
+        if (!Boolean.parseBoolean(String.valueOf(map.get("ipv4Only")))) {
+            return this;
+        }
+        try {
+            if (null != map.get("httpProxy") || null != map.get("httpsProxy")) {
+                Object urlString = null == map.get("httpProxy") ? map.get("httpsProxy") : map.get("httpProxy");
+                URL url = new URL(String.valueOf(urlString));
+                InetSocketAddress proxyAddress = new InetSocketAddress(resolveProxyToIpv4(url.getHost()), url.getPort());
+                this.builder.proxy(new Proxy(Proxy.Type.HTTP, proxyAddress))
+                        .dns(Ipv4OnlyDns.INSTANCE)
+                        .socketFactory(Ipv4OnlySocketFactory.INSTANCE);
+                return this;
+            }
+            if (null == map.get("socks5Proxy")) {
+                this.builder.dns(Ipv4OnlyDns.INSTANCE).socketFactory(Ipv4OnlySocketFactory.INSTANCE);
+                return this;
+            }
+            // OkHttp hands SOCKS proxies the unresolved host name, so the proxy is moved into the
+            // socket factory and OkHttp resolves the target with Ipv4OnlyDns as for a direct route.
+            // The SOCKS proxy host is also pinned to IPv4.
+            URI url = new URI(String.valueOf(map.get("socks5Proxy")));
+            Proxy socks = new Proxy(Proxy.Type.SOCKS,
+                    new InetSocketAddress(resolveProxyToIpv4(url.getHost()), url.getPort()));
+            this.builder.proxy(Proxy.NO_PROXY).dns(Ipv4OnlyDns.INSTANCE).socketFactory(new Ipv4OnlySocketFactory(socks));
+        } catch (Exception e) {
+            throw new TeaException(e.getMessage(), e);
+        }
+        return this;
+    }
+
+    /**
+     * The returned address carries no host name: the JDK SOCKS implementation connects to
+     * {@code getHostString()} and would otherwise re-resolve the name, possibly to IPv6.
+     */
+    static InetAddress resolveProxyToIpv4(String host) throws UnknownHostException {
+        List<InetAddress> addresses = Ipv4OnlyDns.INSTANCE.lookup(host);
+        return InetAddress.getByAddress(addresses.get(0).getAddress());
+    }
+
     public OkHttpClient buildOkHttpClient() {
         return this.builder.build();
     }
