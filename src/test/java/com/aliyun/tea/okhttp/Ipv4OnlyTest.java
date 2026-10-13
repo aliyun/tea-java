@@ -373,6 +373,41 @@ public class Ipv4OnlyTest {
     }
 
     @Test
+    public void proxyHostNameIsPinnedToIpv4LiteralWhenIpv4Only() throws Exception {
+        InetAddress resolved = OkHttpClientBuilder.resolveProxyToIpv4("localhost");
+        Assert.assertTrue(resolved instanceof java.net.Inet4Address);
+        Assert.assertEquals(resolved.getHostAddress(), new InetSocketAddress(resolved, 1).getHostString());
+
+        List<String> targets = Collections.synchronizedList(new ArrayList<String>());
+        ServerSocket socks = startSocks5Server(targets);
+        try {
+            Map<String, Object> ipv4 = runtime(true);
+            ipv4.put("socks5Proxy", "socks5://localhost:" + socks.getLocalPort());
+            OkHttpClient client = proxiedClient(ipv4);
+            java.lang.reflect.Field field = Ipv4OnlySocketFactory.class.getDeclaredField("proxy");
+            field.setAccessible(true);
+            InetSocketAddress address = (InetSocketAddress) ((Proxy) field.get(client.socketFactory())).address();
+            Assert.assertEquals("127.0.0.1", address.getHostString());
+            Assert.assertEquals("ok", get(client, "http://localhost:1/"));
+            Assert.assertEquals(Collections.singletonList("ipv4:127.0.0.1"), targets);
+        } finally {
+            socks.close();
+        }
+
+        ServerSocket proxy = startServer(V4);
+        try {
+            Map<String, Object> map = runtime(true);
+            map.put("httpProxy", "http://localhost:" + proxy.getLocalPort());
+            OkHttpClient client = proxiedClient(map);
+            InetSocketAddress address = (InetSocketAddress) client.proxy().address();
+            Assert.assertEquals("127.0.0.1", address.getHostString());
+            Assert.assertEquals("ok", get(client, "http://ipv4only-proxy.test:1/"));
+        } finally {
+            proxy.close();
+        }
+    }
+
+    @Test
     public void socks5ProxyIpv6OnlyAddressFailsWhenIpv4Only() throws Exception {
         ServerSocket proxy = startIpv6ServerOrSkip();
         try {

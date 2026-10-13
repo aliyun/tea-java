@@ -259,9 +259,13 @@ public class OkHttpClientBuilder {
         return this;
     }
 
+    /**
+     * The returned address carries no host name: the JDK SOCKS implementation connects to
+     * {@code getHostString()} and would otherwise re-resolve the name, possibly to IPv6.
+     */
     static InetAddress resolveProxyToIpv4(String host) throws UnknownHostException {
         List<InetAddress> addresses = Ipv4OnlyDns.INSTANCE.lookup(host);
-        return addresses.get(0);
+        return InetAddress.getByAddress(addresses.get(0).getAddress());
     }
 
     public OkHttpClient buildOkHttpClient() {
