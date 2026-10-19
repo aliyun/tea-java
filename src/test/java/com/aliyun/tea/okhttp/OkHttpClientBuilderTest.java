@@ -11,14 +11,35 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactorySpi;
+import javax.net.ssl.ManagerFactoryParameters;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.KeyStoreSpi;
+import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
+import java.security.Security;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -380,5 +401,177 @@ public class OkHttpClientBuilderTest {
         Assert.assertTrue(client.protocols().contains(Protocol.HTTP_1_1));
         // HTTP_1_0 在 OkHttp 中已不支持
         Assert.assertFalse(client.protocols().contains(Protocol.HTTP_1_0));
+
+        map.clear();
+        map.put("disableHttp2", new Object() {
+            @Override
+            public String toString() {
+                throw new IllegalStateException("bad flag");
+            }
+        });
+        client = new OkHttpClientBuilder().protocols(map).buildOkHttpClient();
+        Assert.assertEquals(2, client.protocols().size());
+    }
+
+    @Test
+    public void splitPemEdgeTest() throws Exception {
+        Method split = OkHttpClientBuilder.class.getDeclaredMethod("splitPemCertificates", String.class);
+        split.setAccessible(true);
+        OkHttpClientBuilder builder = new OkHttpClientBuilder();
+        List<?> empty = (List<?>) split.invoke(builder, new Object[]{null});
+        Assert.assertTrue(empty.isEmpty());
+
+        List<?> beginOnly = (List<?>) split.invoke(builder, "-----BEGIN CERTIFICATE-----\nNOT-AN-END");
+        Assert.assertEquals(1, beginOnly.size());
+    }
+
+    @Test
+    public void certificateKeyWithoutCertTest() throws Exception {
+        map.clear();
+        map.put("ca", createEphemeralSelfSignedCaPem("tea-java-key-only.local"));
+        map.put("key", "changeit");
+        map.put("cert", "");
+        Assert.assertNotNull(new OkHttpClientBuilder().certificate(map).buildOkHttpClient().sslSocketFactory());
+
+        map.put("key", "");
+        map.put("cert", "cert-without-key");
+        Assert.assertNotNull(new OkHttpClientBuilder().certificate(map).buildOkHttpClient().sslSocketFactory());
+    }
+
+    @Test
+    public void clientCertificateKeyStoreTest() throws Exception {
+        Provider provider = new TestKeyStoreProvider();
+        Security.insertProviderAt(provider, 1);
+        try {
+            map.clear();
+            map.put("ca", createEphemeralSelfSignedCaPem("tea-java-client-cert.local"));
+            map.put("key", "changeit");
+            map.put("cert", "client-keystore-bytes");
+            OkHttpClient client = new OkHttpClientBuilder().certificate(map).buildOkHttpClient();
+            Assert.assertNotNull(client.sslSocketFactory());
+        } finally {
+            Security.removeProvider(provider.getName());
+        }
+    }
+
+    @Test
+    public void socksProxyWithoutUserInfoTest() {
+        map.clear();
+        map.put("socks5Proxy", "socks5://127.0.0.1:1080");
+        OkHttpClient client = new OkHttpClientBuilder().proxy(map).proxyAuthenticator(map).buildOkHttpClient();
+        Assert.assertNotNull(client);
+    }
+
+    public static class TestKeyStoreProvider extends Provider {
+        public TestKeyStoreProvider() {
+            super("TeaJavaTestKeyStore", 1.0d, "unit test keystore");
+            String type = KeyStore.getDefaultType();
+            put("KeyStore." + type, AcceptingKeyStoreSpi.class.getName());
+            put("KeyStore.PKCS12", AcceptingKeyStoreSpi.class.getName());
+            put("KeyStore.JKS", AcceptingKeyStoreSpi.class.getName());
+            put("KeyManagerFactory.X.509", AcceptingKeyManagerFactorySpi.class.getName());
+        }
+    }
+
+    public static class AcceptingKeyStoreSpi extends KeyStoreSpi {
+        private final Map<String, Certificate> certificates = new LinkedHashMap<String, Certificate>();
+
+        @Override
+        public Key engineGetKey(String alias, char[] password) throws NoSuchAlgorithmException, UnrecoverableKeyException {
+            return null;
+        }
+
+        @Override
+        public Certificate[] engineGetCertificateChain(String alias) {
+            return null;
+        }
+
+        @Override
+        public Certificate engineGetCertificate(String alias) {
+            return certificates.get(alias);
+        }
+
+        @Override
+        public Date engineGetCreationDate(String alias) {
+            return certificates.containsKey(alias) ? new Date(0L) : null;
+        }
+
+        @Override
+        public void engineSetKeyEntry(String alias, Key key, char[] password, Certificate[] chain) {
+        }
+
+        @Override
+        public void engineSetKeyEntry(String alias, byte[] key, Certificate[] chain) {
+        }
+
+        @Override
+        public void engineSetCertificateEntry(String alias, Certificate cert) {
+            certificates.put(alias, cert);
+        }
+
+        @Override
+        public void engineDeleteEntry(String alias) {
+            certificates.remove(alias);
+        }
+
+        @Override
+        public Enumeration<String> engineAliases() {
+            return Collections.enumeration(certificates.keySet());
+        }
+
+        @Override
+        public boolean engineContainsAlias(String alias) {
+            return certificates.containsKey(alias);
+        }
+
+        @Override
+        public int engineSize() {
+            return certificates.size();
+        }
+
+        @Override
+        public boolean engineIsKeyEntry(String alias) {
+            return false;
+        }
+
+        @Override
+        public boolean engineIsCertificateEntry(String alias) {
+            return certificates.containsKey(alias);
+        }
+
+        @Override
+        public String engineGetCertificateAlias(Certificate cert) {
+            for (Map.Entry<String, Certificate> entry : certificates.entrySet()) {
+                if (entry.getValue().equals(cert)) {
+                    return entry.getKey();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public void engineStore(OutputStream stream, char[] password) throws IOException, NoSuchAlgorithmException, CertificateException {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void engineLoad(InputStream stream, char[] password) {
+            certificates.clear();
+        }
+    }
+
+    public static class AcceptingKeyManagerFactorySpi extends KeyManagerFactorySpi {
+        @Override
+        protected void engineInit(KeyStore ks, char[] password) throws KeyStoreException, NoSuchAlgorithmException, UnrecoverableKeyException {
+        }
+
+        @Override
+        protected void engineInit(ManagerFactoryParameters spec) throws InvalidAlgorithmParameterException {
+        }
+
+        @Override
+        protected KeyManager[] engineGetKeyManagers() {
+            return new KeyManager[0];
+        }
     }
 }

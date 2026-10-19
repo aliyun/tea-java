@@ -7,8 +7,10 @@ import org.junit.Test;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -421,6 +423,12 @@ public class TeaModelTest {
         arg = 2;
         result = parseNumber.invoke(teaModel, arg, Long.class);
         Assert.assertEquals(2, result);
+
+        arg = 2.5D;
+        result = parseNumber.invoke(teaModel, arg, Float.class);
+        Assert.assertEquals(2.5F, result);
+        result = parseNumber.invoke(teaModel, arg, float.class);
+        Assert.assertEquals(2.5F, result);
     }
 
     @Test
@@ -813,5 +821,105 @@ public class TeaModelTest {
         } catch (NumberFormatException ignored) {
         }
         Assert.assertEquals(1L, TeaModel.confirmType(Long.class, 1.5F));
+        Assert.assertEquals(2L, TeaModel.confirmType(Long.class, 2.2D));
+        Assert.assertEquals(Boolean.TRUE, TeaModel.confirmType(Long.class, Boolean.TRUE));
+        Assert.assertEquals(1, TeaModel.confirmType(Integer.class, 1.8D));
+        Assert.assertEquals(2, TeaModel.confirmType(Boolean.class, 2));
+        Assert.assertEquals(Boolean.TRUE, TeaModel.confirmType(Double.class, Boolean.TRUE));
+    }
+
+    public static class LengthBoundModel extends TeaModel {
+        @Validation(maxLength = 5)
+        public String maxOnly = "abc";
+        @Validation(minLength = 1)
+        public String minOnly = "abcd";
+        @Validation(pattern = "ab+")
+        public String patternOk = "ab";
+        @Validation
+        public String defaults = "x";
+        @Validation(pattern = "ab")
+        public List<String> names = new ArrayList<String>();
+    }
+
+    public static class PrivateCtorModel extends TeaModel {
+        public String name;
+
+        private PrivateCtorModel() {
+        }
+    }
+
+    public static class PrivateCtorHolder extends TeaModel {
+        public PrivateCtorModel nested;
+        public List<PrivateCtorModel> items;
+    }
+
+    public static class WildcardHolder extends TeaModel {
+        public Map<String, ?> wildMap;
+        public List<?> wildList;
+    }
+
+    @Test
+    public void validationBranchTest() {
+        LengthBoundModel model = new LengthBoundModel();
+        model.names.add("ab");
+        model.validate();
+
+        model.names = new ArrayList<String>();
+        model.validate();
+    }
+
+    @Test
+    public void buildObjectBranchTest() throws Exception {
+        Method buildObject = TeaModel.class.getDeclaredMethod("buildObject", Object.class, Class.class, Type.class, String.class);
+        buildObject.setAccessible(true);
+
+        Map<String, Object> value = new HashMap<String, Object>();
+        value.put("a", null);
+        value.put("b", "text");
+        Object built = buildObject.invoke(null, value, Map.class, null, "wildMap");
+        Assert.assertNull(((Map) built).get("a"));
+        Assert.assertEquals("text", ((Map) built).get("b"));
+
+        Field wildMap = WildcardHolder.class.getField("wildMap");
+        Type wildcard = ((java.lang.reflect.ParameterizedType) wildMap.getGenericType()).getActualTypeArguments()[1];
+        built = buildObject.invoke(null, value, Map.class, wildcard, "wildMap");
+        Assert.assertEquals("text", ((Map) built).get("b"));
+
+        Object confirmed = buildObject.invoke(null, "text", Map.class, null, "wildMap");
+        Assert.assertEquals("text", confirmed);
+
+        List<Object> list = new ArrayList<Object>();
+        list.add(null);
+        list.add("text");
+        Field wildList = WildcardHolder.class.getField("wildList");
+        Type listWildcard = ((java.lang.reflect.ParameterizedType) wildList.getGenericType()).getActualTypeArguments()[0];
+        built = buildObject.invoke(null, list, List.class, null, "wildList");
+        Assert.assertNull(((List) built).get(0));
+        built = buildObject.invoke(null, list, List.class, listWildcard, "wildList");
+        Assert.assertEquals("text", ((List) built).get(1));
+        Assert.assertEquals("text", buildObject.invoke(null, "text", List.class, null, "wildList"));
+
+        Map<String, Object> badNested = new HashMap<String, Object>();
+        badNested.put("teaModel", "not-a-model");
+        try {
+            TeaModel.toModel(badNested, new SubModel());
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertNotNull(e.getCause());
+        }
+
+        Map<String, Object> holder = new HashMap<String, Object>();
+        Map<String, Object> nested = new HashMap<String, Object>();
+        nested.put("name", "n");
+        holder.put("nested", nested);
+        List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
+        items.add(nested);
+        holder.put("items", items);
+        try {
+            TeaModel.toModel(holder, new PrivateCtorHolder());
+            Assert.fail();
+        } catch (TeaException e) {
+            Assert.assertNotNull(e.getCause());
+        }
     }
 }

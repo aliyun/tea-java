@@ -317,6 +317,10 @@ public class TeaTest {
 
     @Test
     public void sleepInterruptedTest() {
+        // JaCoCo offline mode locks its exec file the first time a probe runs.
+        // FileChannel.lock fails with FileLockInterruptionException if this thread
+        // is already interrupted, so initialize that runtime before interrupting.
+        Tea.toWriteable();
         Thread.currentThread().interrupt();
         try {
             Tea.sleep(1000);

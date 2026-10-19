@@ -3,6 +3,11 @@ package com.aliyun.tea.logging;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Map;
+
 public class LoggerTest {
 
     @Test
@@ -177,5 +182,140 @@ public class LoggerTest {
         logger.error("error with throwable: {}", "y", new RuntimeException("error-ex"));
         logger.verbose("empty-args");
         logger.verbose("format-only", new Object[0]);
+    }
+
+    @Test
+    public void clientLoggerDisabledBranchesTest() throws Exception {
+        String previous = System.getProperty(DefaultLogger.SDK_LOG_LEVEL);
+        try {
+            System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "5");
+            ClientLogger disabled = new ClientLogger(LoggerTest.class);
+            disabled.info("info");
+            disabled.info("info {}", "a");
+            disabled.warning("warn");
+            disabled.warning("warn {}", "a");
+            disabled.error("error");
+            disabled.error("error {}", "a");
+
+            System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "verbose");
+            ClientLogger verbose = new ClientLogger(LoggerTest.class);
+            verbose.verbose("no-args", new Object[0]);
+
+            Method performLogging = ClientLogger.class.getDeclaredMethod(
+                    "performLogging", LogLevel.class, boolean.class, String.class, Object[].class);
+            performLogging.setAccessible(true);
+            performLogging.invoke(verbose, LogLevel.NOT_SET, false, "unused", new Object[]{"a"});
+        } finally {
+            restoreLogProperty(previous);
+        }
+    }
+
+    @Test
+    public void traceLevelBranchTest() throws Exception {
+        String previous = System.getProperty(DefaultLogger.SDK_LOG_LEVEL);
+        Field numeric = LogLevel.class.getDeclaredField("numericValue");
+        int original = LogLevel.VERBOSE.getLogLevel();
+        boolean mutated = setFinalInt(numeric, LogLevel.VERBOSE, 10);
+        try {
+            System.setProperty(DefaultLogger.SDK_LOG_LEVEL, "warn");
+            DefaultLogger logger = new DefaultLogger(LoggerTest.class);
+            if (!mutated && !setFinalBoolean(logger, "isTraceEnabled", true)) {
+                return;
+            }
+            Assert.assertTrue(logger.isTraceEnabled());
+            logger.trace("covered");
+            logger.trace("covered {}", "arg");
+        } finally {
+            if (mutated) {
+                setFinalInt(numeric, LogLevel.VERBOSE, original);
+            }
+            restoreLogProperty(previous);
+        }
+    }
+
+    @Test
+    public void logLevelFromEnvironmentTest() throws Exception {
+        String key = DefaultLogger.SDK_LOG_LEVEL;
+        String previous = System.getProperty(key);
+        boolean changed = setEnv(key, "error");
+        try {
+            if (!changed || !"error".equals(System.getenv(key))) {
+                return;
+            }
+            DefaultLogger logger = new DefaultLogger(LoggerTest.class);
+            Assert.assertTrue(logger.isErrorEnabled());
+            Assert.assertFalse(logger.isWarnEnabled());
+            Assert.assertFalse(logger.isInfoEnabled());
+        } finally {
+            if (changed) {
+                setEnv(key, null);
+            }
+            restoreLogProperty(previous);
+        }
+    }
+
+    private static void restoreLogProperty(String previous) {
+        if (previous == null) {
+            System.clearProperty(DefaultLogger.SDK_LOG_LEVEL);
+        } else {
+            System.setProperty(DefaultLogger.SDK_LOG_LEVEL, previous);
+        }
+    }
+
+    private static boolean setFinalInt(Field field, Object target, int value) {
+        try {
+            field.setAccessible(true);
+            Field modifiers = Field.class.getDeclaredField("modifiers");
+            modifiers.setAccessible(true);
+            modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+            field.setInt(target, value);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean setFinalBoolean(Object target, String name, boolean value) {
+        try {
+            Field field = target.getClass().getDeclaredField(name);
+            field.setAccessible(true);
+            Field modifiers = Field.class.getDeclaredField("modifiers");
+            modifiers.setAccessible(true);
+            modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+            field.setBoolean(target, value);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static boolean setEnv(String key, String value) {
+        try {
+            Class<?> processEnvironment = Class.forName("java.lang.ProcessEnvironment");
+            Field theEnvironment = processEnvironment.getDeclaredField("theEnvironment");
+            theEnvironment.setAccessible(true);
+            Map<String, String> env = (Map<String, String>) theEnvironment.get(null);
+            if (value == null) {
+                env.remove(key);
+            } else {
+                env.put(key, value);
+            }
+            try {
+                Field caseInsensitive = processEnvironment.getDeclaredField("theCaseInsensitiveEnvironment");
+                caseInsensitive.setAccessible(true);
+                Map<String, String> ci = (Map<String, String>) caseInsensitive.get(null);
+                if (value == null) {
+                    ci.remove(key);
+                } else {
+                    ci.put(key, value);
+                }
+            } catch (NoSuchFieldException ignored) {
+                // non-Windows JDKs do not expose the case-insensitive view
+            }
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 }
