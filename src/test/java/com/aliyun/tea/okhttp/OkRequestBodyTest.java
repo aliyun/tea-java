@@ -53,5 +53,9 @@ public class OkRequestBodyTest {
         request.body = new ByteArrayInputStream("tes".getBytes("UTF-8"));
         body = new OkRequestBody(request);
         Assert.assertEquals(3L, body.contentLength());
+
+        request.body = new ByteArrayInputStream(new byte[0]);
+        body = new OkRequestBody(request);
+        Assert.assertEquals(-1L, body.contentLength());
     }
 }
