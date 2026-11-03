@@ -20,7 +20,7 @@ public class ClientHelper {
 
     private static OkHttpClient creatClient(Map<String, Object> map) {
         OkHttpClientBuilder builder = new OkHttpClientBuilder();
-        builder = builder.protocols(map).connectTimeout(map).readTimeout(map).connectionPool(map).certificate(map).proxy(map).proxyAuthenticator(map);
+        builder = builder.protocols(map).connectTimeout(map).readTimeout(map).callTimeout(map).connectionPool(map).certificate(map).proxy(map).proxyAuthenticator(map).ipv4Only(map);
         return builder.buildOkHttpClient();
     }
 
@@ -39,6 +39,10 @@ public class ClientHelper {
                 (map.containsKey("socks5Proxy") && null != map.get("socks5Proxy") ? ":" + map.get("socks5Proxy") : "") +
                 (map.containsKey("connectTimeout") && null != map.get("connectTimeout") ? ":" + map.get("connectTimeout") : "") +
                 (map.containsKey("readTimeout") && null != map.get("readTimeout") ? ":" + map.get("readTimeout") : "") +
-                (map.containsKey("ignoreSSL") && null != map.get("ignoreSSL") ? ":" + map.get("ignoreSSL") : "");
+                (map.containsKey("callTimeout") && null != map.get("callTimeout") ? ":" + map.get("callTimeout") : "") +
+                (map.containsKey("keepAliveDuration") && null != map.get("keepAliveDuration") ? ":" + map.get("keepAliveDuration") : "") +
+                (map.containsKey("maxIdleConns") && null != map.get("maxIdleConns") ? ":" + map.get("maxIdleConns") : "") +
+                (map.containsKey("ignoreSSL") && null != map.get("ignoreSSL") ? ":" + map.get("ignoreSSL") : "") +
+                (Boolean.parseBoolean(String.valueOf(map.get("ipv4Only"))) ? ":ipv4Only" : "");
     }
 }
