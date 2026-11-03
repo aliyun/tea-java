@@ -1,3 +1,6 @@
+2026-11-03 Version: 1.4.3
+1. Support ipv4Only option to restrict SDK HTTP connections to IPv4 only.
+
 2026-06-02 Version: 1.4.2
 1. Support callTimeout for the whole request.
 2. Add detail field to TeaException.
