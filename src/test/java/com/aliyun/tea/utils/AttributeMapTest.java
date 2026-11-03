@@ -51,6 +51,10 @@ public class AttributeMapTest {
         Assert.assertEquals("test2", copyMap.get(Option.B));
         Assert.assertEquals("test3", copyMap.get(Option.C).get("test"));
         Assert.assertEquals(3, copyMap.size());
+
+        attribute.put(Option.A, null);
+        AttributeMap copiedNull = attribute.copy();
+        Assert.assertNull(copiedNull.get(Option.A));
     }
 
     @Test

@@ -16,9 +16,11 @@ public class TeaExceptionTest {
     public void toTeaExceptionTest() {
         Map<String, Object> map = new HashMap<>();
         map.put("code", "test");
+        map.put("detail", "test detail");
         map.put("message", "test");
         TeaException exception = new TeaException(map);
         Assert.assertEquals("test", exception.getCode());
+        Assert.assertEquals("test detail", exception.getDetail());
         Assert.assertEquals("test", exception.getMessage());
         Assert.assertNull(exception.getStatusCode());
 
@@ -79,6 +81,7 @@ public class TeaExceptionTest {
     public void baseTest() {
         TeaException exception = new TeaException("test massage", new RuntimeException("runtime exception"));
         Assert.assertNull(exception.getCode());
+        Assert.assertNull(exception.getDetail());
         Assert.assertNull(exception.getData());
         Assert.assertNull(exception.getStatusCode());
         Assert.assertEquals("test massage", exception.getMessage());

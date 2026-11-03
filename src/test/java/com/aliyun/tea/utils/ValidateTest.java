@@ -6,6 +6,7 @@ import org.junit.Test;
 public class ValidateTest {
     @Test
     public void isTrueTest() {
+        Validate.isTrue(true, "message: %s", "test");
         try {
             Validate.isTrue(false, "message: %s", "test");
         } catch (Exception e) {
@@ -27,6 +28,7 @@ public class ValidateTest {
 
     @Test
     public void isNullTest() {
+        Validate.isNull(null, "message: %s", "test");
         try {
             Validate.isNull("not null", "message: %s", "test");
         } catch (Exception e) {

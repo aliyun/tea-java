@@ -45,6 +45,32 @@ public class ClientHelperTest {
         map.put("ignoreSSL", false);
         str = (String) getClientKey.invoke(ClientHelper.class, "0:0:0:0:0:0:0:1", 0, map);
         Assert.assertEquals("0:0:0:0:0:0:0:1:0:http://127.0.0.1:80:https://127.0.0.1:80:socks5://user:password@127.0.0.1:1080:1000:2000:false", str);
+
+        // callTimeout 应参与组装 client 缓存 key，位于 readTimeout 之后、ignoreSSL 之前
+        map.put("callTimeout", 3000);
+        str = (String) getClientKey.invoke(ClientHelper.class, "0:0:0:0:0:0:0:1", 0, map);
+        Assert.assertEquals("0:0:0:0:0:0:0:1:0:http://127.0.0.1:80:https://127.0.0.1:80:socks5://user:password@127.0.0.1:1080:1000:2000:3000:false", str);
+
+        // callTimeout 为 null 时不参与 key 组装
+        map.put("callTimeout", null);
+        str = (String) getClientKey.invoke(ClientHelper.class, "0:0:0:0:0:0:0:1", 0, map);
+        Assert.assertEquals("0:0:0:0:0:0:0:1:0:http://127.0.0.1:80:https://127.0.0.1:80:socks5://user:password@127.0.0.1:1080:1000:2000:false", str);
+
+        map.put("keepAliveDuration", 10000);
+        map.put("maxIdleConns", 5);
+        str = (String) getClientKey.invoke(ClientHelper.class, "0:0:0:0:0:0:0:1", 0, map);
+        Assert.assertEquals("0:0:0:0:0:0:0:1:0:http://127.0.0.1:80:https://127.0.0.1:80:socks5://user:password@127.0.0.1:1080:1000:2000:10000:5:false", str);
+
+        // key present but value null must not be appended
+        Map<String, Object> nullValues = new HashMap<String, Object>();
+        nullValues.put("socks5Proxy", null);
+        nullValues.put("connectTimeout", null);
+        nullValues.put("readTimeout", null);
+        nullValues.put("keepAliveDuration", null);
+        nullValues.put("maxIdleConns", null);
+        nullValues.put("ignoreSSL", null);
+        str = (String) getClientKey.invoke(ClientHelper.class, "host", 1, nullValues);
+        Assert.assertEquals("host:1", str);
     }
 
     @Test
